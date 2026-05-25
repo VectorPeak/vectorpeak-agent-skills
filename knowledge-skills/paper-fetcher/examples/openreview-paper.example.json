@@ -1,0 +1,14 @@
+{
+  "input": {
+    "title": "Agent Harness Engineering: A Survey",
+    "field": "Agent",
+    "openreview_id": "eONq7FdiHa",
+    "source_url": "https://openreview.net/pdf?id=eONq7FdiHa",
+    "target_dir": "<research-folder>"
+  },
+  "expected": {
+    "final_name": "Agent_Agent Harness Engineering- A Survey.pdf",
+    "zotero_identifier": "not available unless arXiv ID or DOI is found",
+    "zotero_action": "Use OpenReview ID as a source reference"
+  }
+}
