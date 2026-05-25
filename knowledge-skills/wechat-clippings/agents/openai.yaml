@@ -1,0 +1,4 @@
+interface:
+  display_name: "WeChat Clippings"
+  short_description: "Clip WeChat public-account articles."
+  default_prompt: "Use $wechat-clippings to fetch selected WeChat Official Account articles through TikHub and save them as Obsidian-style Markdown clippings."

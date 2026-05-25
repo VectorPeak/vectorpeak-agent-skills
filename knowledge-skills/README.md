@@ -13,6 +13,7 @@
   <a href="./"><img src="https://img.shields.io/badge/category-knowledge--skills-purple" alt="knowledge skills"></a>
   <a href="paper-fetcher/"><img src="https://img.shields.io/badge/paper--fetcher-research-orange" alt="paper fetcher"></a>
   <a href="zhihu-clippings/"><img src="https://img.shields.io/badge/zhihu--clippings-notes-green" alt="zhihu clippings"></a>
+  <a href="wechat-clippings/"><img src="https://img.shields.io/badge/wechat--clippings-notes-green" alt="wechat clippings"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
 </p>
 
@@ -44,6 +45,7 @@ raw input  ->  structured thinking  ->  reusable skill  ->  durable knowledge wo
 knowledge-skills/
 ├── paper-fetcher/       # 论文识别、官方 PDF 下载、重命名与 Zotero identifier 辅助
 ├── zhihu-clippings/     # 知乎文章定位、正文补全、公式图片表格保留与 Obsidian Markdown 剪藏
+├── wechat-clippings/    # 微信公众号文章定位、TikHub 正文抓取、页面噪声清理与 Markdown 剪藏
 └── README.md            # 知识类技能目录说明
 ```
 
@@ -56,6 +58,10 @@ knowledge-skills/
 ### [`zhihu-clippings/`](zhihu-clippings/)
 
 用于知乎文章剪藏：先用知乎开放平台做作者、标题和 article_id 定位，再用 TikHub 补全完整正文，保留公式、图片、表格和代码块，按自定义范围输出 Obsidian 友好的 Markdown 文件
+
+### [`wechat-clippings/`](wechat-clippings/)
+
+用于微信公众号文章剪藏：从公众号名、文章链接、标题或截图 OCR 定位文章，通过 TikHub 获取正文，清理微信页面尾巴、二维码引流、空列表项和格式噪声，输出 Obsidian 友好的 Markdown 文件
 
 ## 适合沉淀的技能
 
