@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ContractReview",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contract_type",
+    "summary",
+    "parties",
+    "key_terms",
+    "red_flags",
+    "warnings",
+    "protections",
+    "missing_protections",
+    "fairness_score",
+    "fairness_grade",
+    "negotiation_points",
+    "lawyer_recommended",
+    "disclaimer"
+  ],
+  "properties": {
+    "contract_type": {
+      "type": "string",
+      "enum": ["lease", "nda", "employment", "freelance", "saas_tos", "loan", "purchase", "other", "unknown"]
+    },
+    "summary": {"type": "string", "minLength": 1},
+    "parties": {"type": "array", "items": {"type": "string"}},
+    "key_terms": {"type": "array", "items": {"type": "string"}},
+    "red_flags": {"type": "array", "items": {"$ref": "#/$defs/issue"}},
+    "warnings": {"type": "array", "items": {"$ref": "#/$defs/issue"}},
+    "protections": {"type": "array", "items": {"$ref": "#/$defs/protection"}},
+    "missing_protections": {"type": "array", "items": {"type": "string"}},
+    "fairness_score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "fairness_grade": {"type": "string", "enum": ["A+", "A", "B+", "B", "C+", "C", "D", "F"]},
+    "negotiation_points": {"type": "array", "items": {"type": "string"}},
+    "lawyer_recommended": {"type": "boolean"},
+    "disclaimer": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "issue": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "severity", "clause", "quote", "explanation", "suggestion"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "severity": {"type": "string", "enum": ["red", "yellow"]},
+        "clause": {"type": "string", "minLength": 1},
+        "quote": {"type": "string"},
+        "explanation": {"type": "string", "minLength": 1},
+        "suggestion": {"type": "string", "minLength": 1}
+      }
+    },
+    "protection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "clause", "quote", "explanation"],
+      "properties": {
+        "title": {"type": "string", "minLength": 1},
+        "clause": {"type": "string", "minLength": 1},
+        "quote": {"type": "string"},
+        "explanation": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
