@@ -117,15 +117,6 @@ paper-fetcher/
 以后都默认保存到：<research-folder>
 ```
 
-如果已经知道更多信息，可以一起给：
-
-```text
-arXiv ID：<arxiv-id>
-DOI：<doi>
-OpenReview ID：<openreview-id>
-研究领域前缀：RAG / Agent / SFT / RL / DL_Frameworks / Other
-```
-
 你最终应该得到：
 
 ```text
