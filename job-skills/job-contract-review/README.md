@@ -75,15 +75,11 @@ Job Contract Review 解决的是“签署前审查”这一步。它不是替代
 
 ## 快速上手
 
-安装这个 skill 时，把 `job-contract-review/` 整个目录复制到本地 Agent/Codex 的 skills 目录中。目录里至少要保留 `SKILL.md`、`references/`、`schemas/` 和 `scripts/`
+### 1. 安装
 
-```text
-job-contract-review/
-├── SKILL.md
-├── references/
-├── schemas/
-└── scripts/
-```
+把 `job-contract-review/` 整个目录复制到本地 Agent/Codex 的 skills 目录中。目录里至少要保留 `SKILL.md`、`references/`、`schemas/` 和 `scripts/`
+
+### 2. 提供合同材料
 
 给 Agent 的输入可以直接写成：
 
@@ -92,6 +88,8 @@ job-contract-review/
 <上传文件或粘贴合同文本>
 我的视角：<员工 / 候选人 / 承包方 / 自由职业者>
 ```
+
+### 3. 获取审查报告
 
 你最终应该得到：
 
@@ -106,6 +104,8 @@ job-contract-review/
 是否建议律师审查
 AI 辅助审查免责声明
 ```
+
+三步完成：安装 skill，交给 Agent 合同材料，拿到结构化审查报告
 
 ## 目录结构
 
