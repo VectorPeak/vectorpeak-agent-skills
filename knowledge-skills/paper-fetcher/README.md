@@ -36,12 +36,11 @@ Paper Fetcher 解决的是“论文入库”这一步。它不是简单下载器
 ## Skill 处理流程
 
 ```text
-paper clue
-├── user input                    # 标题、截图文字、URL、摘要片段、保存目录
-├── agent verification            # 识别论文、核验官方来源、提取 arXiv ID / DOI
-├── PDF download                  # 下载官方 PDF，不绕过 paywall 或访问控制
-├── scripts/paper_postprocess.py  # PDF 校验、移动、重命名、JSON 输出
-└── final report                  # 保存路径、文件大小、Zotero identifier、来源信息
+1. 输入论文线索       # 标题、截图文字、URL、摘要片段、保存目录
+2. 核验官方来源       # 识别论文，提取 arXiv ID、DOI 或 OpenReview ID
+3. 下载官方 PDF      # 使用官方来源，不绕过 paywall 或访问控制
+4. 运行后处理脚本     # 校验 PDF、移动文件、规范命名、输出 JSON
+5. 汇报入库结果       # 保存路径、文件大小、Zotero identifier、来源信息
 ```
 
 用户给 Agent 提供论文线索和保存目录：
