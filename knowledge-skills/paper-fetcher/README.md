@@ -48,8 +48,6 @@ paper-fetcher/
 ├── examples/
 │   ├── arxiv-paper.example.json     # arXiv 示例
 │   └── openreview-paper.example.json# OpenReview 示例
-└── tests/
-    └── test_paper_postprocess.py    # 离线测试
 ```
 
 ## 功能边界
@@ -109,10 +107,6 @@ Other
 }
 ```
 
-## 测试
+## 维护说明
 
-```bash
-python -m pytest tests
-```
-
-`tests/` 文件夹用于验证脚本行为是否稳定，覆盖文件名清洗、字段校验、重复文件名处理、PDF 文件头校验、dry-run 行为和 identifier 优先级。它不是运行 skill 时必需的输入资料，但对公开发布很重要，因为别人可以用它确认脚本没有被后续修改破坏
+公开版只保留使用所需的 skill、脚本和示例。脚本测试可以放在本地维护环境中运行，不需要作为最终使用包的一部分发布
