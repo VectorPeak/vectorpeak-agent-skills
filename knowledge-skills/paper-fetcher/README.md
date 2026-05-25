@@ -1,35 +1,69 @@
-# Paper Fetcher
+<h1 align="center">
+  Paper Fetcher | 论文抓取与入库技能
+</h1>
 
-Paper Fetcher is an agent skill for research paper intake. It helps an agent identify a paper from a title, screenshot text, URL, or excerpt; prefer official sources; download a verified PDF; rename it consistently; and report an arXiv ID or DOI for Zotero's Add Item by Identifier flow.
+<p align="center">
+  Identify research papers, download verified official PDFs, rename them consistently, and report Zotero identifiers
+  <br>
+  用于论文识别、官方 PDF 下载、规范命名与 Zotero identifier 辅助的 Agent / Codex Skill
+</p>
 
-## Scope
+<p align="center">
+  <a href="../../README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
+  <a href="../"><img src="https://img.shields.io/badge/category-knowledge--skills-purple" alt="knowledge skills"></a>
+  <a href="./"><img src="https://img.shields.io/badge/paper--fetcher-research-orange" alt="paper fetcher"></a>
+  <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
+</p>
 
-This skill is intentionally conservative:
+<p align="center">
+  简体中文 | English later
+</p>
 
-- Prefer official PDF sources
-- Do not bypass paywalls or access controls
-- Do not write Zotero local database files
-- Do not store Zotero API credentials
-- Do not create hand-written Zotero metadata through the Web API
+```text
+paper clue  ->  official source  ->  verified PDF  ->  named archive  ->  Zotero identifier
+```
 
-## Folder Layout
+---
+
+## 简介
+
+`paper-fetcher` 是一个研究论文入库 skill。它帮助 Agent 从论文标题、截图文字、URL 或摘录中识别论文，优先核验官方来源，下载并验证 PDF，然后按研究领域前缀重命名，并输出 arXiv ID 或 DOI 供 Zotero 使用
+
+它不是通用爬虫，也不负责绕过付费墙。它的核心价值是把“找论文、验来源、存 PDF、给 Zotero identifier”这条流程做成可复用工作流
+
+## 为什么存在
+
+论文资料管理最容易乱在入口：同一篇论文可能来自 arXiv、OpenReview、会议官网、项目页或 GitHub README；如果不统一核验和命名，后续检索、引用和复盘都会变慢
+
+这个 skill 把论文入库拆成两部分：Agent 负责识别和判断，脚本负责确定性的文件校验、重命名和 JSON 输出
+
+## 核心结构
 
 ```text
 paper-fetcher/
-├── SKILL.md
-├── README.md
+├── SKILL.md                         # Agent 使用说明
+├── README.md                        # 人类阅读的公开说明
 ├── scripts/
-│   └── paper_postprocess.py
+│   └── paper_postprocess.py         # PDF 校验、重命名、JSON 输出
 ├── examples/
-│   ├── arxiv-paper.example.json
-│   └── openreview-paper.example.json
+│   ├── arxiv-paper.example.json     # arXiv 示例
+│   └── openreview-paper.example.json# OpenReview 示例
 └── tests/
-    └── test_paper_postprocess.py
+    └── test_paper_postprocess.py    # 离线测试
 ```
 
-## Postprocess CLI
+## 功能边界
 
-After the agent downloads a PDF, run:
+- 优先使用官方 PDF 来源
+- 不绕过 paywall 或访问控制
+- 不写 Zotero 本地数据库
+- 不保存 Zotero API 凭据
+- 不通过 Web API 手工伪造 Zotero metadata
+- 默认不生成 BibTeX，除非显式传入 `--bib`
+
+## 使用方式
+
+Agent 下载 PDF 后，运行后处理脚本：
 
 ```bash
 python scripts/paper_postprocess.py \
@@ -43,7 +77,7 @@ python scripts/paper_postprocess.py \
   --zotero
 ```
 
-Supported fields:
+支持的研究领域前缀：
 
 ```text
 RAG
@@ -54,11 +88,11 @@ DL_Frameworks
 Other
 ```
 
-Use `--dry-run` to preview the output path without moving or writing files.
+使用 `--dry-run` 可以只预览输出路径，不移动或写入文件
 
-## JSON Output
+## JSON 输出
 
-The script emits JSON by default:
+脚本默认输出 JSON，便于 Agent 或自动化工具继续处理：
 
 ```json
 {
@@ -75,10 +109,10 @@ The script emits JSON by default:
 }
 ```
 
-## Tests
+## 测试
 
 ```bash
 python -m pytest tests
 ```
 
-The tests are offline and cover filename sanitization, field validation, duplicate names, PDF header checks, dry-run behavior, and identifier priority.
+`tests/` 文件夹用于验证脚本行为是否稳定，覆盖文件名清洗、字段校验、重复文件名处理、PDF 文件头校验、dry-run 行为和 identifier 优先级。它不是运行 skill 时必需的输入资料，但对公开发布很重要，因为别人可以用它确认脚本没有被后续修改破坏

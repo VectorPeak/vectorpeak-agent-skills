@@ -1,16 +1,69 @@
-# Dev Skills
+<h1 align="center">
+  Dev Skills | 工程开发技能
+</h1>
 
-This folder stores reusable agent skills for software engineering work.
+<p align="center">
+  Reusable agent skills for coding, debugging, review, testing, CI/CD, and release work
+  <br>
+  用于编码、调试、审查、测试、CI/CD 与发布流程的 Agent / Codex Skills
+</p>
 
-Good candidates include:
+<p align="center">
+  <a href="../README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
+  <a href="./"><img src="https://img.shields.io/badge/category-dev--skills-brightgreen" alt="dev skills"></a>
+  <a href="../knowledge-skills/"><img src="https://img.shields.io/badge/knowledge--skills-learning-purple" alt="knowledge skills"></a>
+  <a href="../LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
+</p>
 
-- debugging workflows
-- build and test repair
-- code review checklists
-- architecture investigation
-- CI/CD troubleshooting
-- release and PR workflows
-- repository maintenance
-- local developer automation
+<p align="center">
+  简体中文 | English later
+</p>
 
-Each skill should capture a repeatable engineering practice with clear triggers, steps, verification, and failure handling.
+```text
+engineering problem  ->  repeatable practice  ->  SKILL.md  ->  reliable agent workflow
+```
+
+---
+
+## 简介
+
+`dev-skills/` 用来存放工程开发相关的 Agent 技能，覆盖编码、调试、测试、代码审查、架构分析、构建修复、CI/CD、发布流程和仓库维护
+
+这里的 skill 不是某一次修 bug 的记录，而是从反复出现的工程任务里抽出的稳定流程：触发条件是什么、应该读哪些上下文、如何定位问题、如何验证结果、哪些操作需要避免
+
+## 为什么存在
+
+工程问题经常看起来不同，本质却重复：构建失败、测试红灯、依赖冲突、PR 评论、发布前检查、仓库结构混乱。把这些处理路径沉淀成 skill，可以让 Agent 少走弯路，也让每次处理更容易复盘
+
+这个目录的目标是保存“可执行的工程经验”，让开发流程从临时判断变成可重复、可检查、可维护的工作流
+
+## 核心结构
+
+```text
+dev-skills/
+└── README.md            # 工程类技能目录说明
+```
+
+## 适合沉淀的技能
+
+- 系统化调试流程
+- 构建与测试修复
+- 代码审查清单
+- 架构调查与模块梳理
+- CI/CD 故障排查
+- 发布与 PR 工作流
+- 仓库维护
+- 本地开发自动化
+
+## 编写原则
+
+每个工程类 skill 都应该围绕可验证结果来写。它不只描述“怎么做”，还要说明“如何知道做对了”
+
+一个工程类 skill 至少应该回答：
+
+- 这个 skill 处理哪类工程问题
+- 触发前需要收集哪些上下文
+- Agent 应该读哪些文件、跑哪些命令
+- 哪些改动属于当前范围，哪些应该避免
+- 应该如何测试、构建或复现
+- 如果验证失败，下一步怎么缩小问题
