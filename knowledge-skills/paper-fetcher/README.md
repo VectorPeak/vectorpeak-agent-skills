@@ -21,6 +21,15 @@
 
 ## Skill 处理流程
 
+```text
+paper clue
+├── user input                    # 标题、截图文字、URL、摘要片段、保存目录
+├── agent verification            # 识别论文、核验官方来源、提取 arXiv ID / DOI
+├── PDF download                  # 下载官方 PDF，不绕过 paywall 或访问控制
+├── scripts/paper_postprocess.py  # PDF 校验、移动、重命名、JSON 输出
+└── final report                  # 保存路径、文件大小、Zotero identifier、来源信息
+```
+
 用户给 Agent 提供论文线索和保存目录：
 
 ```text
