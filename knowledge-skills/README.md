@@ -12,6 +12,7 @@
   <a href="../README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
   <a href="./"><img src="https://img.shields.io/badge/category-knowledge--skills-purple" alt="knowledge skills"></a>
   <a href="paper-fetcher/"><img src="https://img.shields.io/badge/paper--fetcher-research-orange" alt="paper fetcher"></a>
+  <a href="zhihu-clippings/"><img src="https://img.shields.io/badge/zhihu--clippings-notes-green" alt="zhihu clippings"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
 </p>
 
@@ -42,6 +43,7 @@ raw input  ->  structured thinking  ->  reusable skill  ->  durable knowledge wo
 ```text
 knowledge-skills/
 ├── paper-fetcher/       # 论文识别、官方 PDF 下载、重命名与 Zotero identifier 辅助
+├── zhihu-clippings/     # 知乎文章定位、正文补全、公式图片表格保留与 Obsidian Markdown 剪藏
 └── README.md            # 知识类技能目录说明
 ```
 
@@ -50,6 +52,10 @@ knowledge-skills/
 ### [`paper-fetcher/`](paper-fetcher/)
 
 用于研究论文入库：从标题、截图文字、URL 或摘录识别论文，优先核验官方来源，下载并验证 PDF，按研究领域前缀重命名，并输出 arXiv ID 或 DOI 供 Zotero Add Item by Identifier 使用
+
+### [`zhihu-clippings/`](zhihu-clippings/)
+
+用于知乎文章剪藏：先用知乎开放平台做作者、标题和 article_id 定位，再用 TikHub 补全完整正文，保留公式、图片、表格和代码块，按自定义范围输出 Obsidian 友好的 Markdown 文件
 
 ## 适合沉淀的技能
 

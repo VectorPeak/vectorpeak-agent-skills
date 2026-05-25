@@ -45,7 +45,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 ```text
 .
 ├── dev-skills/          # 工程开发技能：debug、review、test、CI/CD、release
-├── knowledge-skills/    # 知识沉淀技能：学习法、论文处理、概念解释、笔记整理
+├── knowledge-skills/    # 知识沉淀技能：学习法、论文处理、知乎剪藏、概念解释、笔记整理
 ├── job-skills/          # 工作职场技能：合同审查、Offer 对比、简历面试、职场沟通
 ├── README.md            # 仓库说明
 └── LICENSE              # Apache-2.0 license
@@ -59,7 +59,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 ### `knowledge-skills/`
 
-用于知识工作场景，包括自顶向下学习、概念解释、论文阅读、文章摘要、知识地图抽取、笔记整理、学习检查和写作流程
+用于知识工作场景，包括自顶向下学习、概念解释、论文阅读、知乎文章剪藏、文章摘要、知识地图抽取、笔记整理、学习检查和写作流程
 
 ### `job-skills/`
 
