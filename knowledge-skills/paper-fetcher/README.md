@@ -43,6 +43,46 @@ Paper Fetcher 解决的是“论文入库”这一步。它不是简单下载器
 5. 汇报入库结果       # 保存路径、文件大小、Zotero identifier、来源信息
 ```
 
+## 快速上手
+
+安装这个 skill 时，把 `paper-fetcher/` 整个目录复制到本地 Agent/Codex 的 skills 目录中。目录里至少要保留 `SKILL.md` 和 `scripts/paper_postprocess.py`
+
+```text
+paper-fetcher/
+├── SKILL.md
+└── scripts/
+    └── paper_postprocess.py
+```
+
+给 Agent 的输入可以直接写成：
+
+```text
+请使用 paper-fetcher 下载并入库这篇论文：<论文标题、URL、截图文字或摘要片段>
+保存到：<research-folder>
+```
+
+如果已经知道更多信息，可以一起给：
+
+```text
+arXiv ID：<arxiv-id>
+DOI：<doi>
+OpenReview ID：<openreview-id>
+研究领域前缀：RAG / Agent / SFT / RL / DL_Frameworks / Other
+```
+
+你最终应该得到：
+
+```text
+保存后的 PDF 路径
+规范化文件名
+文件大小
+PDF 校验状态
+arXiv ID 或 DOI
+Zotero Add Item by Identifier value
+其他来源 ID，例如 OpenReview ID
+PDF 来源 URL
+```
+
 用户给 Agent 提供论文线索和保存目录：
 
 ```text
