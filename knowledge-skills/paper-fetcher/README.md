@@ -3,9 +3,9 @@
 </h1>
 
 <p align="center">
-  Identify research papers, download verified official PDFs, rename them consistently, and report Zotero identifiers
+  Turn a paper clue into a verified, renamed PDF and a Zotero-ready identifier
   <br>
-  用于论文识别、官方 PDF 下载、规范命名与 Zotero identifier 辅助的 Agent / Codex Skill
+  把论文线索转换为已校验、已规范命名的 PDF，并输出可用于 Zotero 的 identifier
 </p>
 
 <p align="center">
@@ -20,45 +20,63 @@
 </p>
 
 ```text
-paper clue  ->  official source  ->  verified PDF  ->  named archive  ->  Zotero identifier
+your paper clue  ->  agent verification  ->  PDF postprocess  ->  saved PDF + Zotero identifier
 ```
 
 ---
 
-## 简介
+## 最直接的流程
 
-`paper-fetcher` 是一个研究论文入库 skill。它帮助 Agent 从论文标题、截图文字、URL 或摘录中识别论文，优先核验官方来源，下载并验证 PDF，然后按研究领域前缀重命名，并输出 arXiv ID 或 DOI 供 Zotero 使用
-
-它不是通用爬虫，也不负责绕过付费墙。它的核心价值是把“找论文、验来源、存 PDF、给 Zotero identifier”这条流程做成可复用工作流
-
-## 为什么存在
-
-论文资料管理最容易乱在入口：同一篇论文可能来自 arXiv、OpenReview、会议官网、项目页或 GitHub README；如果不统一核验和命名，后续检索、引用和复盘都会变慢
-
-这个 skill 把论文入库拆成两部分：Agent 负责识别和判断，脚本负责确定性的文件校验、重命名和 JSON 输出
-
-## 核心结构
+你给 Agent 一个论文线索，可以是：
 
 ```text
-paper-fetcher/
-├── SKILL.md                         # Agent 使用说明
-├── README.md                        # 人类阅读的公开说明
-└── scripts/
-    └── paper_postprocess.py         # PDF 校验、重命名、JSON 输出
+论文标题
+论文截图里的文字
+arXiv / OpenReview / 会议官网 / 出版社 URL
+项目主页或 GitHub README 里的 paper 链接
+论文摘要、引言片段或引用片段
 ```
 
-## 功能边界
+Agent 中间做这些事：
 
-- 优先使用官方 PDF 来源
-- 不绕过 paywall 或访问控制
-- 不写 Zotero 本地数据库
-- 不保存 Zotero API 凭据
-- 不通过 Web API 手工伪造 Zotero metadata
-- 默认不生成 BibTeX，除非显式传入 `--bib`
+```text
+1. 识别论文标题、作者、来源页面、PDF 链接和可能的 arXiv ID / DOI
+2. 优先核验官方来源，例如 arXiv、OpenReview、ACL、NeurIPS、ICML、ICLR、ACM、IEEE
+3. 下载官方 PDF，不绕过 paywall 或访问控制
+4. 读取标题、摘要、引言、方法和结论，选择一个研究领域前缀
+5. 调用 scripts/paper_postprocess.py 校验 PDF、移动到目标目录、规范重命名并输出 JSON
+```
 
-## 使用方式
+最后你得到：
 
-Agent 下载 PDF 后，运行后处理脚本：
+```text
+1. 一个保存到 <research-folder> 的 PDF
+2. 一个按 {field}_{original paper title}.pdf 命名的文件名
+3. 一个 arXiv ID 或 DOI，用于 Zotero Add Item by Identifier
+4. 一个结构化 JSON 输出，方便 Agent 继续汇报或自动化处理
+```
+
+## 输入
+
+最少需要告诉 Agent 两件事：
+
+```text
+论文线索：标题、URL、截图文字或摘录
+保存位置：<research-folder>
+```
+
+如果你已经知道这些信息，也可以直接提供：
+
+```text
+arXiv ID
+DOI
+OpenReview ID
+研究领域前缀：RAG / Agent / SFT / RL / DL_Frameworks / Other
+```
+
+## 处理
+
+Agent 下载 PDF 后，使用后处理脚本：
 
 ```bash
 python scripts/paper_postprocess.py \
@@ -72,75 +90,21 @@ python scripts/paper_postprocess.py \
   --zotero
 ```
 
-### arXiv 论文
-
-如果论文有 arXiv ID，优先把 arXiv ID 传给 `--arxiv-id`。Zotero 可以直接使用这个 identifier 添加条目：
-
-```bash
-python scripts/paper_postprocess.py \
-  --pdf "<downloaded-pdf>" \
-  --target-dir "<research-folder>" \
-  --title "Proximal Policy Optimization Algorithms" \
-  --field RL \
-  --arxiv-id "1707.06347" \
-  --source-url "https://arxiv.org/pdf/1707.06347" \
-  --zotero
-```
-
-预期命名：
+脚本负责确定性处理：
 
 ```text
-RL_Proximal Policy Optimization Algorithms.pdf
+校验 PDF 文件存在、非空，并且文件头是 %PDF-
+把 Windows 文件名非法字符替换为 -
+移动到 --target-dir
+重命名为 {field}_{title}.pdf
+重名时追加 (2)、(3) 等后缀
+选择 Zotero identifier：arXiv ID 优先，其次 DOI，再从 URL 尝试提取 DOI
+输出 JSON
 ```
 
-Zotero Add Item by Identifier 可使用：
+## 输出
 
-```text
-1707.06347
-```
-
-### OpenReview 论文
-
-如果论文只有 OpenReview ID，仍然可以下载并规范命名；但如果没有 arXiv ID 或 DOI，Zotero identifier 应报告为 `not available`，OpenReview ID 只作为来源参考：
-
-```bash
-python scripts/paper_postprocess.py \
-  --pdf "<downloaded-pdf>" \
-  --target-dir "<research-folder>" \
-  --title "Agent Harness Engineering: A Survey" \
-  --field Agent \
-  --source-url "https://openreview.net/pdf?id=eONq7FdiHa" \
-  --zotero
-```
-
-预期命名：
-
-```text
-Agent_Agent Harness Engineering- A Survey.pdf
-```
-
-Zotero Add Item by Identifier：
-
-```text
-not available unless arXiv ID or DOI is found
-```
-
-支持的研究领域前缀：
-
-```text
-RAG
-Agent
-SFT
-RL
-DL_Frameworks
-Other
-```
-
-使用 `--dry-run` 可以只预览输出路径，不移动或写入文件
-
-## JSON 输出
-
-脚本默认输出 JSON，便于 Agent 或自动化工具继续处理：
+脚本默认输出 JSON：
 
 ```json
 {
@@ -155,6 +119,112 @@ Other
     "identifier": "2401.00001"
   }
 }
+```
+
+Agent 最终应该向你汇报：
+
+```text
+Paper title
+arXiv ID 或 arXiv: not found
+DOI 或 DOI: not found
+Zotero Add Item by Identifier value
+其他来源 ID，例如 OpenReview ID
+PDF source URL
+Saved local path
+File size
+Zotero status
+```
+
+## 两个典型例子
+
+### arXiv 论文
+
+输入给 Agent：
+
+```text
+请下载并入库 Proximal Policy Optimization Algorithms
+保存到 <research-folder>
+```
+
+后处理命令：
+
+```bash
+python scripts/paper_postprocess.py \
+  --pdf "<downloaded-pdf>" \
+  --target-dir "<research-folder>" \
+  --title "Proximal Policy Optimization Algorithms" \
+  --field RL \
+  --arxiv-id "1707.06347" \
+  --source-url "https://arxiv.org/pdf/1707.06347" \
+  --zotero
+```
+
+输出结果：
+
+```text
+Saved PDF: <research-folder>/RL_Proximal Policy Optimization Algorithms.pdf
+Zotero identifier: 1707.06347
+```
+
+### OpenReview 论文
+
+输入给 Agent：
+
+```text
+请下载并入库 https://openreview.net/pdf?id=eONq7FdiHa
+保存到 <research-folder>
+```
+
+后处理命令：
+
+```bash
+python scripts/paper_postprocess.py \
+  --pdf "<downloaded-pdf>" \
+  --target-dir "<research-folder>" \
+  --title "Agent Harness Engineering: A Survey" \
+  --field Agent \
+  --source-url "https://openreview.net/pdf?id=eONq7FdiHa" \
+  --zotero
+```
+
+输出结果：
+
+```text
+Saved PDF: <research-folder>/Agent_Agent Harness Engineering- A Survey.pdf
+Zotero identifier: not available unless arXiv ID or DOI is found
+Other source ID: OpenReview eONq7FdiHa
+```
+
+## 研究领域前缀
+
+```text
+RAG
+Agent
+SFT
+RL
+DL_Frameworks
+Other
+```
+
+## 目录结构
+
+```text
+paper-fetcher/
+├── SKILL.md                         # Agent 使用说明
+├── README.md                        # 人类阅读的公开说明
+└── scripts/
+    └── paper_postprocess.py         # PDF 校验、重命名、JSON 输出
+```
+
+## 边界
+
+```text
+优先使用官方 PDF 来源
+不绕过 paywall 或访问控制
+不写 Zotero 本地数据库
+不保存 Zotero API 凭据
+不通过 Web API 手工伪造 Zotero metadata
+默认不生成 BibTeX，除非显式传入 --bib
 ```
 
 ## 维护说明
