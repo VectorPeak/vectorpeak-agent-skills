@@ -114,7 +114,7 @@ paper-fetcher/
 
 ```text
 请使用 paper-fetcher 下载并入库这篇论文：<论文标题、URL、截图文字或摘要片段>
-保存到：<research-folder>
+以后都默认保存到：<research-folder>
 ```
 
 如果已经知道更多信息，可以一起给：
