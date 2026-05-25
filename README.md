@@ -3,16 +3,16 @@
 </h1>
 
 <p align="center">
-  Reusable agent skills for software development, knowledge work, and life admin
+  Reusable agent skills for software development, knowledge work, and job decisions
   <br>
-  用于沉淀个人工程开发、知识工作与生活事务的 Agent / Codex Skills 仓库
+  用于沉淀个人工程开发、知识工作与工作职场场景的 Agent / Codex Skills 仓库
 </p>
 
 <p align="center">
   <a href="README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
   <a href="dev-skills/"><img src="https://img.shields.io/badge/dev--skills-engineering-brightgreen" alt="dev skills"></a>
   <a href="knowledge-skills/"><img src="https://img.shields.io/badge/knowledge--skills-learning-purple" alt="knowledge skills"></a>
-  <a href="life-skills/"><img src="https://img.shields.io/badge/life--skills-admin-teal" alt="life skills"></a>
+  <a href="job-skills/"><img src="https://img.shields.io/badge/job--skills-career-teal" alt="job skills"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
 </p>
 
@@ -28,7 +28,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 ## 简介
 
-`VectorPeak Agent Skills` 是一个个人 Agent 技能库，用来保存日常工程开发、知识沉淀和生活事务中反复出现、值得复用的工作方法
+`VectorPeak Agent Skills` 是一个个人 Agent 技能库，用来保存日常工程开发、知识沉淀和工作职场场景中反复出现、值得复用的工作方法
 
 这里的 skill 不是一次性 prompt，而是一组可迁移的工作规程：它应该说明何时使用、需要什么输入、按什么步骤执行、如何验证结果，以及应该避免什么
 
@@ -36,7 +36,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 ## 为什么存在
 
-开发、学习和生活里的很多问题并不是第一次遇到：构建失败、代码审查、论文处理、概念解释、笔记整理、旅行准备、订阅审计、生活事项拆解，这些任务背后都有稳定的判断路径
+开发、学习和工作里的很多问题并不是第一次遇到：构建失败、代码审查、论文处理、概念解释、笔记整理、合同审查、Offer 对比、面试准备，这些任务背后都有稳定的判断路径
 
 这个仓库的目标是把这些路径沉淀为 Agent 可以直接调用的技能，让经验从“临场发挥”变成“可复用流程”
 
@@ -46,7 +46,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 .
 ├── dev-skills/          # 工程开发技能：debug、review、test、CI/CD、release
 ├── knowledge-skills/    # 知识沉淀技能：学习法、论文处理、概念解释、笔记整理
-├── life-skills/         # 生活事务技能：计划拆解、旅行准备、消费决策、日常复盘
+├── job-skills/          # 工作职场技能：合同审查、Offer 对比、简历面试、职场沟通
 ├── README.md            # 仓库说明
 └── LICENSE              # Apache-2.0 license
 ```
@@ -61,9 +61,9 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 用于知识工作场景，包括自顶向下学习、概念解释、论文阅读、文章摘要、知识地图抽取、笔记整理、学习检查和写作流程
 
-### `life-skills/`
+### `job-skills/`
 
-用于生活事务场景，包括生活事项拆解、旅行准备、消费决策、就医预约、订阅审计、家庭维护、习惯流程和每周复盘
+用于工作与职场场景，包括合同审查、Offer 对比、简历优化、面试准备、薪资谈判、入职离职流程和职场沟通
 
 ## 使用方式
 
