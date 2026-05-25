@@ -43,11 +43,8 @@ paper clue  ->  official source  ->  verified PDF  ->  named archive  ->  Zotero
 paper-fetcher/
 ├── SKILL.md                         # Agent 使用说明
 ├── README.md                        # 人类阅读的公开说明
-├── scripts/
-│   └── paper_postprocess.py         # PDF 校验、重命名、JSON 输出
-├── examples/
-│   ├── arxiv-paper.example.json     # arXiv 示例
-│   └── openreview-paper.example.json# OpenReview 示例
+└── scripts/
+    └── paper_postprocess.py         # PDF 校验、重命名、JSON 输出
 ```
 
 ## 功能边界
@@ -73,6 +70,59 @@ python scripts/paper_postprocess.py \
   --doi "10.1234/example.paper" \
   --source-url "https://example.org/paper.pdf" \
   --zotero
+```
+
+### arXiv 论文
+
+如果论文有 arXiv ID，优先把 arXiv ID 传给 `--arxiv-id`。Zotero 可以直接使用这个 identifier 添加条目：
+
+```bash
+python scripts/paper_postprocess.py \
+  --pdf "<downloaded-pdf>" \
+  --target-dir "<research-folder>" \
+  --title "Proximal Policy Optimization Algorithms" \
+  --field RL \
+  --arxiv-id "1707.06347" \
+  --source-url "https://arxiv.org/pdf/1707.06347" \
+  --zotero
+```
+
+预期命名：
+
+```text
+RL_Proximal Policy Optimization Algorithms.pdf
+```
+
+Zotero Add Item by Identifier 可使用：
+
+```text
+1707.06347
+```
+
+### OpenReview 论文
+
+如果论文只有 OpenReview ID，仍然可以下载并规范命名；但如果没有 arXiv ID 或 DOI，Zotero identifier 应报告为 `not available`，OpenReview ID 只作为来源参考：
+
+```bash
+python scripts/paper_postprocess.py \
+  --pdf "<downloaded-pdf>" \
+  --target-dir "<research-folder>" \
+  --title "Agent Harness Engineering: A Survey" \
+  --field Agent \
+  --source-url "https://openreview.net/pdf?id=eONq7FdiHa" \
+  --zotero
+```
+
+预期命名：
+
+```text
+Agent_Agent Harness Engineering- A Survey.pdf
+```
+
+Zotero Add Item by Identifier：
+
+```text
+not available unless arXiv ID or DOI is found
 ```
 
 支持的研究领域前缀：
@@ -109,4 +159,4 @@ Other
 
 ## 维护说明
 
-公开版只保留使用所需的 skill、脚本和示例。脚本测试可以放在本地维护环境中运行，不需要作为最终使用包的一部分发布
+公开版只保留使用所需的 skill 说明和后处理脚本。脚本测试和扩展示例可以放在本地维护环境中，不需要作为最终使用包的一部分发布
