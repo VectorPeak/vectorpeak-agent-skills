@@ -105,12 +105,12 @@ Use a正文型剪藏 layout:
 
 - YAML frontmatter is allowed for Obsidian metadata.
 - Do not add an in-body document title, source note, author note, capture date, query list, or per-article metadata block.
-- Level 2 heading `##` is only for each clipped Zhihu article: `## 一、文章标题`, `## 二、文章标题`, `## 三、文章标题`.
-- Level 3 heading `###` is for major sections inside a Zhihu article, such as `一、核心模板速查` or `1. LLM 八股`.
+- Level 2 heading `##` is only for each clipped Zhihu article. Use hexadecimal-style article numbering: `## 0x01. 文章标题`, `## 0x02. 文章标题`, `## 0x03. 文章标题`. Do not use Chinese article numbering such as `## 一、文章标题`, `## 二、文章标题`, or `## 三、文章标题`.
+- Level 3 heading `###` is for major sections inside a Zhihu article. Do not use Chinese numbering such as `### 一.`, `### 一、`, `### 二.`, or `### 三、`. Convert Chinese-numbered major sections to Arabic numbering with a dot, for example `### 一、核心模板速查` -> `### 1. 核心模板速查`, `### 二、UI Agents技术路线` -> `### 2. UI Agents技术路线`. Unnumbered original headings may remain unnumbered.
 - Level 4 heading `####` is for numbered subsections inside a major section, such as `1.1 哈希表模板`.
 - Level 5 heading `#####` is for implementation variants or methods under a numbered subsection, such as `方法一：记忆化搜索`.
 - Do not use level 1 heading `#` in generated clipping body.
-- Do not use numeric headings like `## 1.` in the body.
+- Do not use numeric headings like `## 1.` in the body; use `## 0x01.` for article-level headings.
 - Keep adjacent bullet-list items compact: do not insert blank lines between ordinary `- ...` list items.
 - For unlabeled fenced code blocks, infer and add a language tag when obvious. Prioritize `python`, `bash`, and `json`.
 - Preserve formulas, images, and tables when present: Zhihu equation images become LaTeX `$...$` or `$$...$$`, normal images become Markdown images, and HTML tables become Markdown tables.
@@ -135,7 +135,7 @@ tags:
   - "author"
 ---
 
-## 一、Result title
+## 0x01. Result title
 
 正文
 

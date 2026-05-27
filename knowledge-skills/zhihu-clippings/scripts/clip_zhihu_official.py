@@ -913,7 +913,7 @@ def render_bundle(raw_input: str, author: str, queries: list[str], items: list[d
     sections: list[str] = []
     for index, item in enumerate(items, start=start + 1):
         section = [
-            f"## {chinese_ordinal(index)}、{item.get('title') or '未命名知乎文章'}",
+            f"## 0x{index:02X}. {item.get('title') or '未命名知乎文章'}",
         ]
         section.extend(["", item.get("description") or ""])
         sections.append("\n".join(section).strip())

@@ -109,8 +109,8 @@ Use a正文型剪藏 layout:
 
 - YAML frontmatter is allowed for Obsidian metadata.
 - Do not add an in-body document title, source note, author note, capture date, query list, or per-article metadata block.
-- Level 2 heading `##` is only for each clipped WeChat article: `## 一、文章标题`, `## 二、文章标题`, `## 三、文章标题`.
-- Level 3 heading `###` is for major sections inside an article.
+- Level 2 heading `##` is only for each clipped WeChat article. Use hexadecimal-style article numbering: `## 0x01. 文章标题`, `## 0x02. 文章标题`, `## 0x03. 文章标题`. Do not use Chinese article numbering such as `## 一、文章标题`, `## 二、文章标题`, or `## 三、文章标题`.
+- Level 3 heading `###` is for major sections inside an article. Do not use Chinese numbering such as `### 一.`, `### 一、`, `### 二.`, or `### 三、`. Convert Chinese-numbered section headings to Arabic numbering with a dot, for example `### 一、核心流程` -> `### 1. 核心流程`, `### 二、关键问题` -> `### 2. 关键问题`. Unnumbered original headings may remain unnumbered.
 - Level 4 heading `####` is for numbered subsections inside a major section.
 - Do not use level 1 heading `#` in generated clipping body.
 - Keep adjacent bullet-list items compact: do not insert blank lines between ordinary `- ...` list items.
@@ -136,7 +136,7 @@ tags:
   - "author"
 ---
 
-## 一、Article title
+## 0x01. Article title
 
 > 发布日期：2026-05-26  
 > 原文链接：[Article title](https://mp.weixin.qq.com/...)

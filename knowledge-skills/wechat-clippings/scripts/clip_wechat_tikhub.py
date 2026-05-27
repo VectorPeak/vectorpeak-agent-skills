@@ -581,8 +581,7 @@ def render_bundle(articles: list[Article], author: str, label: str, total: int) 
         "",
     ]
     for index, article in enumerate(articles, 1):
-        numeral = CHINESE_NUMERALS[index] if index < len(CHINESE_NUMERALS) else str(index)
-        lines.append(f"## {numeral}、{article.title or '未命名公众号文章'}")
+        lines.append(f"## 0x{index:02X}. {article.title or '未命名公众号文章'}")
         lines.append("")
         if article.published or article.url:
             if article.published:
