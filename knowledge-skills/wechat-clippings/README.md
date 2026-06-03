@@ -1,4 +1,4 @@
-<h1 align="center">
+﻿<h1 align="center">
   WeChat Clippings | 微信公众号文章剪藏技能
 </h1>
 
@@ -30,7 +30,7 @@ WeChat Clippings 解决的是“把指定公众号文章稳定转成可读、可
 - 用户能提供 `mp.weixin.qq.com` 原文链接时，直接走详情接口，最省 TikHub 调用
 - 没有链接时，先定位公众号，优先使用 `jumpInfo.userName` 里的 `gh_...` 作为文章列表 `ghid`
 - 截图/OCR 标题批量任务优先走公众号历史文章列表匹配，不优先打长标题搜索
-- 正文默认使用 TikHub HTML 详情接口，因为真实测试中 JSON 详情可能对有效文章 URL 返回 400，而 HTML 返回完整内容
+- 正文默认使用 TikHub HTML 详情接口，因为真实测试中 JSON 详情对有效文章 URL 返回 400，而 HTML 返回完整内容
 
 ## 工作原理
 
@@ -93,15 +93,10 @@ python .\scripts\clip_wechat_tikhub.py "公众号名" --author "公众号名" --
 python .\scripts\clip_wechat_tikhub.py "公众号名 文章主题" --account-id "gh_xxxxxxxxxxxx" --count 4 --ranges "1-4"
 ```
 
-### 5. 自定义输出目录
-
-默认输出到当前工作目录下的 `.\clippings`。如果要写入 Obsidian vault，可以显式传入：
-
-```powershell
-python .\scripts\clip_wechat_tikhub.py "公众号名" --count 3 --output-dir "<your-obsidian-vault>\Clippings\WeChat"
-```
-
 ## 输出格式
+
+默认输出目录是当前工作目录下的 `.\clippings`。如果需要写入 Obsidian vault，可以通过 `--output-dir` 指定目标目录
+
 
 默认文件名模板：
 
@@ -112,10 +107,8 @@ python .\scripts\clip_wechat_tikhub.py "公众号名" --count 3 --output-dir "<y
 可通过 `--filename-template` 自定义，例如：
 
 ```text
-微信_{author}_AI科研文章剪藏_{date}_{range}.md
+微信_{author}_{summary}_{date}_{range}.md
 ```
-
-`{summary}` 是根据文章标题推断出的短主题，例如 `大模型架构与注意力机制`
 
 Markdown frontmatter 示例：
 
