@@ -29,6 +29,10 @@ Do not add heavy video dependencies unless the user asks for MP4/WebP or advance
 
 ## Default Behavior
 
+When the user provides image attachments or local image paths, those user-provided images are the required input.
+Do not replace them with generated placeholder images.
+Use generated test images only when the user explicitly asks for a reproducible self-test or when no user images are available and the response clearly says it is only a test.
+
 If the user does not specify parameters, use:
 
 ```text
@@ -55,7 +59,7 @@ The default output should be written under the current project or a temporary ou
 5. Add cross-fade transition frames between adjacent images.
 6. Save a looping GIF.
 7. Verify that the output file exists, has multiple frames, expected dimensions, and visible frame changes.
-8. Return the GIF path and, when supported, embed it with Markdown image syntax.
+8. Return the GIF path and, when supported, embed the generated GIF with Markdown image syntax in the final answer.
 
 ## Typical Commands
 
