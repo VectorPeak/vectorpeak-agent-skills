@@ -1,4 +1,0 @@
-interface:
-  display_name: "Project Concept Explainer"
-  short_description: "Explain project concepts and build knowledge maps"
-  default_prompt: "Explain the key concepts in this project and generate a project knowledge map."

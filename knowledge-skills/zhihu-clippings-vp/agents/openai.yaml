@@ -1,0 +1,4 @@
+interface:
+  display_name: "Zhihu Clippings VP"
+  short_description: "Clip Zhihu API search results."
+  default_prompt: "Use $zhihu-clippings-vp to search Zhihu through the official API and bundle every 5 results into Obsidian-style Markdown files."

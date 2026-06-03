@@ -30,7 +30,7 @@ job document  ->  extract terms  ->  compare risks  ->  action checklist
 
 `job-skills/` 用来存放工作与职场相关的 Agent 技能，覆盖合同审查、Offer 对比、简历优化、面试准备、薪资谈判、职场沟通和入职离职流程
 
-这里的 skill 不是泛泛给建议，而是把职场材料拆成可核查的条款、风险、问题清单和下一步行动。比如 `job-contract-review` 这种技能，就应该帮助用户看清合同里的薪资、试用期、竞业限制、违约责任、保密条款和签署前需要确认的问题
+这里的 skill 不是泛泛给建议，而是把职场材料拆成可核查的条款、风险、问题清单和下一步行动。比如 `job-contract-review-vp` 这种技能，就应该帮助用户看清合同里的薪资、试用期、竞业限制、违约责任、保密条款和签署前需要确认的问题
 
 ## 为什么存在
 
@@ -42,7 +42,7 @@ job document  ->  extract terms  ->  compare risks  ->  action checklist
 
 ```text
 job-skills/
-├── job-contract-review/ # 工作合同审查与风险提示
+├── job-contract-review-vp/ # 工作合同审查与风险提示
 └── README.md            # 工作与职场类技能目录说明
 ```
 

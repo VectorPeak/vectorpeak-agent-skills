@@ -1,0 +1,4 @@
+interface:
+  display_name: "GIF Showcase Maker VP"
+  short_description: "Create ordered GIF showcases from multiple images."
+  default_prompt: "Create a GIF showcase from these images using the default ordered carousel."

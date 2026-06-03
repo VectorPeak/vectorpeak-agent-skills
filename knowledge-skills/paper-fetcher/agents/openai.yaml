@@ -1,4 +1,0 @@
-interface:
-  display_name: "Paper Fetcher"
-  short_description: "Find papers, download verified PDFs, and report Zotero identifiers."
-  default_prompt: "Find this paper, download its official PDF to my research folder, and report the arXiv ID or DOI."
