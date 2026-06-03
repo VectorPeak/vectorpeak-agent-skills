@@ -139,7 +139,13 @@ python .\scripts\make_sequence_gif.py --verify .tmp_gif_test\showcase.gif
 
 ## 输出格式
 
-默认输出是一个本地 GIF 文件。Agent 在支持 Markdown 预览的环境里，可以直接返回图片路径并嵌入：
+默认输出是一个本地 GIF 文件。在本仓库中运行时，建议写入 skill 内部的 `output/` 目录，例如：
+
+```text
+knowledge-skills/gif-showcase-maker/output/user-showcase.gif
+```
+
+生成完成后，Agent 应打开这个 GIF 所在文件夹，方便直接检查输出结果。Agent 在支持 Markdown 预览的环境里，也可以返回图片路径并嵌入：
 
 ```markdown
 ![showcase](showcase.gif)

@@ -47,6 +47,7 @@ output: showcase.gif
 ```
 
 The default output should be written under the current project or a temporary output folder, not into a hardcoded personal path.
+For this repository layout, prefer writing generated GIFs under the skill folder's `output/` directory, for example `knowledge-skills/gif-showcase-maker/output/user-showcase.gif`.
 
 ## Workflow
 
@@ -59,7 +60,7 @@ The default output should be written under the current project or a temporary ou
 5. Add cross-fade transition frames between adjacent images.
 6. Save a looping GIF.
 7. Verify that the output file exists, has multiple frames, expected dimensions, and visible frame changes.
-8. Open the folder that contains the generated GIF in Windows File Explorer so the user can immediately inspect the output file.
+8. Open the folder that contains the generated GIF in Windows File Explorer so the user can immediately inspect the output file. Prefer opening the skill-internal `output/` folder when using this skill in a repository.
 9. Return the GIF path and, when supported, embed the generated GIF with Markdown image syntax in the final answer.
 
 ## Typical Commands
