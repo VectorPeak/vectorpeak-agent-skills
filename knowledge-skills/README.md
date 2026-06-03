@@ -12,6 +12,7 @@
   <a href="../README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
   <a href="./"><img src="https://img.shields.io/badge/category-knowledge--skills-purple" alt="knowledge skills"></a>
   <a href="project-concept-explainer/"><img src="https://img.shields.io/badge/project--concept--explainer-study-blueviolet" alt="project concept explainer"></a>
+  <a href="gif-showcase-maker/"><img src="https://img.shields.io/badge/gif--showcase--maker-media-orange" alt="gif showcase maker"></a>
   <a href="paper-fetcher/"><img src="https://img.shields.io/badge/paper--fetcher-research-orange" alt="paper fetcher"></a>
   <a href="zhihu-clippings/"><img src="https://img.shields.io/badge/zhihu--clippings-notes-green" alt="zhihu clippings"></a>
   <a href="wechat-clippings/"><img src="https://img.shields.io/badge/wechat--clippings-notes-green" alt="wechat clippings"></a>
@@ -45,6 +46,7 @@ raw input  ->  structured thinking  ->  reusable skill  ->  durable knowledge wo
 ```text
 knowledge-skills/
 ├── project-concept-explainer/  # 项目伴读、概念讲解、知识地图与术语表生成
+├── gif-showcase-maker/         # 多张图片按顺序生成轮播 GIF，支持停留帧和淡入转场
 ├── paper-fetcher/       # 论文识别、官方 PDF 下载、重命名与 Zotero identifier 辅助
 ├── zhihu-clippings/     # 知乎文章定位、正文补全、公式图片表格保留与 Obsidian Markdown 剪藏
 ├── wechat-clippings/    # 微信公众号文章定位、TikHub 正文抓取、页面噪声清理与 Markdown 剪藏
@@ -56,6 +58,10 @@ knowledge-skills/
 ### [`project-concept-explainer/`](project-concept-explainer/)
 
 用于项目伴读和技术概念讲解：读取当前仓库上下文，解释项目里的关键术语、模型、算法、数据字段和架构决策，也可以生成项目知识地图、术语表、学习笔记和研究笔记
+
+### [`gif-showcase-maker/`](gif-showcase-maker/)
+
+用于把多张图片按顺序合成一个 GIF 展示图：默认按输入顺序播放，每张图停留一段时间，相邻图片之间使用淡入淡出转场，适合 GitHub README、项目报告、学习笔记和功能介绍素材
 
 ### [`paper-fetcher/`](paper-fetcher/)
 

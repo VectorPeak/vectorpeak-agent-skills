@@ -3,6 +3,14 @@ Thumbs.db
 *.log
 *.tmp
 __pycache__/
+.pytest_cache/
+.cache/
+.tmp_*/
 .venv/
 venv/
 node_modules/
+
+# Generated media should stay out of git unless intentionally added as small examples.
+*.gif
+*.mp4
+*.webm
