@@ -1,4 +1,4 @@
-﻿---
+---
 name: zhihu-clippings
 description: Clip Zhihu official developer API author-search results into Obsidian Web Clipper-style Markdown bundles. Use when the user provides a person name, Zhihu people URL, Zhihu article URL, article title, or mixed author description and wants to locate the author through the official API, search Article results under that author, group results into Markdown files, or save Zhihu clippings into a local clippings directory or Obsidian vault folder.
 ---

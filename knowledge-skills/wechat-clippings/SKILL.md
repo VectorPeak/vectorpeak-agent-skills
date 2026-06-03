@@ -1,4 +1,4 @@
-﻿---
+---
 name: wechat-clippings
 description: Clip arbitrary WeChat Official Account articles through TikHub into Obsidian Web Clipper-style Markdown bundles. Use when the user provides a WeChat public account author/name, mp.weixin.qq.com article URL, article title, screenshot/OCR text, or asks to fetch selected WeChat public-account articles and save Markdown clippings into a local clippings directory or Obsidian vault folder.
 ---
