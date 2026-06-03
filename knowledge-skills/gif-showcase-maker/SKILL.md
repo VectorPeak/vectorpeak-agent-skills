@@ -59,7 +59,8 @@ The default output should be written under the current project or a temporary ou
 5. Add cross-fade transition frames between adjacent images.
 6. Save a looping GIF.
 7. Verify that the output file exists, has multiple frames, expected dimensions, and visible frame changes.
-8. Return the GIF path and, when supported, embed the generated GIF with Markdown image syntax in the final answer.
+8. Open the folder that contains the generated GIF in Windows File Explorer so the user can immediately inspect the output file.
+9. Return the GIF path and, when supported, embed the generated GIF with Markdown image syntax in the final answer.
 
 ## Typical Commands
 
