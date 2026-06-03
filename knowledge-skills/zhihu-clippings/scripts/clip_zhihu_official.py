@@ -24,11 +24,12 @@ try:
 except ImportError:  # pragma: no cover - non-Windows fallback
     winreg = None
 
-DEFAULT_OUTPUT_DIR = Path(r"D:\LLMWiki\LLMWiki\Clippings")
+DEFAULT_OUTPUT_DIR = Path.cwd() / "clippings"
 DEFAULT_CACHE_DIR = DEFAULT_OUTPUT_DIR / ".llmwiki-cache" / "zhihu-clippings"
 API_URL = "https://developer.zhihu.com/api/v1/content/zhihu_search"
 TIKHUB_USER_ARTICLES_URL = "https://api.tikhub.io/api/v1/zhihu/web/fetch_user_articles"
 TIKHUB_ARTICLE_DETAIL_URL = "https://api.tikhub.io/api/v1/zhihu/web/fetch_column_article_detail"
+TIKHUB_QUESTION_ANSWERS_URL = "https://api.tikhub.io/api/v1/zhihu/web/fetch_question_answers"
 MAX_COUNT_PER_OFFICIAL_QUERY = 10
 DEFAULT_OFFICIAL_DELAY_SECONDS = 1.2
 CHINESE_NUMERALS = "零一二三四五六七八九十"
@@ -56,8 +57,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ranges", default=None, help='Custom 1-based article ranges, for example "1", "2-3", or "1-5,6-10". Overrides --group-size.')
     parser.add_argument(
         "--filename-template",
-        default="知乎_{author}_知乎文章搜索剪藏_{date}_{range}.md",
-        help="Markdown filename template. Available fields: author, date, range.",
+        default="知乎_{author}_{summary}_知乎文章搜索剪藏_{date}_{range}.md",
+        help="Markdown filename template. Available fields: author, summary, date, range.",
     )
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Directory for Markdown bundle files.")
     parser.add_argument("--cache-dir", default=str(DEFAULT_CACHE_DIR), help="Directory for raw API response cache.")
@@ -65,6 +66,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--tikhub-api-key", default=None, help="TikHub API key. Defaults to TIKHUB_API_KEY.")
     parser.add_argument("--user-url-token", default=None, help="Zhihu people URL token, for example dan-mo-41-42.")
     parser.add_argument("--article-id", action="append", default=[], help="Specific Zhihu zhuanlan article id to fetch through TikHub detail API. Can be repeated.")
+    parser.add_argument("--question-id", default=None, help="Zhihu question id for answer fulltext mode.")
+    parser.add_argument("--answer-id", action="append", default=[], help="Specific Zhihu answer id to fetch through TikHub question answers API. Can be repeated.")
     parser.add_argument(
         "--content-provider",
         choices=["official", "tikhub", "auto"],
@@ -183,11 +186,98 @@ def article_id_from_url(value: str) -> str:
     return match.group(1) if match else ""
 
 
+def question_answer_ids_from_url(value: str) -> tuple[str, str]:
+    match = re.search(r"zhihu\.com/question/(\d+)/answer/(\d+)", value or "")
+    if not match:
+        return "", ""
+    return match.group(1), match.group(2)
+
+
 def normalize_title(value: str) -> str:
     text = strip_html(value or "")
     text = re.sub(r"\s+", "", text)
     text = re.sub(r"[-_—–|｜]*知乎$", "", text, flags=re.I)
     return text.lower()
+
+
+def infer_bundle_summary(items: list[dict[str, Any]]) -> str:
+    titles = [strip_html(str(item.get("title") or "")).strip() for item in items if item.get("title")]
+    if not titles:
+        return "AI总结内容"
+
+    joined = " ".join(titles)
+    topics: list[str] = []
+    if re.search(r"大模型|LLM|Large\s*Language\s*Model", joined, re.I):
+        topics.append("大模型")
+    if re.search(r"VLM|MLLM|多模态|视觉语言", joined, re.I):
+        topics.append("多模态")
+    if re.search(r"Agent|智能体|ReAct|工具调用", joined, re.I):
+        topics.append("Agent")
+    if re.search(r"Attention|注意力|MHA|Multi[-\s]?Head|Multi[-\s]?Query|GQA", joined, re.I):
+        topics.append("注意力机制")
+    if re.search(r"Encoder|Decoder|Transformer|架构|结构|Prefix|Causal", joined, re.I):
+        topics.append("架构")
+    if re.search(r"训练|微调|SFT|RLHF|DPO|预训练", joined, re.I):
+        topics.append("训练")
+    if re.search(r"RAG|检索|向量|Embedding", joined, re.I):
+        topics.append("检索增强")
+    if re.search(r"LeetCode|算法|动态规划|哈希|二叉树|链表|回溯", joined, re.I):
+        topics.append("算法")
+    if re.search(r"面试|八股|校招|社招", joined, re.I):
+        topics.append("面试")
+
+    if topics:
+        if "大模型" in topics and "架构" in topics and "注意力机制" in topics:
+            return "大模型架构与注意力机制"
+        if "算法" in topics and "面试" in topics:
+            return "算法面试"
+        return "与".join(unique_preserve_order(topics[:3]))
+
+    cleaned_titles = [strip_title_prefix(title) for title in titles]
+    prefix = common_title_prefix(cleaned_titles)
+    if 4 <= len(prefix) <= 18:
+        return prefix
+
+    tokens: list[str] = []
+    for title in cleaned_titles:
+        tokens.extend(token for token in split_title_tokens(title) if not re.fullmatch(r"\d+", token))
+    if tokens:
+        return "与".join(unique_preserve_order(tokens)[:3])[:24]
+    return cleaned_titles[0][:24] or "AI总结内容"
+
+
+def strip_title_prefix(title: str) -> str:
+    text = re.sub(r"\s+", " ", strip_html(title or "")).strip()
+    return re.sub(r"^(知乎|专栏|大模型|算法专栏|AI|AIGC|LLM|Agent)[：:丨｜\-\s]+", "", text, flags=re.I).strip() or text
+
+
+def common_title_prefix(values: list[str]) -> str:
+    if not values:
+        return ""
+    prefix = values[0]
+    for value in values[1:]:
+        index = 0
+        limit = min(len(prefix), len(value))
+        while index < limit and prefix[index] == value[index]:
+            index += 1
+        prefix = prefix[:index]
+        if not prefix:
+            break
+    return re.sub(r"[：:丨｜\-\s]+$", "", prefix).strip()
+
+
+def split_title_tokens(value: str) -> list[str]:
+    return [token for token in re.split(r"[\s:：，,。；;、+\-_/｜|（）()【】\[\]《》]+", value) if len(token) >= 2]
+
+
+def unique_preserve_order(values: list[str]) -> list[str]:
+    seen: set[str] = set()
+    result: list[str] = []
+    for value in values:
+        if value and value not in seen:
+            seen.add(value)
+            result.append(value)
+    return result
 
 
 def parse_ranges(spec: str | None, total: int, group_size: int) -> list[tuple[int, int, str]]:
@@ -487,13 +577,13 @@ def normalize_heading_levels(text: str) -> str:
         title = re.sub(r"^\*\*(.+)\*\*$", r"\1", title).strip()
         if re.match(r"^(方法|方案|解法)[一二三四五六七八九十]+[：:、.．]\s*", title):
             return f"##### {title}"
+        if re.match(r"^[一二三四五六七八九十]+[、.．]\s*", title):
+            return f"### {title}"
         if re.match(r"^\d+(?:\.\d+)+\s+", title):
             return f"#### {title}"
         if re.match(r"^\d+[、.．]\s*", title):
-            return f"### {title}"
-        if re.match(r"^[一二三四五六七八九十]+[、.．]\s*", title):
-            return f"### {title}"
-        return match.group(0)
+            return f"#### {title}"
+        return f"#### {title}"
 
     return re.sub(r"(?m)^#{3,4}\s+(?P<title>.+)$", repl, text)
 
@@ -502,9 +592,24 @@ def infer_code_language(code: str) -> str:
     sample = code.strip()
     if not sample:
         return ""
+    sample = re.sub(r"(?m)^\s*(?:python|text|java|javascript|typescript|json|sql|xml|cpp|bash)\s*$", "", sample).strip()
+    if not sample:
+        return ""
+    if re.search(r"(?m)^\s*<\?xml|^\s*<dependency>|<groupId>|<artifactId>|</\w+>", sample):
+        return "xml"
     if re.match(r"^[\[{]", sample) and re.search(r"[\]}]$", sample):
         return "json"
-    if re.search(r"(?m)^\s*(def |class |from \w+ import |import \w+|for .+ in .+:|while .+:|if .+:|elif .+:|else:|print\()", sample):
+    if re.search(r"(?m)^\s*(SELECT|WITH|INSERT|UPDATE|DELETE|CREATE TABLE|ALTER TABLE)\b", sample, re.I):
+        return "sql"
+    if re.search(r"(?m)^\s*(#include|int main\s*\(|std::|using namespace|template\s*<)", sample):
+        return "cpp"
+    if re.search(r"(?m)^\s*(async\s+function|function\s+\w+\s*\(|const\s+\w+\s*=|let\s+\w+\s*=|var\s+\w+\s*=|import\s+.+\s+from\s+['\"]|export\s+|fetch\s*\(|JSON\.stringify|TextDecoder|crypto\.randomUUID|.*=>)", sample):
+        if re.search(r"(?m)^\s*(interface|type\s+\w+\s*=|enum\s+\w+|:\s*(string|number|boolean|unknown|any)\b)", sample):
+            return "typescript"
+        return "javascript"
+    if re.search(r"(?m)^\s*(@Service|@Configuration|@Bean|@RestController|public class|private |public String|List<|Set<|RestTemplate|return new|\.\w+\()", sample):
+        return "java"
+    if re.search(r"(?m)^\s*(def |class |async def |from \w+ import |import \w+|for .+ in .+:|while .+:|if .+:|elif .+:|else:|return\b|print\()", sample):
         return "python"
     if re.search(r"(?m)^\s*(pip |python |conda |npm |pnpm |yarn |uv |git |curl |wget |export |set |cd |ls |mkdir |cp |mv |rm |grep |find |docker |kubectl |contractguard |anycoder |repowiki |ruleforge |gitsense |batchllm |promptdiff )", sample):
         return "bash"
@@ -516,15 +621,20 @@ def infer_code_language(code: str) -> str:
 
 
 def add_code_fence_languages(text: str) -> str:
+    known = {"python", "text", "java", "javascript", "typescript", "json", "sql", "xml", "cpp", "bash", "yaml"}
+
     def repl(match: re.Match[str]) -> str:
         lang = match.group("lang") or ""
         code = match.group("code")
         code = code.strip("\n")
         code = re.sub(r"(?m)^\\`\\`\\`$", "", code).strip("\n")
-        if lang.strip():
-            return f"```{lang.strip()}\n{code}\n```"
+        code = re.sub(r"(?m)^\s*(?:python|text|java|javascript|typescript|json|sql|xml|cpp|bash)\s*\n(?=\S)", "", code).strip("\n")
         inferred = infer_code_language(code)
-        return f"```{inferred}\n{code}\n```" if inferred else f"```\n{code}\n```"
+        current = lang.strip().lower()
+        final = lang.strip()
+        if inferred and (not current or current in {"text", "txt", "plain"} or current in known):
+            final = inferred
+        return f"```{final}\n{code}\n```" if final else f"```\n{code}\n```"
 
     return re.sub(r"```(?P<lang>[A-Za-z0-9_+-]*)\n(?P<code>.*?)\n```", repl, text, flags=re.S)
 
@@ -677,6 +787,101 @@ def tikhub_article_detail_item(payload: dict[str, Any]) -> dict[str, Any]:
         "official_matched": False,
         "tikhub_matched": True,
         "content_source": "tikhub_article_detail_content",
+        "content_need_truncated": raw.get("content_need_truncated"),
+        "raw": raw,
+    }
+
+
+def call_tikhub_question_answers(question_id: str, answer_ids: set[str], api_key: str, cache_dir: Path, limit: int = 20, max_pages: int = 30) -> list[dict[str, Any]]:
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    cursor = ""
+    session_id = ""
+    offset = 0
+    found: dict[str, dict[str, Any]] = {}
+    for page in range(1, max_pages + 1):
+        params = {
+            "question_id": question_id,
+            "limit": limit,
+            "offset": offset,
+            "order": "default",
+            "cursor": cursor,
+            "session_id": session_id,
+        }
+        req = Request(
+            f"{TIKHUB_QUESTION_ANSWERS_URL}?{urlencode(params)}",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "User-Agent": "zhihu-clippings-skill/tikhub-answer-fulltext",
+            },
+            method="GET",
+        )
+        try:
+            with urlopen(req, timeout=60) as response:
+                payload = json.load(response)
+        except HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")[:1000]
+            raise RuntimeError(f"TikHub question answers API HTTP {exc.code}: {body}") from exc
+        except URLError as exc:
+            raise RuntimeError(f"TikHub question answers API request failed: {exc}") from exc
+        (cache_dir / f"tikhub-question-{question_id}-answers-page-{page}.json").write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        code = payload.get("code")
+        if code not in (None, 200):
+            raise RuntimeError(f"TikHub question answers API returned error: {json.dumps(payload, ensure_ascii=False)[:1000]}")
+        data = payload.get("data") or {}
+        rows = data.get("data") if isinstance(data, dict) else []
+        if not isinstance(rows, list):
+            rows = []
+        for row in rows:
+            target = row.get("target") if isinstance(row, dict) else None
+            if not isinstance(target, dict):
+                continue
+            answer_id = str(target.get("id") or target.get("answer_id") or "")
+            if answer_id in answer_ids:
+                found[answer_id] = target
+        if answer_ids.issubset(found):
+            break
+        paging = data.get("paging") if isinstance(data, dict) else {}
+        if not isinstance(paging, dict) or paging.get("is_end"):
+            break
+        next_url = str(paging.get("next") or "")
+        query = parse_qs(urlparse(next_url).query)
+        cursor = (query.get("cursor") or [cursor])[0]
+        session_id = (query.get("session_id") or [session_id])[0]
+        try:
+            offset = int((query.get("offset") or [offset + limit])[0])
+        except ValueError:
+            offset += limit
+        time.sleep(0.5)
+    missing = sorted(answer_ids - set(found))
+    if missing:
+        raise RuntimeError(f"TikHub question answers API did not return answer_id(s): {', '.join(missing)}")
+    return [found[answer_id] for answer_id in answer_ids]
+
+
+def tikhub_answer_item(raw: dict[str, Any], question_id: str) -> dict[str, Any]:
+    author = raw.get("author") or {}
+    question = raw.get("question") or {}
+    answer_id = str(raw.get("id") or raw.get("answer_id") or "")
+    title = str(question.get("title") or raw.get("title") or f"知乎回答 {answer_id}").strip()
+    content_html = str(raw.get("content") or "")
+    return {
+        "title": title,
+        "source": f"https://www.zhihu.com/question/{question_id}/answer/{answer_id}",
+        "article_id": answer_id,
+        "author": str(author.get("name") or "").strip(),
+        "content_type": "Answer",
+        "content_id": answer_id,
+        "published": iso_date_from_ts(raw.get("created_time")),
+        "edit_time": int(raw.get("updated_time") or raw.get("created_time") or 0),
+        "comment_count": raw.get("comment_count"),
+        "voteup_count": raw.get("voteup_count"),
+        "description": html_to_markdown(content_html) or strip_html(str(raw.get("excerpt") or "")),
+        "official_matched": False,
+        "tikhub_matched": True,
+        "content_source": "tikhub_question_answers_content",
         "content_need_truncated": raw.get("content_need_truncated"),
         "raw": raw,
     }
@@ -886,9 +1091,19 @@ def collect_author_articles(raw_input: str, secret: str, target_author: str | No
     return author, queries, articles
 
 
-def render_bundle(raw_input: str, author: str, queries: list[str], items: list[dict[str, Any]], start: int, total: int, content_provider: str, range_label: str) -> str:
+def render_bundle(
+    raw_input: str,
+    author: str,
+    queries: list[str],
+    items: list[dict[str, Any]],
+    start: int,
+    total: int,
+    content_provider: str,
+    range_label: str,
+    summary: str,
+) -> str:
     fulltext = content_provider == "tikhub"
-    title = f"知乎_{author}_知乎文章搜索剪藏_{today()}_{range_label}"
+    title = f"知乎_{author}_{summary}_知乎文章搜索剪藏_{today()}_{range_label}"
     source = "zhihu official api + tikhub" if fulltext else API_URL
     description = (
         f"知乎官方 API 定位，TikHub 补全文，共 {total} 条，本文件收录第 {range_label} 篇。"
@@ -912,8 +1127,9 @@ def render_bundle(raw_input: str, author: str, queries: list[str], items: list[d
     ]
     sections: list[str] = []
     for index, item in enumerate(items, start=start + 1):
+        article_number = f"0x{index:02d}"
         section = [
-            f"## 0x{index:02X}. {item.get('title') or '未命名知乎文章'}",
+            f"## {article_number}. {item.get('title') or '未命名知乎文章'}",
         ]
         section.extend(["", item.get("description") or ""])
         sections.append("\n".join(section).strip())
@@ -962,8 +1178,8 @@ def review_heading_levels_with_llm(markdown: str, model: str, api_key: str | Non
         "task": "Review Markdown heading levels only. Return JSON array of objects with index and level for headings that should change. Do not rewrite titles.",
         "rules": [
             "Article titles like 一、文章名 should normally be level 2.",
-            "Major Chinese sections like 二、哈希表专题 should normally be level 3.",
-            "Numbered problem or subsection titles like 1. 两数之和 or 1.1 哈希表模板 should normally be level 4.",
+            "Only major Chinese sections like 二、哈希表专题 should normally be level 3.",
+            "Unnumbered subheads, Arabic single-number headings like 1. 两数之和, and decimal headings like 1.1 哈希表模板 should normally be level 4.",
             "Implementation variants like 方法一：... should normally be level 5.",
             "Return [] if no changes are needed.",
         ],
@@ -1013,18 +1229,20 @@ def write_bundles(raw_input: str, author: str, queries: list[str], articles: lis
     paths: list[Path] = []
     for start, end, range_label in parse_ranges(ranges_spec, len(articles), group_size):
         group = articles[start:end]
+        summary = infer_bundle_summary(group)
         filename = filename_template.format(
             author=filename_author,
+            summary=safe_filename_part(summary, fallback="AI总结内容"),
             date=today(),
             range=range_label,
         )
-        filename = safe_text(filename, fallback=f"知乎_{filename_author}_知乎文章搜索剪藏_{today()}_{range_label}.md")
+        filename = safe_text(filename, fallback=f"知乎_{filename_author}_{safe_filename_part(summary, fallback='AI总结内容')}_知乎文章搜索剪藏_{today()}_{range_label}.md")
         if not filename.lower().endswith(".md"):
             filename += ".md"
         path = output_dir / filename
         paths.append(path)
         if not dry_run:
-            markdown = render_bundle(raw_input, author, queries, group, start, len(articles), content_provider, range_label)
+            markdown = render_bundle(raw_input, author, queries, group, start, len(articles), content_provider, range_label, summary)
             if llm_heading_review:
                 markdown = review_heading_levels_with_llm(markdown, llm_model, llm_api_key, llm_base_url)
             path.write_text(
@@ -1043,13 +1261,56 @@ def main() -> int:
         raise RuntimeError("--group-size must be positive")
     secret = get_secret(args.access_secret)
     user_url_token = args.user_url_token or extract_user_url_token(args.input)
+    url_question_id, url_answer_id = question_answer_ids_from_url(args.input)
+    question_id = args.question_id or url_question_id
+    answer_ids = [*args.answer_id]
+    if url_answer_id and url_answer_id not in answer_ids:
+        answer_ids.append(url_answer_id)
     resolved_provider = args.content_provider
     tikhub_key = get_tikhub_key(args.tikhub_api_key, required=resolved_provider == "tikhub")
-    if args.article_id:
+    if args.article_id or answer_ids:
         resolved_provider = "tikhub"
     if resolved_provider == "auto":
         resolved_provider = "tikhub" if tikhub_key and user_url_token else "official"
     tikhub_items: list[dict[str, Any]] = []
+    if answer_ids:
+        if not question_id:
+            raise RuntimeError("TikHub answer mode needs --question-id or an input URL like https://www.zhihu.com/question/<id>/answer/<id>.")
+        if not tikhub_key:
+            raise RuntimeError("TikHub answer mode needs TIKHUB_API_KEY or --tikhub-api-key.")
+        raw_answers = call_tikhub_question_answers(question_id, set(answer_ids), tikhub_key, Path(args.cache_dir))
+        tikhub_items = [tikhub_answer_item(raw, question_id) for raw in raw_answers]
+        author = args.author or next((item.get("author") for item in tikhub_items if item.get("author")), "") or "zhihu-author"
+        queries = [args.input, question_id, *answer_ids]
+        articles = tikhub_items[: args.count]
+        if not articles:
+            raise RuntimeError("No TikHub answer fulltext results found.")
+        for item in articles:
+            if item.get("content_need_truncated") is True:
+                raise RuntimeError(f"TikHub returned truncated content for answer_id {item.get('article_id')}.")
+        paths = write_bundles(
+            args.input,
+            author,
+            queries,
+            articles,
+            Path(args.output_dir),
+            args.group_size,
+            args.author,
+            args.dry_run,
+            resolved_provider,
+            args.ranges,
+            args.filename_template,
+            args.llm_heading_review,
+            args.llm_model,
+            args.llm_api_key,
+            args.llm_base_url,
+        )
+        print(f"input={args.input}")
+        print(f"target_author={author}")
+        print(f"answer_results={len(articles)} content_provider={resolved_provider} output_dir={Path(args.output_dir)}")
+        for path in paths:
+            print(("DRY-RUN " if args.dry_run else "") + str(path))
+        return 0
     if args.article_id:
         if not tikhub_key:
             raise RuntimeError("TikHub article detail mode needs TIKHUB_API_KEY or --tikhub-api-key.")
@@ -1062,6 +1323,9 @@ def main() -> int:
         articles = tikhub_items[: args.count]
         if not articles:
             raise RuntimeError("No TikHub article detail results found.")
+        for item in articles:
+            if item.get("content_need_truncated") is True:
+                raise RuntimeError(f"TikHub returned truncated content for article_id {item.get('article_id')}.")
         paths = write_bundles(
             args.input,
             author,

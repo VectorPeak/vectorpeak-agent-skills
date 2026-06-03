@@ -70,7 +70,7 @@ Direct long-title `fetch_search_article` can return 400 even for real articles. 
 Write Markdown for reading and long-term knowledge storage:
 
 - Clean the article body before adding metadata.
-- Keep body headings natural, but normalize top article headings to `## 0x01. ...`.
+- Keep body headings natural, but normalize top article headings to `## 一、...`.
 - Preserve image URLs when available.
 - Keep source URL in frontmatter.
 - Do not include API response dumps in Markdown output.

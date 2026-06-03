@@ -1,0 +1,14 @@
+{
+  "input": {
+    "title": "Proximal Policy Optimization Algorithms",
+    "field": "RL",
+    "arxiv_id": "1707.06347",
+    "source_url": "https://arxiv.org/pdf/1707.06347",
+    "target_dir": "<research-folder>"
+  },
+  "expected": {
+    "final_name": "RL_Proximal Policy Optimization Algorithms.pdf",
+    "zotero_identifier": "1707.06347",
+    "zotero_action": "Add Item by Identifier"
+  }
+}

@@ -1,12 +1,10 @@
----
+﻿---
 name: zhihu-clippings
-description: Clip Zhihu official developer API author-search results into Obsidian Web Clipper-style Markdown bundles. Use when the user provides a person name, Zhihu people URL, Zhihu article URL, article title, or mixed author description and wants to locate the author through the official API, search Article results under that author, group every 5 results into one Markdown file, or save Zhihu clippings into D:\LLMWiki\LLMWiki\Clippings or another Obsidian vault folder.
+description: Clip Zhihu official developer API author-search results into Obsidian Web Clipper-style Markdown bundles. Use when the user provides a person name, Zhihu people URL, Zhihu article URL, article title, or mixed author description and wants to locate the author through the official API, search Article results under that author, group results into Markdown files, or save Zhihu clippings into a local clippings directory or Obsidian vault folder.
 ---
 
 # Zhihu Clippings
-
 ## Default Mode
-
 Use official-first, TikHub-final mode. It reads `ZHIHU_ACCESS_SECRET`, calls Zhihu Developer Platform `zhihu_search`, infers or accepts the target author, and uses official results mainly for定位、article_id/source 验证和元信息交叉检查. For final正文剪藏, expect TikHub to be needed in most real cases because the official API often returns search summaries rather than full article HTML.
 
 When `TIKHUB_API_KEY` and a Zhihu people `url_token` are available, `--content-provider auto` uses TikHub `fetch_user_articles` as the article-list/fulltext layer and then verifies or enriches each candidate through the official `zhihu_search` API. The output explicitly marks `official_matched` and `content_source` per article. This keeps the official API as the positioning/validation layer while using TikHub only to fill the正文 that the official API does not expose.
@@ -21,108 +19,116 @@ When allowed and useful, use a multi-agent workflow for nontrivial clipping task
 
 Accepted input can be a person name, Zhihu people URL, Zhihu article URL, article title, or mixed author description.
 
+For all Zhihu content, including screenshots, copied text, people pages, article URLs, question pages, or answer pages, always use the Zhihu Developer Platform API first for coarse positioning and identity verification, then use TikHub to fetch full text. Do not publish screenshot-only visible-text clippings as final output. If the official API cannot identify the target content, or TikHub cannot return the full answer/article body, report the failure clearly and do not create a truncated clipping. Screenshot/OCR text may be used only as search clues for the official API and as a human-readable fallback for title disambiguation, never as the final body.
+
+If the current script does not support the needed Zhihu object type, such as Question/Answer rather than zhuanlan Article, inspect or extend the workflow to use the appropriate official coarse-search result and TikHub fulltext endpoint. If no verified TikHub fulltext endpoint is available, stop and report that the current toolchain cannot produce a complete clipping.
+
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42 何宇峰 月之暗面 Kimi AI Agent 工程师" --count 10 --ranges "1-5,6-10"
+python scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42 何宇峰 月之暗面 Kimi AI Agent 工程师" --count 10 --ranges "1-5,6-10"
 ```
 
 Force the official + TikHub fulltext mode:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42 何宇峰 月之暗面 Kimi AI Agent 工程师" --author "何宇峰" --count 10 --group-size 5 --content-provider tikhub --user-url-token dan-mo-41-42
+python scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42 何宇峰 月之暗面 Kimi AI Agent 工程师" --author "何宇峰" --count 10 --group-size 5 --content-provider tikhub --user-url-token dan-mo-41-42
 ```
 
 Custom clipping ranges:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42 何宇峰" --author "何宇峰" --content-provider tikhub --user-url-token dan-mo-41-42 --count 10 --ranges "1,2-3,4-8"
+python scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42 何宇峰" --author "何宇峰" --content-provider tikhub --user-url-token dan-mo-41-42 --count 10 --ranges "1,2-3,4-8"
 ```
 
 For long known articles, fetch each article detail by article id and write one Markdown per article:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "LeetCode Hot 100 刷题笔记 若尘797" --author "若尘797" --article-id 2014501815438291918 --count 1 --ranges "1" --filename-template "知乎_{author}_LeetCode Hot 100 刷题笔记_{date}.md"
+python scripts\clip_zhihu_official.py "LeetCode Hot 100 刷题笔记 若尘797" --author "若尘797" --article-id 2014501815438291918 --count 1 --ranges "1" --filename-template "知乎_{author}_LeetCode Hot 100 刷题笔记_{date}.md"
 ```
 
 The default filename template is:
 
 ```text
-知乎_{author}_知乎文章搜索剪藏_{date}_{range}.md
+知乎_{author}_{summary}_知乎文章搜索剪藏_{date}_{range}.md
 ```
 
 Examples:
 
 ```text
-知乎_何宇峰_知乎文章搜索剪藏_2026-05-25_1.md
-知乎_何宇峰_知乎文章搜索剪藏_2026-05-25_2-3.md
-知乎_何宇峰_知乎文章搜索剪藏_2026-05-25_1-5.md
+知乎_何宇峰_大模型Agent_知乎文章搜索剪藏_2026-05-25_1.md
+知乎_何宇峰_大模型架构与注意力机制_知乎文章搜索剪藏_2026-05-25_2-3.md
+知乎_何宇峰_大模型训练_知乎文章搜索剪藏_2026-05-25_1-5.md
 ```
 
 Override it with:
 
 ```powershell
---filename-template "知乎_{author}_知乎文章搜索剪藏_{date}_{range}.md"
+--filename-template "知乎_{author}_{summary}_知乎文章搜索剪藏_{date}_{range}.md"
 ```
+
+`{summary}` is a concise filename-safe topic inferred from the selected article titles, such as `大模型Agent`, `算法面试`, or `大模型架构与注意力机制`. Keep it short, human-readable, and free of provider/debug labels. Older custom templates without `{summary}` remain valid, but the default final artifact must look like `知乎_何宇峰_大模型Agent_知乎文章搜索剪藏_2026-05-27_1-5.md`.
 
 Default output directory:
 
 ```powershell
-D:\LLMWiki\LLMWiki\Clippings
+.\clippings
 ```
 
 Custom output directory:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "何宇峰 月之暗面 Kimi AI Agent 工程师" --count 10 --group-size 5 --output-dir "D:\LLMWiki\LLMWiki\Clippings\Zhihu"
+python scripts\clip_zhihu_official.py "何宇峰 月之暗面 Kimi AI Agent 工程师" --count 10 --group-size 5 --output-dir ".\clippings\zhihu"
 ```
 
 If author inference is ambiguous, pass the author explicitly:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42" --author "何宇峰"
+python scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42" --author "何宇峰"
 ```
 
 Add more search probes when the default author queries are too narrow:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "何宇峰" --extra-query "何宇峰 Kimi Agent" --extra-query "何宇峰 月之暗面"
+python scripts\clip_zhihu_official.py "何宇峰" --extra-query "何宇峰 Kimi Agent" --extra-query "何宇峰 月之暗面"
 ```
 
 For a known profile article list, put visible article titles into a UTF-8 text file, one title per line, then use:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "何宇峰" --author "何宇峰" --extra-query-file "D:\LLMWiki\LLMWiki\Clippings\.llmwiki-cache\zhihu-clippings\he-yufeng-titles.txt"
+python scripts\clip_zhihu_official.py "何宇峰" --author "何宇峰" --extra-query-file ".\examples\he-yufeng-titles.txt"
 ```
 
 If the user provides screenshot OCR text, copied page text, or an HTML file, use it as a title discovery source:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "何宇峰" --author "何宇峰" --title-source "D:\LLMWiki\LLMWiki\Clippings\.llmwiki-cache\zhihu-clippings\profile-page.txt"
+python scripts\clip_zhihu_official.py "何宇峰" --author "何宇峰" --title-source ".\examples\profile-page.txt"
 ```
 
 ## Heading Rules
-
 Use a正文型剪藏 layout:
 
 - YAML frontmatter is allowed for Obsidian metadata.
 - Do not add an in-body document title, source note, author note, capture date, query list, or per-article metadata block.
-- Level 2 heading `##` is only for each clipped Zhihu article. Use hexadecimal-style article numbering: `## 0x01. 文章标题`, `## 0x02. 文章标题`, `## 0x03. 文章标题`. Do not use Chinese article numbering such as `## 一、文章标题`, `## 二、文章标题`, or `## 三、文章标题`.
+- Do not add per-article utility metadata under article headings. In particular, omit `原文链接`, `发布时间`, `赞同数`, and `评论数` from the clipping body unless the user explicitly asks for them.
+- Level 2 heading `##` is only for each clipped Zhihu article. Use hexadecimal-style article numbering: `## 0x01. 文章标题`, `## 0x02. 文章标题`, `## 0x03. 文章标题`. Do not use Chinese article numbering such as `## 一、文章标题`, `## 二、文章标题`, `## 三、文章标题`.
 - Level 3 heading `###` is for major sections inside a Zhihu article. Do not use Chinese numbering such as `### 一.`, `### 一、`, `### 二.`, or `### 三、`. Convert Chinese-numbered major sections to Arabic numbering with a dot, for example `### 一、核心模板速查` -> `### 1. 核心模板速查`, `### 二、UI Agents技术路线` -> `### 2. UI Agents技术路线`. Unnumbered original headings may remain unnumbered.
-- Level 4 heading `####` is for numbered subsections inside a major section, such as `1.1 哈希表模板`.
+- Level 4 heading `####` is for all subheads under those major sections, including unnumbered subheads such as `评测方式与指标`, English subheads, link-style promotional subheads, Arabic single-number headings such as `1. LLM 八股`, and decimal headings such as `1.1 哈希表模板`.
 - Level 5 heading `#####` is for implementation variants or methods under a numbered subsection, such as `方法一：记忆化搜索`.
 - Do not use level 1 heading `#` in generated clipping body.
 - Do not use numeric headings like `## 1.` in the body; use `## 0x01.` for article-level headings.
+- Do not leave a blank line after any heading level. `##`, `###`, `####`, `#####`, and `######` headings must be immediately followed by the next content line.
 - Keep adjacent bullet-list items compact: do not insert blank lines between ordinary `- ...` list items.
-- For unlabeled fenced code blocks, infer and add a language tag when obvious. Prioritize `python`, `bash`, and `json`.
+- After generating every Markdown file, force a second pass over every fenced code block. All code fences must be checked and labeled when inferable, including already labeled fences that are clearly wrong. Remove leaked inner language-marker lines such as standalone `python`, `text`, `java`, or similar extraction residue inside the code block, then relabel by actual code content.
+- Do not leave real code as `text`. Use `java`, `python`, `sql`, `text`, `json`, `cpp`, `javascript`, `typescript`, `xml`, `yaml`, and `bash` where appropriate. JavaScript/TypeScript cues include `async function`, `const`, `let`, `fetch`, `JSON.stringify`, `TextDecoder`, `crypto.randomUUID`, and `=>`; Python cues include `def`, `class`, `import`, `from ... import`, `async def`, and `return`; Java cues include `@Service`, `@Configuration`, `@RestController`, `public class`, `List<...>`, and `RestTemplate`.
+- If extracted code content begins with a leaked marker such as `'''text`, ```text, or similar fence residue, remove that marker and set the outer fence to the inferred language.
 - Preserve formulas, images, and tables when present: Zhihu equation images become LaTeX `$...$` or `$$...$$`, normal images become Markdown images, and HTML tables become Markdown tables.
 - Optional LLM review: pass `--llm-heading-review` to send only the extracted heading list to an OpenAI-compatible model for level corrections. The LLM must return JSON level changes and must not rewrite body text.
 
 ## Output Format
-
 The script writes one Markdown bundle per group, five results per file by default:
 
 ```markdown
 ---
-title: "知乎_author_知乎文章搜索剪藏_2026-05-25_1-5"
+title: "知乎_author_summary_知乎文章搜索剪藏_2026-05-25_1-5"
 source: "https://developer.zhihu.com/api/v1/content/zhihu_search"
 author:
   - "author"
@@ -136,16 +142,13 @@ tags:
 ---
 
 ## 0x01. Result title
-
 正文
 
 ### Article section
-
 正文
 ```
 
 ## Official API Boundary
-
 `zhihu_search` is a search API. It can return Zhihu content records for a query, but it is not a complete user timeline API. Do not claim official-only output is every article from a Zhihu profile unless the official API explicitly returns that complete set.
 
 The official API currently caps each `zhihu_search` query `Count` at 10 and does not document pagination. This skill runs several author-centered queries, deduplicates results, and writes the official API search hits. If the user can see a profile page with more articles than the default probes find, use screenshot/page text as `--title-source`, or add visible titles as `--extra-query` values or an `--extra-query-file`.
@@ -153,7 +156,6 @@ The official API currently caps each `zhihu_search` query `Count` at 10 and does
 For fulltext mode, TikHub may return the user's recent article list and HTML正文. Treat TikHub as a third-party provider: results can incur charges, may drift, and should not be described as an official Zhihu API result. The Markdown bundle records whether each article was also matched through official search.
 
 ## Authentication
-
 Set the user environment variable before use:
 
 ```powershell
@@ -163,7 +165,7 @@ Set the user environment variable before use:
 If the current process cannot read it yet, restart the terminal/Codex or pass it explicitly:
 
 ```powershell
-python C:\Users\ZXY\.codex\skills\zhihu-clippings\scripts\clip_zhihu_official.py "query" --access-secret "<access_secret>"
+python scripts\clip_zhihu_official.py "query" --access-secret "<access_secret>"
 ```
 
 Never print the secret in normal output.
@@ -175,5 +177,5 @@ Optional TikHub fulltext key:
 ```
 
 ## Deprecated Browser Scraping
-
 Browser scraping is intentionally removed. Do not use Playwright, cookies, captcha handling, profile-page scraping, or undocumented web APIs for this skill.
+
