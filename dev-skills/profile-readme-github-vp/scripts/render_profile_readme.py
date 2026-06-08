@@ -118,6 +118,17 @@ def contribution_pr_link(item: dict[str, Any]) -> str:
 
 
 def sorted_projects(projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return sorted(
+        projects,
+        key=lambda item: (
+            str(item.get("area", "")).lower(),
+            -number(item.get("stars")),
+            str(item.get("name", "")).lower(),
+        ),
+    )
+
+
+def sorted_summary_projects(projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(projects, key=lambda item: (-number(item.get("stars")), str(item.get("name", "")).lower()))
 
 
@@ -162,7 +173,7 @@ def contribution_summary_from_data(data: dict[str, Any], contributions: list[dic
 def project_summary(projects: list[dict[str, Any]], limit: int, data: dict[str, Any], lang: str) -> str:
     public_repos = data.get("public_repos") or []
     summary_source = public_repos if public_repos else projects
-    ordered = sorted_projects(summary_source)
+    ordered = sorted_summary_projects(summary_source)
     names = [str(project["name"]) for project in ordered[:limit]]
     count = number(data.get("public_project_count")) if data.get("public_project_count") is not None else len(summary_source)
     joined = ", ".join(names)

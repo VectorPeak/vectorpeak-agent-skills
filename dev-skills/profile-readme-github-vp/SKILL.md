@@ -9,7 +9,7 @@ description: Use when creating or updating VectorPeak's personal GitHub profile 
 
 Generate VectorPeak's personal GitHub profile `README.md` from GitHub facts plus curated notes. The profile is bilingual, with the Chinese section first and the English section second. It has two evidence surfaces: `Projects` for repositories developed or maintained by VectorPeak, and `Open Source Contributions` for merged upstream PRs authored by VectorPeak.
 
-Both tables sort by repository stars descending.
+Both project tables sort by `Area` alphabetically, then repository stars descending within the same area. Contribution tables still sort by upstream repository stars descending.
 
 ## Workflow
 
@@ -73,7 +73,7 @@ Generate content in this order:
 
 ## Project Table Rules
 
-- Sort projects by numeric stars descending.
+- Sort project table rows by `Area` alphabetically, then numeric stars descending within the same `Area`, then project name alphabetically for ties.
 - Projects must be VectorPeak-owned or VectorPeak-maintained public repositories.
 - Exclude forked repositories from `Projects` and from the public project summary.
 - Render stars as `1,081+`, `167+`, or `0+`.
