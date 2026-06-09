@@ -285,7 +285,7 @@ def render_section(
     lang: str,
     include_badges: bool,
 ) -> None:
-    identity = data.get("identity", "AI Programmer | BS CS @ Xidian University | 2x CCF-C")
+    identity = data.get("identity", "AI Programmer | 2x CCF-C")
     contribution_limit = int(data.get("contribution_summary_limit", 12))
     project_limit = int(data.get("project_summary_limit", 12))
     heading = data.get("zh_heading" if lang == "zh" else "en_heading")
@@ -295,7 +295,7 @@ def render_section(
     if include_badges:
         badges = data.get("badges") or DEFAULT_BADGES
         badge_parts = []
-        linkedin = data.get("linkedin")
+        linkedin = data.get("linkedin") if data.get("show_linkedin", False) else None
         if linkedin:
             badge_parts.append(f"[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?logo=linkedin&logoColor=white)]({linkedin})")
         badge_parts.extend(badge(*item) for item in badges)
