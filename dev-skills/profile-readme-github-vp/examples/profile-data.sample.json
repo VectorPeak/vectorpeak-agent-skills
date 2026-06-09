@@ -1,8 +1,9 @@
 {
-  "identity": "AI Programmer | BS CS @ Xidian University | 2x CCF-C",
+  "identity": "AI Programmer | 2x CCF-C",
   "contribution_summary_limit": 12,
   "project_summary_limit": 12,
   "min_upstream_repo_stars": 500,
+  "show_linkedin": false,
   "linkedin": "https://www.linkedin.com/in/%E6%98%9F%E5%B2%B3-%E6%9C%B1-132b33412/",
   "projects": [
     {
