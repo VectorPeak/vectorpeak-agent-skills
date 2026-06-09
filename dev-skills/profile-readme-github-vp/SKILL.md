@@ -1,6 +1,6 @@
 ---
 name: profile-readme-github-vp
-description: Use when creating or updating VectorPeak's personal GitHub profile README with Chinese-first/English-second bilingual sections, badges, identity line, own public project summary, own merged upstream PR summary, stars-sorted personal Projects table, stars-sorted Open Source Contributions tables, and LinkedIn link.
+description: Use when creating or updating VectorPeak's personal GitHub profile README with Chinese-first/English-second bilingual sections, badges, concise identity line, own public project summary, own merged upstream PR summary, stars-sorted personal Projects table, and stars-sorted Open Source Contributions tables.
 ---
 
 # Profile README GitHub VP
@@ -24,7 +24,7 @@ python <skill-dir>/scripts/collect_profile_data.py --out github-facts.json
    - `projects`: VectorPeak-owned or VectorPeak-maintained public projects with curated `area` and `notes`
    - optional `contributions`: VectorPeak-authored merged upstream PRs with curated `area` and `fixed`
    - optional `public_repos`, `public_project_count`, `merged_pr_count`
-   - optional `linkedin`
+   - optional `linkedin` and `show_linkedin` when the user explicitly wants a LinkedIn badge
 4. Run:
 
 ```bash
@@ -43,7 +43,7 @@ Generate content in this order:
 2. Technology badges line, with LinkedIn badge placed before Python when provided:
    `Python Go TypeScript React Node.js FastAPI RAG Hugging Face LangChain GitHub`
 3. Identity line:
-   `AI Programmer | BS CS @ Xidian University | 2x CCF-C`
+   `AI Programmer | 2x CCF-C`
 4. Chinese summary bullets:
    - upstream PR bullet, only when contribution records exist:
      `- {{N}}+ 个 merged upstream PR，覆盖 {{top repos...}}。`
@@ -69,7 +69,7 @@ Generate content in this order:
    - `Agent frameworks / protocols / evals`
    - `Applied AI / RAG / observability`
    - `Recommender systems`
-16. Do not render LinkedIn at the bottom; keep the LinkedIn badge first in the top badge row, before Python
+16. Hide LinkedIn by default. Only render the LinkedIn badge when `show_linkedin` is explicitly true, and never render it at the bottom.
 
 ## Project Table Rules
 
@@ -119,6 +119,8 @@ Generate content in this order:
 | Putting English first | Keep Chinese first, then English |
 | Translating Area labels in the Chinese section | Keep Area labels in English in both sections |
 | Adding a visible English jump link | Do not render `[English](#english-version)` |
+| Exposing education in the identity line | Use `AI Programmer | 2x CCF-C` unless the user asks otherwise |
+| Showing LinkedIn by default | Hide LinkedIn unless `show_linkedin` is explicitly true |
 | Rendering Chinese text through the terminal in a broken encoding | Write files as UTF-8 and verify with a UTF-8 reader |
 
 ## Table Layout Rules
