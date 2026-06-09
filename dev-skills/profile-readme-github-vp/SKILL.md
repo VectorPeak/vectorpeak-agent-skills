@@ -124,5 +124,6 @@ Generate content in this order:
 ## Table Layout Rules
 
 - Keep `Area` visually wider than the default markdown table would make it.
+- Render spaces inside `Area` values as `&nbsp;` so labels such as `Coding agents` stay on one line in narrow GitHub profile tables.
 - Left-align `Stars`; do not right-align numeric stars.
 - Prefer markdown tables first. Switch to HTML tables only if GitHub wrapping becomes too cramped.

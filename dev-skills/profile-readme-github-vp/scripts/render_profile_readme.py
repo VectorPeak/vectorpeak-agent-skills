@@ -90,6 +90,10 @@ def md_escape(text: Any) -> str:
     return str(text).replace("|", "\\|").replace("\n", " ").strip()
 
 
+def md_nowrap(text: Any) -> str:
+    return md_escape(text).replace(" ", "&nbsp;")
+
+
 def localized(project: dict[str, Any], key: str, lang: str) -> Any:
     if key == "area":
         return project.get(key)
@@ -224,7 +228,7 @@ def render_projects(lines: list[str], projects: list[dict[str, Any]], lang: str)
             "| "
             + " | ".join(
                 [
-                    md_escape(localized(project, "area", lang)),
+                    md_nowrap(localized(project, "area", lang)),
                     project_link(project),
                     format_stars(project.get("stars")),
                     md_escape(localized(project, "notes", lang)),
