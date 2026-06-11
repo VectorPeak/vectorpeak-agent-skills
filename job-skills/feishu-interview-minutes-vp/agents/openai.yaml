@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feishu Interview Minutes VP"
+  short_description: "Extract interview question chains from Feishu Minutes."
+  default_prompt: "Use $feishu-interview-minutes-vp to read Feishu/Lark Minutes or intelligent note Docx links, prefer transcript sources, and generate a structured Chinese Markdown interview question-chain report."

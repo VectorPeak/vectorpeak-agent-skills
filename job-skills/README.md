@@ -30,7 +30,7 @@ job document  ->  extract terms  ->  compare risks  ->  action checklist
 
 `job-skills/` 用来存放工作与职场相关的 Agent 技能，覆盖合同审查、Offer 对比、简历优化、面试准备、薪资谈判、职场沟通和入职离职流程
 
-这里的 skill 不是泛泛给建议，而是把职场材料拆成可核查的条款、风险、问题清单和下一步行动。比如 `job-contract-review-vp` 这种技能，就应该帮助用户看清合同里的薪资、试用期、竞业限制、违约责任、保密条款和签署前需要确认的问题
+这里的 skill 不是泛泛给建议，而是把职场材料拆成可核查的条款、风险、问题清单和下一步行动。比如 `job-contract-review-vp` 这种技能，应该帮助用户看清合同里的薪资、试用期、竞业限制、违约责任、保密条款和签署前需要确认的问题；`feishu-interview-minutes-vp` 则应该把飞书妙记、智能纪要和文字记录整理成可复盘的面试问题链条
 
 ## 为什么存在
 
@@ -43,8 +43,19 @@ job document  ->  extract terms  ->  compare risks  ->  action checklist
 ```text
 job-skills/
 ├── job-contract-review-vp/ # 工作合同审查与风险提示
+├── feishu-interview-minutes-vp/ # 飞书面试妙记与智能纪要问题链条整理
 └── README.md            # 工作与职场类技能目录说明
 ```
+
+## 已有技能
+
+### [`job-contract-review-vp/`](job-contract-review-vp/)
+
+用于工作合同、Offer、NDA、竞业限制、离职补偿等材料的结构化审查：提取关键条款，识别红旗风险、中等风险、有利保护和缺失保护，并输出可谈判的问题清单与 Markdown 报告
+
+### [`feishu-interview-minutes-vp/`](feishu-interview-minutes-vp/)
+
+用于把飞书妙记、智能纪要 Docx、文字记录或粘贴的中文面试转写整理成面试问题链条：优先读取文字记录，其次读取妙记原生逐字稿，最后才使用智能纪要正文，并输出 UTF-8 Markdown 复盘文件
 
 ## 适合沉淀的技能
 
