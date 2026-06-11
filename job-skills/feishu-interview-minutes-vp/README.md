@@ -148,7 +148,6 @@ Frontmatter 示例：
 ---
 source: "https://example.feishu.cn/docx/..."
 source_type: "feishu-docx-ai-minutes"
-name: "候选人"
 date: "2026-06-06"
 event_time: "2026-06-06 14:11-14:34 GMT+08"
 company: "面试"

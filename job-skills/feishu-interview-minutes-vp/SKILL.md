@@ -67,8 +67,7 @@ lark-cli vc +notes --minute-tokens <minute_token> --as user --overwrite --json
 
 Extract:
 
-- `name`: candidate/person name from title or metadata, not the operator name.
-- `candidate`: same as `name` unless a separate candidate is known.
+- `candidate`: candidate/person name from title or metadata, not the operator name.
 - `date`: event date from the note/transcript, not necessarily Docx revision time.
 - `event_time`: full time range when available.
 - `company`: real company if known; otherwise use `面试` for coaching/interview materials.
@@ -91,7 +90,6 @@ Frontmatter:
 ---
 source: "<original Feishu URL>"
 source_type: "feishu-docx-ai-minutes | feishu-minutes | transcript-doc | pasted"
-name: "<candidate>"
 date: "YYYY-MM-DD"
 event_time: "<optional time range>"
 company: "面试"
