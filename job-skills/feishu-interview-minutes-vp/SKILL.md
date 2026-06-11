@@ -34,6 +34,13 @@ Do not summarize the candidate's answers unless needed to understand why a follo
 7. Run completeness checks before analysis: duration, character count, timestamp span, speaker turns, and large gaps. If a long recording yields only a few hundred characters, mark the report incomplete.
 8. Build a question-chain prompt with `scripts/build_interview_prompt.py` when a transcript file is available, then produce the final report from that prompt.
 9. Validate the Markdown with `scripts/validate_interview_report.py` before replying.
+10. On Windows, verify Chinese output with explicit UTF-8 before deciding a generated file is corrupted:
+
+   ```powershell
+   Get-Content -LiteralPath "<report.md>" -Encoding UTF8 -TotalCount 40
+   ```
+
+   Default PowerShell rendering can show mojibake for a valid UTF-8 Markdown file.
 
 ## References
 
@@ -75,6 +82,10 @@ Extract:
 - `related_source_status`: what was accessible, denied, or used as fallback.
 
 Feishu Docx APIs may return title and revision but not true creation time. Prefer explicit body text such as `录音时间：2026年6月6日 14:11 - 14:34`.
+
+If a source title contains a real person name, use that name as `candidate` and filename prefix. Do not fall back to a default operator name such as `VectorPeak` unless the user explicitly requests it.
+
+If a related transcript Docx is inaccessible but native Minutes transcript export is accessible, use the native transcript as the main source and record the denied Docx in `related_source_status`.
 
 ## Output Rules
 
@@ -133,3 +144,19 @@ Body:
 - Do not treat `permission_denied` as a scope problem.
 - Do not invent questions from pure evaluations.
 - Do not publish private Feishu tokens, local absolute paths, or raw transcripts in public docs.
+
+## Git Handoff
+
+When the user asks to push a generated interview report:
+
+- Push the report repository, not this skill repository, unless the skill files themselves changed.
+- Stage only the intended Markdown file. Do not stage the whole output directory when it contains unrelated interview files.
+- Confirm the staged scope with:
+
+  ```powershell
+  git diff --cached --name-only
+  git diff --cached --stat
+  ```
+
+- Large wiki worktrees may contain unrelated modified, deleted, and untracked files. Leave them untouched.
+- If `.git/index.lock` reports permission denied but no lock file exists, treat it as a sandbox/filesystem permission issue and retry the Git operation with normal user privileges. Do not delete lock files unless a stale lock is actually present and no Git process is running.
