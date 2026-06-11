@@ -157,6 +157,7 @@ duration: "00:23:00"
 feishu_title: "智能纪要：互联网开发岗位面试指导—候选人 2026年6月6日"
 related_minutes: "https://example.feishu.cn/minutes/..."
 related_transcript_doc: "https://example.feishu.cn/docx/..."
+source_priority: "优先读取文字记录 Docx；其次读取妙记原生逐字稿；最后使用智能纪要正文。"
 related_source_status: "文字记录无权限；已使用妙记原生逐字稿。"
 tags:
   - interview
@@ -179,19 +180,21 @@ type: "interview-question-chain"
 
 ## 目录结构
 
+Agent 入口优先读取 `SKILL.md`；遇到权限、命令细节或输出格式细节时，再按需读取 `references/`。`scripts/` 是可执行工具，用于链接提取、prompt 构建和结果校验。
+
 ```text
 feishu-interview-minutes-vp/
-├── SKILL.md
-├── README.md
+├── SKILL.md                         # Agent 执行入口：触发条件、来源路由、授权规则、输出约束
+├── README.md                        # GitHub 展示文档：能力说明、快速上手、输出格式和目录说明
 ├── agents/
-│   └── openai.yaml
+│   └── openai.yaml                  # Agent UI 元信息：展示名称、短描述和默认提示词
 ├── references/
-│   ├── lark-cli-minutes-notes.md
-│   └── interview-question-chain-format.md
+│   ├── lark-cli-minutes-notes.md    # lark-cli 读取 Docx/妙记/逐字稿的命令、权限和失败处理
+│   └── interview-question-chain-format.md # 面试问题链条 Markdown 的标题、主题、主问题和追问规范
 └── scripts/
-    ├── extract_feishu_links.py
-    ├── build_interview_prompt.py
-    └── validate_interview_report.py
+    ├── extract_feishu_links.py      # 从智能纪要 Markdown 的“相关链接”中提取妙记和文字记录链接
+    ├── build_interview_prompt.py    # 将逐字稿和元信息组装成稳定的问题链条分析 prompt
+    └── validate_interview_report.py # 校验最终 Markdown 的 frontmatter、标题、主问题/追问和乱码风险
 ```
 
 ## 注意事项
@@ -200,6 +203,6 @@ feishu-interview-minutes-vp/
 - `missing_scope` 才是补授权信号；`permission_denied` 通常是文档/妙记 owner 没给当前用户访问权限。
 - 智能纪要末尾的“相关链接”经常包含真正的 `妙记` 和 `文字记录`，必须优先解析。
 - `lark-cli api ... --output` 要求输出路径是当前目录下的相对路径。
-- PowerShell 可能把 UTF-8 中文显示成乱码；判断文件内容时优先用 Python 按 UTF-8 读取。
+- PowerShell 可能把 UTF-8 中文显示成乱码；判断文件内容时使用显式 UTF-8 方式读取或显示。
 - 不要把真实 Feishu token、内部链接、本地绝对路径或原始逐字稿提交到公开仓库。
 - 不要把纯评价句改写成真实面试问题；只能提取有依据的问题、追问或复盘中明确建议的追问方向。

@@ -1,6 +1,6 @@
 ---
 name: feishu-interview-minutes-vp
-description: Use when converting Feishu/Lark Minutes, Docx intelligent meeting notes, transcript documents, or pasted Chinese interview transcripts into structured Markdown interview question-chain reports for interview review, coaching, or preparation.
+description: Use when a task involves Feishu/Lark Minutes, Docx intelligent meeting notes, transcript documents, or Feishu source-routing for Chinese interview review, coaching, or preparation reports. Pasted transcripts are supported only as a fallback when Feishu transcript sources are unavailable.
 ---
 
 # Feishu Interview Minutes
@@ -89,7 +89,7 @@ Frontmatter:
 ```yaml
 ---
 source: "<original Feishu URL>"
-source_type: "feishu-docx-ai-minutes | feishu-minutes | transcript-doc | pasted"
+source_type: "feishu-docx-ai-minutes"
 date: "YYYY-MM-DD"
 event_time: "<optional time range>"
 company: "面试"
@@ -108,6 +108,13 @@ tags:
 type: "interview-question-chain"
 ---
 ```
+
+Allowed `source_type` values:
+
+- `feishu-docx-ai-minutes`
+- `feishu-minutes`
+- `transcript-doc`
+- `pasted`
 
 Body:
 
