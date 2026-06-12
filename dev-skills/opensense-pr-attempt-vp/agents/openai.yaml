@@ -1,0 +1,4 @@
+interface:
+  display_name: "OpenSense PR Attempt VP"
+  short_description: "Use OpenSense to prepare safe open-source PR attempts."
+  default_prompt: "Use $opensense-pr-attempt-vp to find one suitable open-source issue with OpenSense, prepare a sandboxed PR attempt, capture tests, and draft local PR notes."

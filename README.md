@@ -57,6 +57,8 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 用于工程开发场景，包括编码、调试、测试、代码审查、架构分析、构建修复、发布流程、CI/CD、仓库维护和本地自动化
 
+- [`opensense-pr-attempt-vp`](dev-skills/opensense-pr-attempt-vp/)：把 OpenSense 的每日 issue 筛选、本地 PR 尝试、测试证据和 PR 草稿流程沉淀为可复用 Agent Skill。
+
 ### `knowledge-skills/`
 
 用于知识工作场景，包括自顶向下学习、概念解释、论文阅读、知乎文章剪藏、文章摘要、知识地图抽取、笔记整理、学习检查和写作流程

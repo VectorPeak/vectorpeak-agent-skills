@@ -41,8 +41,13 @@ engineering problem  ->  repeatable practice  ->  SKILL.md  ->  reliable agent w
 
 ```text
 dev-skills/
-└── README.md            # 工程类技能目录说明
+├── opensense-pr-attempt-vp/  # OpenSense 开源 PR 尝试工作流
+└── README.md                 # 工程类技能目录说明
 ```
+
+## 当前技能
+
+- [`opensense-pr-attempt-vp`](opensense-pr-attempt-vp/)：使用 OpenSense 从 watchlist 中筛选 issue，生成 PR 前计划、上下文包、sandbox 执行记录、测试证据和本地 PR 草稿。
 
 ## 适合沉淀的技能
 
