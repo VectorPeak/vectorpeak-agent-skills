@@ -17,6 +17,7 @@
   <a href="paper-fetcher-vp/"><img src="https://img.shields.io/badge/paper--fetcher--vp-research-orange" alt="paper fetcher vp"></a>
   <a href="zhihu-clippings-vp/"><img src="https://img.shields.io/badge/zhihu--clippings--vp-notes-green" alt="zhihu clippings vp"></a>
   <a href="wechat-clippings-vp/"><img src="https://img.shields.io/badge/wechat--clippings--vp-notes-green" alt="wechat clippings vp"></a>
+  <a href="tech-article-rewriter-vp/"><img src="https://img.shields.io/badge/tech--article--rewriter--vp-writing-blue" alt="tech article rewriter vp"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
 </p>
 
@@ -52,6 +53,7 @@ knowledge-skills/
 ├── paper-fetcher-vp/       # 论文识别、官方 PDF 下载、重命名与 Zotero identifier 辅助
 ├── zhihu-clippings-vp/     # 知乎文章定位、正文补全、公式图片表格保留与 Obsidian Markdown 剪藏
 ├── wechat-clippings-vp/    # 微信公众号文章定位、TikHub 正文抓取、页面噪声清理与 Markdown 剪藏
+├── tech-article-rewriter-vp/ # URL/截图语料采集、技术文章深度重写、模板化 Markdown 草稿生成与迭代
 └── README.md            # 知识类技能目录说明
 ```
 
@@ -80,6 +82,10 @@ knowledge-skills/
 ### [`wechat-clippings-vp/`](wechat-clippings-vp/)
 
 用于微信公众号文章剪藏：从公众号名、文章链接、标题或截图 OCR 定位文章，通过 TikHub 获取正文，清理微信页面尾巴、二维码引流、空列表项和格式噪声，输出 Obsidian 友好的 Markdown 文件
+
+### [`tech-article-rewriter-vp/`](tech-article-rewriter-vp/)
+
+用于技术文章深度重写：从 URL、截图、OCR 或现成语料出发，先获取并缓存可信全文，再提取事实、观点、代码和坑点，重建文章逻辑，按 Markdown 模板生成专业标题、轻松正文、逻辑清晰且带参考资料的技术博客草稿
 
 ## 适合沉淀的技能
 

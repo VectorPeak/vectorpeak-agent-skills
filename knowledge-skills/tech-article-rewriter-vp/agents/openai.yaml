@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tech Article Rewriter VP"
+  short_description: "Rewrite source corpora into tech blogs."
+  default_prompt: "Rewrite this source corpus and Markdown template into a polished technical blog post with references."
