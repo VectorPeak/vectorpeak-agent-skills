@@ -1,0 +1,4 @@
+interface:
+  display_name: "Init Agent Docs VP"
+  short_description: "Initialize project agent docs."
+  default_prompt: "Initialize this project with README.md, AGENTS.md, and .docs progressive disclosure documentation."
