@@ -38,6 +38,14 @@ def safe_field(field: str) -> str:
     return field
 
 
+def safe_prefix(prefix: str) -> str:
+    cleaned = ILLEGAL.sub("-", prefix)
+    cleaned = SPACE.sub("_", cleaned).strip("._- ")
+    if not cleaned:
+        raise SystemExit("Filename prefix cannot be empty after sanitization.")
+    return cleaned
+
+
 def default_field_dir(field: str) -> Path:
     return DEFAULT_RESEARCH_ROOT / FIELD_DIRS[safe_field(field)]
 
@@ -169,7 +177,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pdf", required=True)
     parser.add_argument("--title", required=True)
-    parser.add_argument("--field", required=True, choices=VALID_FIELDS, help="Research-field filename prefix.")
+    parser.add_argument("--field", required=True, choices=VALID_FIELDS, help="Research field used to choose the destination folder.")
+    parser.add_argument(
+        "--name-prefix",
+        help=(
+            "Optional filename prefix. Use a specific method/topic prefix such as Survey, DPO, PPO, "
+            "DistributedTraining, or PrivacyDeletion. Defaults to --field for backward compatibility."
+        ),
+    )
     parser.add_argument(
         "--target-dir",
         help=(
@@ -193,9 +208,10 @@ def main() -> None:
     verify_pdf(pdf)
 
     field = safe_field(args.field)
+    name_prefix = safe_prefix(args.name_prefix or field)
     target_dir = Path(args.target_dir) if args.target_dir else default_field_dir(field)
     metadata_dir = (target_dir / "_metadata") if args.target_dir else METADATA_DIR
-    filename = f"{field}_{safe_title(args.title)}.pdf"
+    filename = f"{name_prefix}_{safe_title(args.title)}.pdf"
     target = target_dir / filename
     if not args.dry_run and pdf.resolve() != target.resolve():
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -243,6 +259,7 @@ def main() -> None:
 
     result = {
         "field": args.field,
+        "name_prefix": name_prefix,
         "final_name": target.name,
         "saved_path": str(target),
         "pdf": str(target),

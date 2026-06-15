@@ -51,8 +51,61 @@ raw/08.Research/
 Keep PDFs in their field folder and sidecars in `_metadata/`:
 
 ```text
-raw/08.Research/00.Agent/Agent_Example Paper.pdf
-raw/08.Research/_metadata/Agent_Example Paper.metadata.json
+raw/08.Research/00.Agent/Survey_Example Paper.pdf
+raw/08.Research/_metadata/Survey_Example Paper.metadata.json
+```
+
+## PDF Filename Prefixes
+
+Separate the coarse research `field` from the PDF filename prefix:
+
+- Use `field` only to choose the destination folder and metadata taxonomy.
+- Use `--name-prefix` for the filename when a more specific method, paper type, or topic is clear.
+- Avoid repeating large folder categories in filenames when the folder already says the category, such as `Agent_...`, `Training_Systems_...`, or `Personal_...`.
+- If no useful specific prefix is clear, fall back to the field name.
+
+Preferred filename pattern:
+
+```text
+{specific_prefix}_{short sanitized paper title}.pdf
+```
+
+Useful prefixes include:
+
+```text
+Survey
+Benchmark
+Framework
+Method
+Dataset
+Architecture
+DistributedTraining
+LLMTraining
+Inference
+Serving
+RAG
+AgentEval
+RepoContext
+SFT
+QLoRA
+DPO
+PPO
+GRPO
+RLHF
+PreferenceOptimization
+PrivacyDeletion
+```
+
+Examples:
+
+```text
+raw/08.Research/00.Agent/Survey_Agent Harness Engineering- A Survey.pdf
+raw/08.Research/00.Agent/RepoContext_Evaluating AGENTS.md Are Repository-Level Context Files Helpful.pdf
+raw/08.Research/02.PostTraining/SFT/QLoRA_Efficient Finetuning of Quantized LLMs.pdf
+raw/08.Research/02.PostTraining/RL/DPO_Direct Preference Optimization- Your Language Model is Secretly a Reward Model.pdf
+raw/08.Research/03.Training_Systems/DistributedTraining_PyTorch Distributed-Experiences on Accelerating Data Parallel Training.pdf
+raw/08.Research/03.Training_Systems/LLMTraining_Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM.pdf
+raw/08.Research/04.Personal/PrivacyDeletion_CAREFUL a Secure and Privacy-preserving Deletion Notification Framework.pdf
 ```
 
 ## Source Priority
@@ -76,7 +129,7 @@ Avoid non-official mirrors unless no official PDF is available. Do not bypass pa
    - Use DOI if no arXiv ID exists.
    - If neither exists, report `not available` and include another source ID such as OpenReview ID for reference.
 4. Download the official PDF into the matching field folder under `E:\LLM_wiki\LLM_wiki\raw\08.Research` or a temporary download path. Use another target only when the user provides one.
-5. Read enough of the paper to classify it into exactly one filename prefix:
+5. Read enough of the paper to classify it into exactly one research field:
    - `RAG`
    - `Agent`
    - `SFT`
@@ -84,11 +137,12 @@ Avoid non-official mirrors unless no official PDF is available. Do not bypass pa
    - `Training_Systems`
    - `Personal`
    - `Other`
-6. Run `scripts/paper_postprocess.py` to verify and rename the PDF as `{field}_{original paper title}.pdf`, and write `{field}_{original paper title}.metadata.json` into `_metadata`.
-7. Report Zotero identifier status in the final response.
-8. Do not generate `.bib` files unless explicitly requested.
-9. Do not create hand-written Zotero metadata entries through the Web API.
-10. Never edit Zotero's local database files directly.
+6. Choose a specific filename prefix using the PDF Filename Prefixes guidance. Prefer method/topic prefixes such as `DPO`, `PPO`, `QLoRA`, `Survey`, `RepoContext`, `DistributedTraining`, `LLMTraining`, or `PrivacyDeletion` over broad folder names.
+7. Run `scripts/paper_postprocess.py` to verify and rename the PDF as `{name-prefix}_{original paper title}.pdf`, and write `{name-prefix}_{original paper title}.metadata.json` into `_metadata`.
+8. Report Zotero identifier status in the final response.
+9. Do not generate `.bib` files unless explicitly requested.
+10. Do not create hand-written Zotero metadata entries through the Web API.
+11. Never edit Zotero's local database files directly.
 
 ## Field Prefix Selection
 
@@ -114,6 +168,7 @@ python scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
   --title "Agent Harness Engineering: A Survey" `
   --field Agent `
+  --name-prefix Survey `
   --authors "Junjie Li and Xi Xiao and Yunbei Zhang" `
   --source-url "https://openreview.net/pdf?id=eONq7FdiHa" `
   --zotero
@@ -127,6 +182,7 @@ python scripts\paper_postprocess.py `
   --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\02.PostTraining\RL" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
+  --name-prefix PPO `
   --authors "John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov" `
   --year 2017 `
   --arxiv-id "1707.06347" `

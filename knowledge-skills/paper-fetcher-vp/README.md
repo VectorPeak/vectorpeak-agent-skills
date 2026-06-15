@@ -42,6 +42,8 @@ raw/08.Research/
 
 Keep PDFs in their field folder and sidecars in `_metadata/`.
 
+Filename prefix policy: use `--field` for the destination taxonomy, and use `--name-prefix` for a more specific PDF filename prefix when possible. Prefer informative prefixes such as `Survey`, `Benchmark`, `RepoContext`, `QLoRA`, `DPO`, `PPO`, `GRPO`, `DistributedTraining`, `LLMTraining`, or `PrivacyDeletion` over broad folder categories such as `Agent`, `Training_Systems`, or `Personal`.
+
 ## 为什么要做 Paper Fetcher?
 
 研究论文入库看起来只是“下载 PDF”，但实际经常会遇到标题不完整、截图里只有局部信息、arXiv 和 OpenReview 版本不同、非官方镜像混入、PDF 文件名混乱、Zotero 导入缺少 identifier 等问题
@@ -95,6 +97,7 @@ python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
   --title "Agent Harness Engineering: A Survey" `
   --field Agent `
+  --name-prefix Survey `
   --authors "Junjie Li and Xi Xiao and Yunbei Zhang" `
   --source-url "https://openreview.net/pdf?id=eONq7FdiHa" `
   --zotero
@@ -108,6 +111,7 @@ python .\scripts\paper_postprocess.py `
   --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\00.Agent" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
+  --name-prefix PPO `
   --arxiv-id "1707.06347" `
   --dry-run
 ```
@@ -122,6 +126,7 @@ python .\scripts\paper_postprocess.py `
   --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\02.PostTraining\RL" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
+  --name-prefix PPO `
   --authors "John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov" `
   --year 2017 `
   --arxiv-id "1707.06347" `
@@ -137,12 +142,13 @@ python .\scripts\paper_postprocess.py `
 ```json
 {
   "field": "Agent",
-  "final_name": "Agent_Example Paper.pdf",
-  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\00.Agent\\Agent_Example Paper.pdf",
+  "name_prefix": "Survey",
+  "final_name": "Survey_Example Paper.pdf",
+  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\00.Agent\\Survey_Example Paper.pdf",
   "pdf_verified": true,
   "dry_run": false,
   "identifier": "2401.00001",
-  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\_metadata\\Agent_Example Paper.metadata.json",
+  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\_metadata\\Survey_Example Paper.metadata.json",
   "zotero_status": {
     "status": "identifier_available",
     "identifier": "2401.00001"

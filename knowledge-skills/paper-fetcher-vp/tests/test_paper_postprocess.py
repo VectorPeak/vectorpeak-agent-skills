@@ -119,6 +119,37 @@ def test_dry_run_does_not_move_file(tmp_path: Path) -> None:
     assert not target_dir.exists()
 
 
+def test_name_prefix_is_separate_from_field_folder(tmp_path: Path) -> None:
+    source = tmp_path / "download.pdf"
+    target_dir = tmp_path / "research"
+    write_pdf(source)
+
+    result = run_postprocess(
+        "--pdf",
+        str(source),
+        "--target-dir",
+        str(target_dir),
+        "--title",
+        "Direct Preference Optimization",
+        "--field",
+        "RL",
+        "--name-prefix",
+        "DPO",
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    saved_path = Path(payload["saved_path"])
+    metadata = json.loads(Path(payload["metadata"]).read_text(encoding="utf-8"))
+
+    assert payload["field"] == "RL"
+    assert payload["name_prefix"] == "DPO"
+    assert payload["final_name"] == "DPO_Direct Preference Optimization.pdf"
+    assert saved_path.parent == target_dir
+    assert metadata["field"] == "RL"
+    assert metadata["pdf_filename"] == "DPO_Direct Preference Optimization.pdf"
+
+
 def test_default_target_dir_is_local_raw_research_field_folder(tmp_path: Path) -> None:
     source = tmp_path / "download.pdf"
     write_pdf(source)
