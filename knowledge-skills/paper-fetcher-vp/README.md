@@ -21,9 +21,24 @@
 
 ## Local LLM_wiki policy
 
-Default paper storage for this local skill is `E:\LLM_wiki\LLM_wiki\raw\08.Research`.
+Default paper storage for this local skill is `E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>`.
 
 The raw folder is for verified PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and raw paper metadata only. Generated notes, summaries, synthesis, and wiki-ready interpretation should be created later in the processed wiki area or another explicit notes destination, not inside `raw\08.Research`.
+
+Recommended local structure:
+
+```text
+raw/08.Research/
+  RAG/
+  Agent/
+  SFT/
+  RL/
+  DL_Frameworks/
+  Other/
+  Personal/
+```
+
+Keep each PDF and its sidecars together inside the same field folder.
 
 ## 为什么要做 Paper Fetcher?
 
@@ -66,7 +81,7 @@ Paper Fetcher 解决的是“把论文从线索稳定转成可归档、可引用
 
 ### 1. 准备目标文件夹
 
-Paper Fetcher defaults to `E:\LLM_wiki\LLM_wiki\raw\08.Research` for this local vault. Use `--target-dir` only when an explicit override is needed.
+Paper Fetcher defaults to `E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>` for this local vault. Use `--target-dir` only when an explicit override is needed; explicit `--target-dir` is treated as the exact destination directory.
 
 ### 2. PDF 后处理
 
@@ -120,11 +135,11 @@ python .\scripts\paper_postprocess.py `
 {
   "field": "Agent",
   "final_name": "Agent_Example Paper.pdf",
-  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent_Example Paper.pdf",
+  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent\\Agent_Example Paper.pdf",
   "pdf_verified": true,
   "dry_run": false,
   "identifier": "2401.00001",
-  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent_Example Paper.metadata.json",
+  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent\\Agent_Example Paper.metadata.json",
   "zotero_status": {
     "status": "identifier_available",
     "identifier": "2401.00001"

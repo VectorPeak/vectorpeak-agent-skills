@@ -12,7 +12,7 @@ from pathlib import Path
 ILLEGAL = re.compile(r'[<>:"/\\|?*]')
 SPACE = re.compile(r"\s+")
 VALID_FIELDS = ("RAG", "Agent", "SFT", "RL", "DL_Frameworks", "Other")
-DEFAULT_TARGET_DIR = Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research")
+DEFAULT_RESEARCH_ROOT = Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research")
 
 
 def safe_title(title: str) -> str:
@@ -25,6 +25,10 @@ def safe_field(field: str) -> str:
     if field not in VALID_FIELDS:
         raise SystemExit(f"Invalid field prefix: {field}. Expected one of: {', '.join(VALID_FIELDS)}")
     return field
+
+
+def default_field_dir(field: str) -> Path:
+    return DEFAULT_RESEARCH_ROOT / safe_field(field)
 
 
 def unique_path(path: Path) -> Path:
@@ -146,7 +150,10 @@ def main() -> None:
     parser.add_argument("--field", required=True, choices=VALID_FIELDS, help="Research-field filename prefix.")
     parser.add_argument(
         "--target-dir",
-        help=f"Directory where the verified and renamed PDF should be saved. Defaults to {DEFAULT_TARGET_DIR}.",
+        help=(
+            "Exact directory where the verified and renamed PDF should be saved. "
+            f"Defaults to {DEFAULT_RESEARCH_ROOT}\\<field>, such as {DEFAULT_RESEARCH_ROOT}\\Agent."
+        ),
     )
     parser.add_argument("--authors")
     parser.add_argument("--year")
@@ -162,8 +169,9 @@ def main() -> None:
     pdf = Path(args.pdf)
     verify_pdf(pdf)
 
-    target_dir = Path(args.target_dir) if args.target_dir else DEFAULT_TARGET_DIR
-    filename = f"{safe_field(args.field)}_{safe_title(args.title)}.pdf"
+    field = safe_field(args.field)
+    target_dir = Path(args.target_dir) if args.target_dir else default_field_dir(field)
+    filename = f"{field}_{safe_title(args.title)}.pdf"
     target = target_dir / filename
     if not args.dry_run and pdf.resolve() != target.resolve():
         target.parent.mkdir(parents=True, exist_ok=True)

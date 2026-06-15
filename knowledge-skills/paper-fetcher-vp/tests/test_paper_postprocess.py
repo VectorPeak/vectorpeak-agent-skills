@@ -118,7 +118,7 @@ def test_dry_run_does_not_move_file(tmp_path: Path) -> None:
     assert not target_dir.exists()
 
 
-def test_default_target_dir_is_local_raw_research_folder(tmp_path: Path) -> None:
+def test_default_target_dir_is_local_raw_research_field_folder(tmp_path: Path) -> None:
     source = tmp_path / "download.pdf"
     write_pdf(source)
 
@@ -134,7 +134,7 @@ def test_default_target_dir_is_local_raw_research_folder(tmp_path: Path) -> None
 
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
-    assert Path(payload["saved_path"]).parent == Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research")
+    assert Path(payload["saved_path"]).parent == Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research\RAG")
     assert source.exists()
 
 

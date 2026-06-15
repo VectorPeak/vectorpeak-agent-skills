@@ -14,14 +14,34 @@ Find the corresponding research paper from a screenshot, title, URL, or excerpt;
 For this user's local `LLM_wiki` vault, default and inferred paper storage is:
 
 ```text
-E:\LLM_wiki\LLM_wiki\raw\08.Research
+E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>
 ```
 
-Use this folder when the user does not provide a destination. `scripts/paper_postprocess.py` also defaults to this path when `--target-dir` is omitted.
+Use the field subfolder when the user does not provide a destination. `scripts/paper_postprocess.py` defaults to `E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>` when `--target-dir` is omitted, for example `raw\08.Research\Agent` or `raw\08.Research\RL`.
 
-Allow explicit overrides with `--target-dir` whenever the user names a different destination.
+Allow explicit overrides with `--target-dir` whenever the user names a different destination. Treat `--target-dir` as an exact destination directory, not as a root to append the field to.
 
 Treat PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and paper metadata saved here as raw source material. Do not create generated reading notes, summaries, synthesis pages, outlines, or wiki-ready interpretations inside `raw\08.Research`; those belong later in the processed `wiki` area or another user-specified notes location.
+
+Recommended local folder structure:
+
+```text
+raw/08.Research/
+  RAG/
+  Agent/
+  SFT/
+  RL/
+  DL_Frameworks/
+  Other/
+  Personal/        # legacy migrated personal/security papers
+```
+
+Keep each paper's PDF and sidecars together in the same field folder:
+
+```text
+raw/08.Research/Agent/Agent_Example Paper.pdf
+raw/08.Research/Agent/Agent_Example Paper.metadata.json
+```
 
 ## Source Priority
 
@@ -43,7 +63,7 @@ Avoid non-official mirrors unless no official PDF is available. Do not bypass pa
    - Prefer arXiv ID.
    - Use DOI if no arXiv ID exists.
    - If neither exists, report `not available` and include another source ID such as OpenReview ID for reference.
-4. Download the official PDF into `E:\LLM_wiki\LLM_wiki\raw\08.Research` or a temporary download path. Use another target only when the user provides one.
+4. Download the official PDF into the matching field folder under `E:\LLM_wiki\LLM_wiki\raw\08.Research` or a temporary download path. Use another target only when the user provides one.
 5. Read enough of the paper to classify it into exactly one filename prefix:
    - `RAG`
    - `Agent`
