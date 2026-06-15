@@ -70,6 +70,14 @@ Custom output directory:
 python scripts\clip_wechat_tikhub.py "鍏紬鍙峰悕" --count 3 --output-dir ".\clippings\wechat"
 ```
 
+Default final destination for this user's LLM_wiki vault:
+
+```powershell
+E:\LLM_wiki\LLM_wiki\raw\01.Inbox
+```
+
+Generated raw WeChat clipping Markdown should land in `raw/01.Inbox` by default as unprocessed source material. Do not classify, summarize, rewrite, or compile it into the wiki at clipping time unless the user explicitly asks for that downstream step. Preserve custom destination behavior: when `--output-dir` is supplied, write final Markdown bundles to that directory instead of the default vault inbox.
+
 The default filename template is:
 
 ```text
@@ -97,7 +105,7 @@ When the user provides an explicit URL batch, treat those URLs as the complete s
 
 For clipping and merge requests, default to preserving the full article text for every selected URL/article. Do not compress, summarize, rewrite, or turn articles into review notes unless the user explicitly asks for a summary/鎽樿/鎬荤粨/澶嶄範鐗? "鍚堟垚涓€绡?md 鏂囨。" means concatenate the full cleaned articles into one Markdown file.
 
-For concurrent runs, write first to a unique staging directory such as `.\.codex-work\wechat-<slug>-<timestamp>\out` with a matching isolated cache directory. QA the staged Markdown, then copy or move exactly one final artifact into `Clippings`; never write a broad final filename directly while another process may be clipping articles.
+For concurrent runs, write first to a unique staging directory such as `.\.codex-work\wechat-<slug>-<timestamp>\out` with a matching isolated cache directory. QA the staged Markdown, then copy or move exactly one final artifact into `E:\LLM_wiki\LLM_wiki\raw\01.Inbox` unless the user supplied `--output-dir`; never write a broad final filename directly while another process may be clipping articles.
 
 If TikHub article detail returns usable body content but no title, recover titles from user-provided screenshot/OCR, explicit title-source text, or the article's own numbered prompt (`绗?棰榒, `浠婃棩棰樼洰`) before publishing. Keep `鏈懡鍚嶅叕浼楀彿鏂囩珷` only in staging/debug output, not in final user-facing files when a reliable title can be inferred.
 
@@ -236,14 +244,14 @@ Live WeChat clipping runs exposed several failure modes that should shape future
 - When a screenshot/OCR title list is present, never fill the requested count with broad account-name search results. Require meaningful title overlap before accepting a candidate; otherwise report that no exact candidates were found. This prevents unrelated recent account articles from being bundled as if they were the visible screenshot titles.
 - `fetch_mp_article_list` requires a real `gh_...` account id. A WeChat `__biz` value such as `MzI2Mjg3NTY5MQ==` may produce an HTTP 200 wrapper whose `data` says `gzid閿欒`; do not treat wrapper code 200 as a valid article list unless `data` is a structured object/list with article records.
 - Short `https://mp.weixin.qq.com/s/...` links can redirect to `wappoc_appmsgcaptcha` when accessed without a valid WeChat browser context. TikHub detail endpoints may return 404 for those links. In that case, do not fabricate content; prefer a fresh direct article URL copied from WeChat, a Sogou result link convertible through `fetch_mp_article_url`, or an already archived local fulltext file.
-- Before spending TikHub calls, search the local vault for existing author/source material under `RAW/09.Wechat` and `Wiki/sources`. If exact titles already exist locally, merge from local UTF-8 Markdown instead of refetching. If only mojibake old clippings exist, preserve links/metadata but do not use corrupted body text as final content unless the user accepts a degraded local fallback.
-- Local `RAW/09.Wechat` exact-URL matches are an optional fallback/cost optimization, not the default assumption. Most future requests will not have local archives, so explicit URL batches should still default to TikHub article-detail fetching. Only skip TikHub and build from local files when all requested URLs are already locally matched, the local body is readable UTF-8 fulltext, and this shortcut does not hide a provider/API failure the user asked to test.
+- Before spending TikHub calls, search the local vault for existing author/source material under `raw/01.Inbox`, `raw/05.Wechat`, and `wiki/sources`. If exact titles already exist locally, merge from local UTF-8 Markdown instead of refetching. If only mojibake old clippings exist, preserve links/metadata but do not use corrupted body text as final content unless the user accepts a degraded local fallback.
+- Local `raw/01.Inbox` or `raw/05.Wechat` exact-URL matches are an optional fallback/cost optimization, not the default assumption. Most future requests will not have local archives, so explicit URL batches should still default to TikHub article-detail fetching. Only skip TikHub and build from local files when all requested URLs are already locally matched, the local body is readable UTF-8 fulltext, and this shortcut does not hide a provider/API failure the user asked to test.
 - TikHub `fetch_mp_article_detail_html` may return a structured `data` object containing clean fields such as `title`, `author`, `content`, `description`, `url`, and a separate full-page HTML field such as `source`. Prefer `data.content` plus `data.title` for final Markdown. Do not choose the longest HTML field first, because full-page HTML can preserve page chrome and may cause the script to lose the structured title.
 - TikHub structured `data.content` can be plain text rather than HTML or Markdown. Do not write it directly as body text. Run WeChat chrome cleanup and a plain-text normalizer first: remove header chrome such as `鍘熷垱 浣滆€?鍏紬鍙穈, cut tail chrome such as `缁х画婊戝姩鐪嬩笅涓€涓猔 and `寰俊鎵竴鎵玚, convert Chinese section markers like `涓€銆佹爣棰榒 into `###`, convert numeric subsection markers like `1銆佹爣棰榒 into `####`, and split `(1)` / `(2)` item markers onto readable lines.
 - Some WeChat article styles leak CSS default values into text during conversion. The live `鍚村笀鍏?Text2SQL` clipping produced headings like `### unset unset 浜屻€佸湪 Agent 鏋舵瀯閲岋紝Text2SQL 鐨勬纭畾浣?unset unset` and glued headings like `**鍏滃簳閫昏緫姘歌繙涓嶅湪 Tool 閲屻€?* ### unset unset 涔濄€侀潰璇曚腑锛屾€庝箞鎶婅繖浠朵簨璁叉竻妤氾紵 unset unset`. Treat these `unset` tokens as style residue, delete them, and split the heading onto its own line before publishing.
 - When TikHub returns mojibake in `message_zh` or `data`, try decoding as `s.encode("gbk").decode("utf-8")` for diagnostics only. Keep generated Markdown UTF-8.
 - If the user asks to merge articles into one Markdown file, preserve full cleaned article text by default. Do not produce a compressed summary/review-note version unless the user explicitly asks for `summary`, `鎽樿`, `鎬荤粨`, or `澶嶄範鐗坄. If a summary was accidentally produced, delete or replace it with the full-text bundle so the user does not open the wrong artifact.
-- In concurrent Codex sessions, broad filenames such as `寰俊_浣滆€卂鏂囩珷鍚堥泦...md` are collision-prone. Always stage in a unique `.codex-work/wechat-<slug>-<timestamp>` directory and publish exactly one final artifact only after QA. If other agents may be running, list recent `Clippings` outputs before publishing and avoid sweeping deletions.
+- In concurrent Codex sessions, broad filenames such as `寰俊_浣滆€卂鏂囩珷鍚堥泦...md` are collision-prone. Always stage in a unique `.codex-work/wechat-<slug>-<timestamp>` directory and publish exactly one final artifact only after QA. If other agents may be running, list recent `raw/01.Inbox` outputs before publishing and avoid sweeping deletions.
 - PowerShell here-strings can fail with `The string is missing the terminator: '@` when large Chinese/Markdown/LaTeX blocks are embedded directly. Use `apply_patch` for file edits, or use Node/Python scripts that read/write target files instead of embedding long Markdown in PowerShell.
 - Python on this Windows setup can throw `OSError: [Errno 22] Invalid argument` when a pasted Chinese path is mojibake-corrupted by the console. Prefer `Get-Content -LiteralPath` for quick inspection, or use Node's UTF-8 filesystem APIs with an explicit absolute path for Chinese filenames.
 - JavaScript replacement strings treat `$$` specially, so `text.replace(..., "$$")` can accidentally write a single `$`. Use a function replacement such as `text.replace(regex, () => "$$...")` when inserting Markdown display-math delimiters.
@@ -280,6 +288,3 @@ Never print the API key in normal output.
 
 ## Deprecated Browser Scraping
 Do not use Playwright, cookies, captcha handling, WeChat logged-in browser state, or undocumented browser scraping for this skill unless the user explicitly asks for a separate browser-based fallback.
-
-
-

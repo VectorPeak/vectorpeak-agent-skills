@@ -23,6 +23,13 @@ For all Zhihu content, including screenshots, copied text, people pages, article
 
 If the current script does not support the needed Zhihu object type, such as Question/Answer rather than zhuanlan Article, inspect or extend the workflow to use the appropriate official coarse-search result and TikHub fulltext endpoint. If no verified TikHub fulltext endpoint is available, stop and report that the current toolchain cannot produce a complete clipping.
 
+## Answer Fast Path
+For screenshots or copied snippets that show a Zhihu answer but no URL, do not rely on the normal author Article pipeline. First search official `zhihu_search` with exact visible phrases, author name, and technical keywords, and inspect raw `ContentType=Answer` hits. If official search misses but the visible text is distinctive, use web search only to recover the public question/answer URL, then return to the official-first/TikHub-final flow.
+
+For known answer URLs, use TikHub `fetch_question_answers` with both `order=updated` and `order=default`. Some questions fail on one order with HTTP 400 while the other order returns the target answer. Treat a single-order 400 as a retry signal, not as final failure. Match by exact `answer_id` first, then author/title/body snippets. Accept the result only when `content_need_truncated` is false and the HTML body is present.
+
+If TikHub succeeds once and later becomes flaky, preserve the raw answer JSON in `.llmwiki-cache/zhihu-clippings-vp/` and generate Markdown from that cached full body with `tikhub_answer_item()` plus `write_bundles()`. Never regenerate from screenshot text or official `ContentText` when full body retrieval failed.
+
 ```powershell
 python scripts\clip_zhihu_official.py "https://www.zhihu.com/people/dan-mo-41-42 何宇峰 月之暗面 Kimi AI Agent 工程师" --count 10 --ranges "1-5,6-10"
 ```
@@ -70,8 +77,10 @@ Override it with:
 Default output directory:
 
 ```powershell
-.\clippings
+E:\LLM_wiki\LLM_wiki\raw\01.Inbox
 ```
+
+Generated raw Zhihu clipping Markdown should land in `raw/01.Inbox` by default as unprocessed source material. Do not classify, summarize, rewrite, or compile it into the wiki at clipping time unless the user explicitly asks for that downstream step. Preserve custom destination behavior: when `--output-dir` is supplied, write final Markdown bundles to that directory instead of the default vault inbox.
 
 Custom output directory:
 
@@ -178,4 +187,3 @@ Optional TikHub fulltext key:
 
 ## Deprecated Browser Scraping
 Browser scraping is intentionally removed. Do not use Playwright, cookies, captcha handling, profile-page scraping, or undocumented web APIs for this skill.
-

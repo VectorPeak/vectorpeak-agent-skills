@@ -25,8 +25,8 @@ try:
 except ImportError:  # pragma: no cover - non-Windows fallback
     winreg = None
 
-DEFAULT_OUTPUT_DIR = Path.cwd() / "clippings"
-DEFAULT_CACHE_DIR = DEFAULT_OUTPUT_DIR / ".llmwiki-cache" / "wechat-clippings-vp"
+DEFAULT_OUTPUT_DIR = Path(r"E:\LLM_wiki\LLM_wiki\raw\01.Inbox")
+DEFAULT_CACHE_DIR = Path.cwd() / ".llmwiki-cache" / "wechat-clippings-vp"
 TIKHUB_BASE_URL = "https://api.tikhub.io"
 DEFAULT_ACCOUNT_SEARCH_PATH = "/api/v1/wechat_mp/web/fetch_search_official_account"
 DEFAULT_ARTICLE_SEARCH_PATH = "/api/v1/wechat_mp/web/fetch_search_article"

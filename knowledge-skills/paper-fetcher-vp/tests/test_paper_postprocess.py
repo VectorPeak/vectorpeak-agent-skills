@@ -53,18 +53,27 @@ def test_target_dir_doi_and_other_field(tmp_path: Path) -> None:
     assert payload["final_name"] == "Other_A-B- Test- Paper-.pdf"
     assert payload["identifier"] == "10.1234/example.paper"
     assert payload["pdf_verified"] is True
+    assert payload["metadata"] == str(saved_path.with_suffix(".metadata.json"))
     assert saved_path.parent == target_dir
     assert saved_path.exists()
+    metadata = json.loads(saved_path.with_suffix(".metadata.json").read_text(encoding="utf-8"))
+    assert metadata["raw_type"] == "paper"
+    assert metadata["title"] == 'A/B: Test? Paper*'
+    assert metadata["doi"] == "10.1234/example.paper"
+    assert metadata["pdf_filename"] == saved_path.name
     assert not source.exists()
 
 
 def test_arxiv_identifier_preferred_over_doi(tmp_path: Path) -> None:
     source = tmp_path / "download.pdf"
+    target_dir = tmp_path / "research"
     write_pdf(source)
 
     result = run_postprocess(
         "--pdf",
         str(source),
+        "--target-dir",
+        str(target_dir),
         "--title",
         "Preference Optimization",
         "--field",
@@ -104,8 +113,29 @@ def test_dry_run_does_not_move_file(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["dry_run"] is True
     assert payload["saved_path"].endswith("Agent_Dry Run Paper.pdf")
+    assert payload["metadata"] is None
     assert source.exists()
     assert not target_dir.exists()
+
+
+def test_default_target_dir_is_local_raw_research_folder(tmp_path: Path) -> None:
+    source = tmp_path / "download.pdf"
+    write_pdf(source)
+
+    result = run_postprocess(
+        "--pdf",
+        str(source),
+        "--title",
+        "Default Target Paper",
+        "--field",
+        "RAG",
+        "--dry-run",
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    assert Path(payload["saved_path"]).parent == Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research")
+    assert source.exists()
 
 
 def test_invalid_pdf_fails(tmp_path: Path) -> None:
@@ -128,11 +158,12 @@ def test_invalid_pdf_fails(tmp_path: Path) -> None:
 def test_duplicate_filename_gets_suffix(tmp_path: Path) -> None:
     first = tmp_path / "first.pdf"
     second = tmp_path / "second.pdf"
+    target_dir = tmp_path / "research"
     write_pdf(first)
     write_pdf(second)
 
-    first_result = run_postprocess("--pdf", str(first), "--title", "Same Title", "--field", "SFT")
-    second_result = run_postprocess("--pdf", str(second), "--title", "Same Title", "--field", "SFT")
+    first_result = run_postprocess("--pdf", str(first), "--target-dir", str(target_dir), "--title", "Same Title", "--field", "SFT")
+    second_result = run_postprocess("--pdf", str(second), "--target-dir", str(target_dir), "--title", "Same Title", "--field", "SFT")
 
     assert first_result.returncode == 0, first_result.stderr
     assert second_result.returncode == 0, second_result.stderr

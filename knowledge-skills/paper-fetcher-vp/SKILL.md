@@ -7,13 +7,21 @@ description: Use when the user provides a research paper screenshot, title, arXi
 
 ## Purpose
 
-Find the corresponding research paper from a screenshot, title, URL, or excerpt; download the verified official PDF into a user-provided research folder; and return the identifier the user can paste into Zotero's Add Item by Identifier dialog.
+Find the corresponding research paper from a screenshot, title, URL, or excerpt; download the verified official PDF into the local raw research source folder; and return the identifier the user can paste into Zotero's Add Item by Identifier dialog.
 
-## Required Target Folder
+## Local Target Folder
 
-Ask for or infer a target folder before post-processing. Pass it explicitly with `--target-dir`.
+For this user's local `LLM_wiki` vault, default and inferred paper storage is:
 
-Do not hardcode a personal vault path in public usage examples.
+```text
+E:\LLM_wiki\LLM_wiki\raw\08.Research
+```
+
+Use this folder when the user does not provide a destination. `scripts/paper_postprocess.py` also defaults to this path when `--target-dir` is omitted.
+
+Allow explicit overrides with `--target-dir` whenever the user names a different destination.
+
+Treat PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and paper metadata saved here as raw source material. Do not create generated reading notes, summaries, synthesis pages, outlines, or wiki-ready interpretations inside `raw\08.Research`; those belong later in the processed `wiki` area or another user-specified notes location.
 
 ## Source Priority
 
@@ -35,7 +43,7 @@ Avoid non-official mirrors unless no official PDF is available. Do not bypass pa
    - Prefer arXiv ID.
    - Use DOI if no arXiv ID exists.
    - If neither exists, report `not available` and include another source ID such as OpenReview ID for reference.
-4. Download the official PDF into the target folder or a temporary download path.
+4. Download the official PDF into `E:\LLM_wiki\LLM_wiki\raw\08.Research` or a temporary download path. Use another target only when the user provides one.
 5. Read enough of the paper to classify it into exactly one filename prefix:
    - `RAG`
    - `Agent`
@@ -43,7 +51,7 @@ Avoid non-official mirrors unless no official PDF is available. Do not bypass pa
    - `RL`
    - `DL_Frameworks`
    - `Other`
-6. Run `scripts/paper_postprocess.py` to verify and rename the PDF as `{field}_{original paper title}.pdf`.
+6. Run `scripts/paper_postprocess.py` to verify and rename the PDF as `{field}_{original paper title}.pdf`, and write `{field}_{original paper title}.metadata.json` next to it.
 7. Report Zotero identifier status in the final response.
 8. Do not generate `.bib` files unless explicitly requested.
 9. Do not create hand-written Zotero metadata entries through the Web API.
@@ -62,14 +70,13 @@ Choose the filename prefix by reading the title, abstract, introduction, method,
 
 ## Local Helper
 
-Use `scripts/paper_postprocess.py` after downloading a PDF to sanitize the filename, verify `%PDF-`, move it into the target folder, and report Zotero identifier status.
+Use `scripts/paper_postprocess.py` after downloading a PDF to sanitize the filename, verify `%PDF-`, move it into the raw research source folder, write a `.metadata.json` sidecar, and report Zotero identifier status.
 
 Example:
 
 ```powershell
 python scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "<research-folder>" `
   --title "Agent Harness Engineering: A Survey" `
   --field Agent `
   --authors "Junjie Li and Xi Xiao and Yunbei Zhang" `
@@ -82,7 +89,7 @@ Optional legacy BibTeX sidecar generation exists only when explicitly requested:
 ```powershell
 python scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "<research-folder>" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --authors "John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov" `

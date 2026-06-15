@@ -19,6 +19,12 @@
 
 ---
 
+## Local LLM_wiki policy
+
+Default paper storage for this local skill is `E:\LLM_wiki\LLM_wiki\raw\08.Research`.
+
+The raw folder is for verified PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and raw paper metadata only. Generated notes, summaries, synthesis, and wiki-ready interpretation should be created later in the processed wiki area or another explicit notes destination, not inside `raw\08.Research`.
+
 ## 为什么要做 Paper Fetcher?
 
 研究论文入库看起来只是“下载 PDF”，但实际经常会遇到标题不完整、截图里只有局部信息、arXiv 和 OpenReview 版本不同、非官方镜像混入、PDF 文件名混乱、Zotero 导入缺少 identifier 等问题
@@ -52,7 +58,7 @@ Paper Fetcher 解决的是“把论文从线索稳定转成可归档、可引用
    - `DL_Frameworks`
    - `Other`
 
-6. **后处理归档**：运行 `scripts/paper_postprocess.py`，清理文件名、移动到目标文件夹，并输出 JSON 结果
+6. **后处理归档**：运行 `scripts/paper_postprocess.py`，清理文件名、移动到目标文件夹，写入 `.metadata.json` 元数据 sidecar，并输出 JSON 结果
 
 7. **Zotero 辅助**：返回可复制到 Zotero Add Item by Identifier 的 arXiv ID 或 DOI
 
@@ -60,7 +66,7 @@ Paper Fetcher 解决的是“把论文从线索稳定转成可归档、可引用
 
 ### 1. 准备目标文件夹
 
-Paper Fetcher 不写死个人文献库路径。使用前需要提供或确认论文保存目录，并通过 `--target-dir` 显式传入
+Paper Fetcher defaults to `E:\LLM_wiki\LLM_wiki\raw\08.Research` for this local vault. Use `--target-dir` only when an explicit override is needed.
 
 ### 2. PDF 后处理
 
@@ -69,7 +75,6 @@ Agent 下载 PDF 后，运行：
 ```powershell
 python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "<research-folder>" `
   --title "Agent Harness Engineering: A Survey" `
   --field Agent `
   --authors "Junjie Li and Xi Xiao and Yunbei Zhang" `
@@ -82,7 +87,7 @@ python .\scripts\paper_postprocess.py `
 ```powershell
 python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "<research-folder>" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --arxiv-id "1707.06347" `
@@ -96,7 +101,7 @@ python .\scripts\paper_postprocess.py `
 ```powershell
 python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "<research-folder>" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --authors "John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov" `
@@ -115,10 +120,11 @@ python .\scripts\paper_postprocess.py `
 {
   "field": "Agent",
   "final_name": "Agent_Example Paper.pdf",
-  "saved_path": "<research-folder>/Agent_Example Paper.pdf",
+  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent_Example Paper.pdf",
   "pdf_verified": true,
   "dry_run": false,
   "identifier": "2401.00001",
+  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent_Example Paper.metadata.json",
   "zotero_status": {
     "status": "identifier_available",
     "identifier": "2401.00001"

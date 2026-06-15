@@ -24,8 +24,8 @@ try:
 except ImportError:  # pragma: no cover - non-Windows fallback
     winreg = None
 
-DEFAULT_OUTPUT_DIR = Path.cwd() / "clippings"
-DEFAULT_CACHE_DIR = DEFAULT_OUTPUT_DIR / ".llmwiki-cache" / "zhihu-clippings-vp"
+DEFAULT_OUTPUT_DIR = Path(r"E:\LLM_wiki\LLM_wiki\raw\01.Inbox")
+DEFAULT_CACHE_DIR = Path.cwd() / ".llmwiki-cache" / "zhihu-clippings-vp"
 API_URL = "https://developer.zhihu.com/api/v1/content/zhihu_search"
 TIKHUB_USER_ARTICLES_URL = "https://api.tikhub.io/api/v1/zhihu/web/fetch_user_articles"
 TIKHUB_ARTICLE_DETAIL_URL = "https://api.tikhub.io/api/v1/zhihu/web/fetch_column_article_detail"
@@ -794,67 +794,72 @@ def tikhub_article_detail_item(payload: dict[str, Any]) -> dict[str, Any]:
 
 def call_tikhub_question_answers(question_id: str, answer_ids: set[str], api_key: str, cache_dir: Path, limit: int = 20, max_pages: int = 30) -> list[dict[str, Any]]:
     cache_dir.mkdir(parents=True, exist_ok=True)
-    cursor = ""
-    session_id = ""
-    offset = 0
     found: dict[str, dict[str, Any]] = {}
-    for page in range(1, max_pages + 1):
-        params = {
-            "question_id": question_id,
-            "limit": limit,
-            "offset": offset,
-            "order": "default",
-            "cursor": cursor,
-            "session_id": session_id,
-        }
-        req = Request(
-            f"{TIKHUB_QUESTION_ANSWERS_URL}?{urlencode(params)}",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "User-Agent": "zhihu-clippings-vp-skill/tikhub-answer-fulltext",
-            },
-            method="GET",
-        )
-        try:
-            with urlopen(req, timeout=60) as response:
-                payload = json.load(response)
-        except HTTPError as exc:
-            body = exc.read().decode("utf-8", errors="replace")[:1000]
-            raise RuntimeError(f"TikHub question answers API HTTP {exc.code}: {body}") from exc
-        except URLError as exc:
-            raise RuntimeError(f"TikHub question answers API request failed: {exc}") from exc
-        (cache_dir / f"tikhub-question-{question_id}-answers-page-{page}.json").write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
-        code = payload.get("code")
-        if code not in (None, 200):
-            raise RuntimeError(f"TikHub question answers API returned error: {json.dumps(payload, ensure_ascii=False)[:1000]}")
-        data = payload.get("data") or {}
-        rows = data.get("data") if isinstance(data, dict) else []
-        if not isinstance(rows, list):
-            rows = []
-        for row in rows:
-            target = row.get("target") if isinstance(row, dict) else None
-            if not isinstance(target, dict):
-                continue
-            answer_id = str(target.get("id") or target.get("answer_id") or "")
-            if answer_id in answer_ids:
-                found[answer_id] = target
+    for order in ("updated", "default"):
+        cursor = ""
+        session_id = ""
+        offset = 0
+        for page in range(1, max_pages + 1):
+            params = {
+                "question_id": question_id,
+                "limit": limit,
+                "offset": offset,
+                "order": order,
+                "cursor": cursor,
+                "session_id": session_id,
+            }
+            req = Request(
+                f"{TIKHUB_QUESTION_ANSWERS_URL}?{urlencode(params)}",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "User-Agent": "zhihu-clippings-vp-skill/tikhub-answer-fulltext",
+                },
+                method="GET",
+            )
+            try:
+                with urlopen(req, timeout=60) as response:
+                    payload = json.load(response)
+            except HTTPError as exc:
+                body = exc.read().decode("utf-8", errors="replace")[:1000]
+                if order != "default":
+                    break
+                raise RuntimeError(f"TikHub question answers API HTTP {exc.code}: {body}") from exc
+            except URLError as exc:
+                raise RuntimeError(f"TikHub question answers API request failed: {exc}") from exc
+            (cache_dir / f"tikhub-question-{question_id}-answers-{order}-page-{page}.json").write_text(
+                json.dumps(payload, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            code = payload.get("code")
+            if code not in (None, 200):
+                raise RuntimeError(f"TikHub question answers API returned error: {json.dumps(payload, ensure_ascii=False)[:1000]}")
+            data = payload.get("data") or {}
+            rows = data.get("data") if isinstance(data, dict) else []
+            if not isinstance(rows, list):
+                rows = []
+            for row in rows:
+                target = row.get("target") if isinstance(row, dict) else None
+                if not isinstance(target, dict):
+                    continue
+                answer_id = str(target.get("id") or target.get("answer_id") or "")
+                if answer_id in answer_ids:
+                    found[answer_id] = target
+            if answer_ids.issubset(found):
+                break
+            paging = data.get("paging") if isinstance(data, dict) else {}
+            if not isinstance(paging, dict) or paging.get("is_end"):
+                break
+            next_url = str(paging.get("next") or "")
+            query = parse_qs(urlparse(next_url).query)
+            cursor = (query.get("cursor") or [cursor])[0]
+            session_id = (query.get("session_id") or [session_id])[0]
+            try:
+                offset = int((query.get("offset") or [offset + limit])[0])
+            except ValueError:
+                offset += limit
+            time.sleep(0.5)
         if answer_ids.issubset(found):
             break
-        paging = data.get("paging") if isinstance(data, dict) else {}
-        if not isinstance(paging, dict) or paging.get("is_end"):
-            break
-        next_url = str(paging.get("next") or "")
-        query = parse_qs(urlparse(next_url).query)
-        cursor = (query.get("cursor") or [cursor])[0]
-        session_id = (query.get("session_id") or [session_id])[0]
-        try:
-            offset = int((query.get("offset") or [offset + limit])[0])
-        except ValueError:
-            offset += limit
-        time.sleep(0.5)
     missing = sorted(answer_ids - set(found))
     if missing:
         raise RuntimeError(f"TikHub question answers API did not return answer_id(s): {', '.join(missing)}")
@@ -1103,12 +1108,14 @@ def render_bundle(
     summary: str,
 ) -> str:
     fulltext = content_provider == "tikhub"
-    title = f"知乎_{author}_{summary}_知乎文章搜索剪藏_{today()}_{range_label}"
+    all_answers = bool(items) and all(str(item.get("content_type") or "").lower() == "answer" for item in items)
+    clipping_kind = "知乎回答剪藏" if all_answers else "知乎文章搜索剪藏"
+    title = f"知乎_{author}_{summary}_{clipping_kind}_{today()}_{range_label}"
     source = "zhihu official api + tikhub" if fulltext else API_URL
     description = (
-        f"知乎官方 API 定位，TikHub 补全文，共 {total} 条，本文件收录第 {range_label} 篇。"
+        f"知乎官方 API 定位，TikHub 补全文，共 {total} 条，本文件收录第 {range_label} 篇{'回答' if all_answers else '文章'}。"
         if fulltext
-        else f"知乎官方 API 搜索命中的作者文章候选，共 {total} 条，本文件收录第 {range_label} 篇。"
+        else f"知乎官方 API 搜索命中的作者候选内容，共 {total} 条，本文件收录第 {range_label} 篇{'回答' if all_answers else '文章'}。"
     )
     tags = ['  - "clippings"', '  - "zhihu"', f"  - {yaml_quote(author)}"]
     frontmatter = [
@@ -1129,7 +1136,7 @@ def render_bundle(
     for index, item in enumerate(items, start=start + 1):
         article_number = f"0x{index:02d}"
         section = [
-            f"## {article_number}. {item.get('title') or '未命名知乎文章'}",
+            f"## {article_number}. {item.get('title') or ('未命名知乎回答' if all_answers else '未命名知乎文章')}",
         ]
         section.extend(["", item.get("description") or ""])
         sections.append("\n".join(section).strip())

@@ -4,7 +4,7 @@
     "field": "Agent",
     "openreview_id": "eONq7FdiHa",
     "source_url": "https://openreview.net/pdf?id=eONq7FdiHa",
-    "target_dir": "<research-folder>"
+    "target_dir": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research"
   },
   "expected": {
     "final_name": "Agent_Agent Harness Engineering- A Survey.pdf",
