@@ -53,10 +53,11 @@ def test_target_dir_doi_and_other_field(tmp_path: Path) -> None:
     assert payload["final_name"] == "Other_A-B- Test- Paper-.pdf"
     assert payload["identifier"] == "10.1234/example.paper"
     assert payload["pdf_verified"] is True
-    assert payload["metadata"] == str(saved_path.with_suffix(".metadata.json"))
+    metadata_path = target_dir / "_metadata" / saved_path.with_suffix(".metadata.json").name
+    assert payload["metadata"] == str(metadata_path)
     assert saved_path.parent == target_dir
     assert saved_path.exists()
-    metadata = json.loads(saved_path.with_suffix(".metadata.json").read_text(encoding="utf-8"))
+    metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     assert metadata["raw_type"] == "paper"
     assert metadata["title"] == 'A/B: Test? Paper*'
     assert metadata["doi"] == "10.1234/example.paper"
@@ -134,7 +135,7 @@ def test_default_target_dir_is_local_raw_research_field_folder(tmp_path: Path) -
 
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
-    assert Path(payload["saved_path"]).parent == Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research\RAG")
+    assert Path(payload["saved_path"]).parent == Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research\01.RAG")
     assert source.exists()
 
 

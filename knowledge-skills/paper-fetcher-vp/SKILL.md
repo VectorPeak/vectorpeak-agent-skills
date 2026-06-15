@@ -11,36 +11,48 @@ Find the corresponding research paper from a screenshot, title, URL, or excerpt;
 
 ## Local Target Folder
 
-For this user's local `LLM_wiki` vault, default and inferred paper storage is:
+For this user's local `LLM_wiki` vault, default and inferred paper storage is the numbered research taxonomy under:
 
 ```text
-E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>
+E:\LLM_wiki\LLM_wiki\raw\08.Research
 ```
 
-Use the field subfolder when the user does not provide a destination. `scripts/paper_postprocess.py` defaults to `E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>` when `--target-dir` is omitted, for example `raw\08.Research\Agent` or `raw\08.Research\RL`.
+Use the mapped numbered field folder when the user does not provide a destination:
 
-Allow explicit overrides with `--target-dir` whenever the user names a different destination. Treat `--target-dir` as an exact destination directory, not as a root to append the field to.
+| Field | PDF destination |
+|---|---|
+| `Agent` | `raw\08.Research\00.Agent` |
+| `RAG` | `raw\08.Research\01.RAG` |
+| `SFT` | `raw\08.Research\02.PostTraining\SFT` |
+| `RL` | `raw\08.Research\02.PostTraining\RL` |
+| `Training_Systems` or legacy `DL_Frameworks` | `raw\08.Research\03.Training_Systems` |
+| `Personal` | `raw\08.Research\04.Personal` |
+| `Other` | `raw\08.Research\05.Other` |
 
-Treat PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and paper metadata saved here as raw source material. Do not create generated reading notes, summaries, synthesis pages, outlines, or wiki-ready interpretations inside `raw\08.Research`; those belong later in the processed `wiki` area or another user-specified notes location.
+Allow explicit overrides with `--target-dir` whenever the user names a different destination. Treat `--target-dir` as an exact PDF destination directory, not as a root to append the field to.
+
+Treat PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and paper metadata saved here as raw source material. Default metadata and BibTeX sidecars go into `raw\08.Research\_metadata`; if the user supplies `--target-dir`, sidecars go into `<target-dir>\_metadata`. Do not create generated reading notes, summaries, synthesis pages, outlines, or wiki-ready interpretations inside `raw\08.Research`; those belong later in the processed `wiki` area or another user-specified notes location.
 
 Recommended local folder structure:
 
 ```text
 raw/08.Research/
-  RAG/
-  Agent/
-  SFT/
-  RL/
-  DL_Frameworks/
-  Other/
-  Personal/        # legacy migrated personal/security papers
+  00.Agent/
+  01.RAG/
+  02.PostTraining/
+    SFT/
+    RL/
+  03.Training_Systems/
+  04.Personal/
+  05.Other/
+  _metadata/
 ```
 
-Keep each paper's PDF and sidecars together in the same field folder:
+Keep PDFs in their field folder and sidecars in `_metadata/`:
 
 ```text
-raw/08.Research/Agent/Agent_Example Paper.pdf
-raw/08.Research/Agent/Agent_Example Paper.metadata.json
+raw/08.Research/00.Agent/Agent_Example Paper.pdf
+raw/08.Research/_metadata/Agent_Example Paper.metadata.json
 ```
 
 ## Source Priority
@@ -69,9 +81,10 @@ Avoid non-official mirrors unless no official PDF is available. Do not bypass pa
    - `Agent`
    - `SFT`
    - `RL`
-   - `DL_Frameworks`
+   - `Training_Systems`
+   - `Personal`
    - `Other`
-6. Run `scripts/paper_postprocess.py` to verify and rename the PDF as `{field}_{original paper title}.pdf`, and write `{field}_{original paper title}.metadata.json` next to it.
+6. Run `scripts/paper_postprocess.py` to verify and rename the PDF as `{field}_{original paper title}.pdf`, and write `{field}_{original paper title}.metadata.json` into `_metadata`.
 7. Report Zotero identifier status in the final response.
 8. Do not generate `.bib` files unless explicitly requested.
 9. Do not create hand-written Zotero metadata entries through the Web API.
@@ -85,7 +98,9 @@ Choose the filename prefix by reading the title, abstract, introduction, method,
 - `Agent`: LLM agents, tool use, planning, agent benchmarks, multi-agent systems, browser/computer-use agents, workflow automation, agent memory.
 - `SFT`: supervised fine-tuning, instruction tuning, alignment datasets, preference data preparation before RL, domain/task fine-tuning.
 - `RL`: reinforcement learning, RLHF, RLAIF, PPO, DPO-style preference optimization, reward models, policy optimization, decision-making agents when RL is central.
-- `DL_Frameworks`: training/inference systems, distributed training, compilers, CUDA kernels, PyTorch/TensorFlow/JAX/runtime work, model serving infrastructure.
+- `Training_Systems`: training/inference systems, distributed training, compilers, CUDA kernels, PyTorch/TensorFlow/JAX/runtime work, model serving infrastructure, and model architecture papers that are primarily about training behavior or systems implications.
+- `DL_Frameworks`: legacy alias for `Training_Systems`; prefer `Training_Systems` in new outputs.
+- `Personal`: personal/local-interest papers that the user wants retained outside the main research taxonomy.
 - `Other`: use only when none of the above fields is a reasonable fit.
 
 ## Local Helper
@@ -109,7 +124,7 @@ Optional legacy BibTeX sidecar generation exists only when explicitly requested:
 ```powershell
 python scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\02.PostTraining\RL" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --authors "John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov" `

@@ -21,24 +21,26 @@
 
 ## Local LLM_wiki policy
 
-Default paper storage for this local skill is `E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>`.
+Default paper storage for this local skill is the numbered taxonomy under `E:\LLM_wiki\LLM_wiki\raw\08.Research`.
 
-The raw folder is for verified PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and raw paper metadata only. Generated notes, summaries, synthesis, and wiki-ready interpretation should be created later in the processed wiki area or another explicit notes destination, not inside `raw\08.Research`.
+The raw folder is for verified PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and raw paper metadata only. PDFs go into numbered field folders; metadata and BibTeX sidecars go into `_metadata/`. Generated notes, summaries, synthesis, and wiki-ready interpretation should be created later in the processed wiki area or another explicit notes destination, not inside `raw\08.Research`.
 
 Recommended local structure:
 
 ```text
 raw/08.Research/
-  RAG/
-  Agent/
-  SFT/
-  RL/
-  DL_Frameworks/
-  Other/
-  Personal/
+  00.Agent/
+  01.RAG/
+  02.PostTraining/
+    SFT/
+    RL/
+  03.Training_Systems/
+  04.Personal/
+  05.Other/
+  _metadata/
 ```
 
-Keep each PDF and its sidecars together inside the same field folder.
+Keep PDFs in their field folder and sidecars in `_metadata/`.
 
 ## 为什么要做 Paper Fetcher?
 
@@ -70,7 +72,8 @@ Paper Fetcher 解决的是“把论文从线索稳定转成可归档、可引用
    - `Agent`
    - `SFT`
    - `RL`
-   - `DL_Frameworks`
+   - `Training_Systems`
+   - `Personal`
    - `Other`
 
 6. **后处理归档**：运行 `scripts/paper_postprocess.py`，清理文件名、移动到目标文件夹，写入 `.metadata.json` 元数据 sidecar，并输出 JSON 结果
@@ -81,7 +84,7 @@ Paper Fetcher 解决的是“把论文从线索稳定转成可归档、可引用
 
 ### 1. 准备目标文件夹
 
-Paper Fetcher defaults to `E:\LLM_wiki\LLM_wiki\raw\08.Research\<field>` for this local vault. Use `--target-dir` only when an explicit override is needed; explicit `--target-dir` is treated as the exact destination directory.
+Paper Fetcher defaults to a numbered field folder under `E:\LLM_wiki\LLM_wiki\raw\08.Research` for this local vault. Use `--target-dir` only when an explicit override is needed; explicit `--target-dir` is treated as the exact PDF destination directory.
 
 ### 2. PDF 后处理
 
@@ -102,7 +105,7 @@ python .\scripts\paper_postprocess.py `
 ```powershell
 python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\00.Agent" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --arxiv-id "1707.06347" `
@@ -116,7 +119,7 @@ python .\scripts\paper_postprocess.py `
 ```powershell
 python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\02.PostTraining\RL" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --authors "John Schulman and Filip Wolski and Prafulla Dhariwal and Alec Radford and Oleg Klimov" `
@@ -135,11 +138,11 @@ python .\scripts\paper_postprocess.py `
 {
   "field": "Agent",
   "final_name": "Agent_Example Paper.pdf",
-  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent\\Agent_Example Paper.pdf",
+  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\00.Agent\\Agent_Example Paper.pdf",
   "pdf_verified": true,
   "dry_run": false,
   "identifier": "2401.00001",
-  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\Agent\\Agent_Example Paper.metadata.json",
+  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\_metadata\\Agent_Example Paper.metadata.json",
   "zotero_status": {
     "status": "identifier_available",
     "identifier": "2401.00001"

@@ -11,8 +11,19 @@ from pathlib import Path
 
 ILLEGAL = re.compile(r'[<>:"/\\|?*]')
 SPACE = re.compile(r"\s+")
-VALID_FIELDS = ("RAG", "Agent", "SFT", "RL", "DL_Frameworks", "Other")
+VALID_FIELDS = ("RAG", "Agent", "SFT", "RL", "Training_Systems", "DL_Frameworks", "Personal", "Other")
 DEFAULT_RESEARCH_ROOT = Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research")
+FIELD_DIRS = {
+    "Agent": Path("00.Agent"),
+    "RAG": Path("01.RAG"),
+    "SFT": Path("02.PostTraining") / "SFT",
+    "RL": Path("02.PostTraining") / "RL",
+    "Training_Systems": Path("03.Training_Systems"),
+    "DL_Frameworks": Path("03.Training_Systems"),
+    "Personal": Path("04.Personal"),
+    "Other": Path("05.Other"),
+}
+METADATA_DIR = DEFAULT_RESEARCH_ROOT / "_metadata"
 
 
 def safe_title(title: str) -> str:
@@ -28,7 +39,7 @@ def safe_field(field: str) -> str:
 
 
 def default_field_dir(field: str) -> Path:
-    return DEFAULT_RESEARCH_ROOT / safe_field(field)
+    return DEFAULT_RESEARCH_ROOT / FIELD_DIRS[safe_field(field)]
 
 
 def unique_path(path: Path) -> Path:
@@ -62,7 +73,15 @@ def bib_key(title: str, year: str | None) -> str:
     return f"{base}{year or ''}"
 
 
-def write_bib(path: Path, title: str, authors: str | None, year: str | None, arxiv_id: str | None, source_url: str | None) -> Path:
+def write_bib(
+    path: Path,
+    metadata_dir: Path,
+    title: str,
+    authors: str | None,
+    year: str | None,
+    arxiv_id: str | None,
+    source_url: str | None,
+) -> Path:
     key = bib_key(title, year)
     fields = [f"  title = {{{title}}}"]
     if authors:
@@ -75,13 +94,15 @@ def write_bib(path: Path, title: str, authors: str | None, year: str | None, arx
     if source_url:
         fields.append(f"  url = {{{source_url}}}")
     bib = "@misc{" + key + ",\n" + ",\n".join(fields) + "\n}\n"
-    bib_path = path.with_suffix(".bib")
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+    bib_path = unique_path(metadata_dir / path.with_suffix(".bib").name)
     bib_path.write_text(bib, encoding="utf-8")
     return bib_path
 
 
 def write_metadata(
     path: Path,
+    metadata_dir: Path,
     *,
     title: str,
     field: str,
@@ -110,7 +131,8 @@ def write_metadata(
             "This metadata sidecar is raw source metadata, not a wiki synthesis note.",
         ],
     }
-    metadata_path = path.with_suffix(".metadata.json")
+    metadata_dir.mkdir(parents=True, exist_ok=True)
+    metadata_path = unique_path(metadata_dir / path.with_suffix(".metadata.json").name)
     metadata_path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return metadata_path
 
@@ -152,7 +174,8 @@ def main() -> None:
         "--target-dir",
         help=(
             "Exact directory where the verified and renamed PDF should be saved. "
-            f"Defaults to {DEFAULT_RESEARCH_ROOT}\\<field>, such as {DEFAULT_RESEARCH_ROOT}\\Agent."
+            f"Defaults to numbered field folders under {DEFAULT_RESEARCH_ROOT}, "
+            f"such as {DEFAULT_RESEARCH_ROOT}\\00.Agent."
         ),
     )
     parser.add_argument("--authors")
@@ -171,6 +194,7 @@ def main() -> None:
 
     field = safe_field(args.field)
     target_dir = Path(args.target_dir) if args.target_dir else default_field_dir(field)
+    metadata_dir = (target_dir / "_metadata") if args.target_dir else METADATA_DIR
     filename = f"{field}_{safe_title(args.title)}.pdf"
     target = target_dir / filename
     if not args.dry_run and pdf.resolve() != target.resolve():
@@ -189,6 +213,7 @@ def main() -> None:
     if not args.dry_run:
         metadata_path = write_metadata(
             target,
+            metadata_dir,
             title=args.title,
             field=args.field,
             authors=args.authors,
@@ -201,7 +226,15 @@ def main() -> None:
 
     bib_path = None
     if args.bib and not args.dry_run:
-        bib_path = write_bib(target, args.title, args.authors, args.year, args.arxiv_id, args.source_url)
+        bib_path = write_bib(
+            target,
+            metadata_dir,
+            args.title,
+            args.authors,
+            args.year,
+            args.arxiv_id,
+            args.source_url,
+        )
 
     if args.zotero:
         zotero_status = zotero_identifier_status(args.arxiv_id, args.doi, args.source_url)

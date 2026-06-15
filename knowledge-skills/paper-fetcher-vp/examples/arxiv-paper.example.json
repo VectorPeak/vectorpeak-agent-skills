@@ -4,7 +4,7 @@
     "field": "RL",
     "arxiv_id": "1707.06347",
     "source_url": "https://arxiv.org/pdf/1707.06347",
-    "target_dir": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research"
+    "target_dir": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\02.PostTraining\\RL"
   },
   "expected": {
     "final_name": "RL_Proximal Policy Optimization Algorithms.pdf",
