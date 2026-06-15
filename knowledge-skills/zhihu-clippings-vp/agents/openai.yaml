@@ -1,4 +1,4 @@
 interface:
   display_name: "Zhihu Clippings VP"
-  short_description: "Clip Zhihu API search results."
-  default_prompt: "Use $zhihu-clippings-vp to search Zhihu through the official API and bundle every 5 results into Obsidian-style Markdown files."
+  short_description: "Clip verified Zhihu articles and answers."
+  default_prompt: "Use $zhihu-clippings-vp to locate Zhihu content with official-first verification, fetch fulltext through TikHub when needed, and save article or answer clippings as Obsidian-style Markdown in raw/01.Inbox."

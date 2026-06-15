@@ -1,9 +1,13 @@
 ---
 name: paper-fetcher-vp
-description: Use when the user provides a research paper screenshot, title, arXiv/OpenReview/publisher/project URL, or article excerpt and wants Codex to identify the paper, download and verify an official PDF, rename it with a research-field prefix, and report a Zotero Add Item by Identifier value such as arXiv ID or DOI.
+description: Use when the user provides a research paper screenshot, title, arXiv/OpenReview/publisher/project URL, or article excerpt and wants Codex to identify the paper, download and verify an official PDF, classify it into the raw/08.Research taxonomy, choose an optional filename prefix with --name-prefix, and report a Zotero Add Item by Identifier value such as arXiv ID or DOI.
 ---
 
 # Paper Fetcher
+
+## When To Use
+
+Use this skill when the user wants to identify, fetch, verify, rename, and store an academic paper PDF from a screenshot, title, URL, project page, or excerpt. Also use it when the user asks for the Zotero Add Item by Identifier value for a paper.
 
 ## Purpose
 
@@ -60,7 +64,7 @@ raw/08.Research/_metadata/Survey_Example Paper.metadata.json
 Separate the coarse research `field` from the PDF filename prefix:
 
 - Use `field` only to choose the destination folder and metadata taxonomy.
-- Use `--name-prefix` for the filename when a more specific method, paper type, or topic is clear.
+- Use `--name-prefix` to choose the PDF filename prefix when a more specific method, paper type, or topic is clear.
 - Avoid repeating large folder categories in filenames when the folder already says the category, such as `Agent_...`, `Training_Systems_...`, or `Personal_...`.
 - If no useful specific prefix is clear, fall back to the field name.
 
@@ -144,9 +148,9 @@ Avoid non-official mirrors unless no official PDF is available. Do not bypass pa
 10. Do not create hand-written Zotero metadata entries through the Web API.
 11. Never edit Zotero's local database files directly.
 
-## Field Prefix Selection
+## Field Classification
 
-Choose the filename prefix by reading the title, abstract, introduction, method, and conclusion. Use the closest field when a paper spans multiple areas:
+Choose exactly one `field` by reading the title, abstract, introduction, method, and conclusion. The field determines the destination under `raw/08.Research`, not the filename prefix. Use the closest field when a paper spans multiple areas:
 
 - `RAG`: retrieval-augmented generation, vector retrieval, dense/sparse retrieval, indexing, query rewriting, reranking, knowledge-grounded generation, long-context retrieval.
 - `Agent`: LLM agents, tool use, planning, agent benchmarks, multi-agent systems, browser/computer-use agents, workflow automation, agent memory.

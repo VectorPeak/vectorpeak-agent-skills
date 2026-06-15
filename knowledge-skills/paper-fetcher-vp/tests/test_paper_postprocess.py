@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 import subprocess
 import sys
@@ -9,6 +10,15 @@ import pytest
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "paper_postprocess.py"
+
+
+def load_script_module():
+    spec = importlib.util.spec_from_file_location("paper_postprocess", SCRIPT)
+    assert spec is not None
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
 
 
 def write_pdf(path: Path) -> None:
@@ -38,6 +48,8 @@ def test_target_dir_doi_and_other_field(tmp_path: Path) -> None:
         'A/B: Test? Paper*',
         "--field",
         "Other",
+        "--name-prefix",
+        "Benchmark",
         "--doi",
         "10.1234/example.paper",
         "--source-url",
@@ -50,7 +62,8 @@ def test_target_dir_doi_and_other_field(tmp_path: Path) -> None:
     saved_path = Path(payload["saved_path"])
 
     assert payload["field"] == "Other"
-    assert payload["final_name"] == "Other_A-B- Test- Paper-.pdf"
+    assert payload["name_prefix"] == "Benchmark"
+    assert payload["final_name"] == "Benchmark_A-B- Test- Paper-.pdf"
     assert payload["identifier"] == "10.1234/example.paper"
     assert payload["pdf_verified"] is True
     metadata_path = target_dir / "_metadata" / saved_path.with_suffix(".metadata.json").name
@@ -148,6 +161,63 @@ def test_name_prefix_is_separate_from_field_folder(tmp_path: Path) -> None:
     assert saved_path.parent == target_dir
     assert metadata["field"] == "RL"
     assert metadata["pdf_filename"] == "DPO_Direct Preference Optimization.pdf"
+
+
+def test_ppo_name_prefix_matches_arxiv_example_contract(tmp_path: Path) -> None:
+    source = tmp_path / "download.pdf"
+    target_dir = tmp_path / "research" / "02.PostTraining" / "RL"
+    write_pdf(source)
+
+    result = run_postprocess(
+        "--pdf",
+        str(source),
+        "--target-dir",
+        str(target_dir),
+        "--title",
+        "Proximal Policy Optimization Algorithms",
+        "--field",
+        "RL",
+        "--name-prefix",
+        "PPO",
+        "--arxiv-id",
+        "1707.06347",
+        "--zotero",
+    )
+
+    assert result.returncode == 0, result.stderr
+    payload = json.loads(result.stdout)
+    saved_path = Path(payload["saved_path"])
+
+    assert payload["field"] == "RL"
+    assert payload["name_prefix"] == "PPO"
+    assert payload["final_name"] == "PPO_Proximal Policy Optimization Algorithms.pdf"
+    assert payload["identifier"] == "1707.06347"
+    assert saved_path.parent == target_dir
+    assert saved_path.exists()
+
+
+def test_move_pdf_uses_shutil_move_for_cross_volume_safety(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    module = load_script_module()
+    source = tmp_path / "download.pdf"
+    target = tmp_path / "research" / "Paper.pdf"
+    write_pdf(source)
+    calls = []
+
+    def fake_move(src: str, dst: str) -> str:
+        calls.append((src, dst))
+        destination = Path(dst)
+        destination.write_bytes(Path(src).read_bytes())
+        Path(src).unlink()
+        return dst
+
+    monkeypatch.setattr(module.shutil, "move", fake_move)
+
+    moved = module.move_pdf(source, target)
+
+    assert calls == [(str(source), str(target))]
+    assert moved == target
+    assert moved.read_bytes().startswith(b"%PDF-")
+    assert not source.exists()
 
 
 def test_default_target_dir_is_local_raw_research_field_folder(tmp_path: Path) -> None:

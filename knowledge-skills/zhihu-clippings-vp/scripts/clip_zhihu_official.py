@@ -1112,6 +1112,22 @@ def render_bundle(
     clipping_kind = "知乎回答剪藏" if all_answers else "知乎文章搜索剪藏"
     title = f"知乎_{author}_{summary}_{clipping_kind}_{today()}_{range_label}"
     source = "zhihu official api + tikhub" if fulltext else API_URL
+    official_matched_count = sum(1 for item in items if item.get("official_matched"))
+    content_sources = sorted(
+        {
+            str(item.get("content_source") or ("official_api_content_text" if not fulltext else "tikhub_content"))
+            for item in items
+        }
+    )
+    verification_status = (
+        "official_verified"
+        if items and official_matched_count == len(items)
+        else "official_partial"
+        if official_matched_count
+        else "official_unverified_tikhub_direct"
+        if fulltext
+        else "official_search_results"
+    )
     description = (
         f"知乎官方 API 定位，TikHub 补全文，共 {total} 条，本文件收录第 {range_label} 篇{'回答' if all_answers else '文章'}。"
         if fulltext
@@ -1127,6 +1143,13 @@ def render_bundle(
         "published:",
         f"created: {today()}",
         f"range: {yaml_quote(range_label)}",
+        f"content_provider: {yaml_quote(content_provider)}",
+        "verification:",
+        f"  status: {yaml_quote(verification_status)}",
+        f"  official_matched: {official_matched_count}",
+        f"  total_items: {len(items)}",
+        "  content_sources:",
+        *[f"    - {yaml_quote(content_source)}" for content_source in content_sources],
         f"description: {yaml_quote(description)}",
         "tags:",
         *tags,

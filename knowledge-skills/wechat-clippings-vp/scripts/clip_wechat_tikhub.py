@@ -875,11 +875,23 @@ def write_bundles(articles: list[Article], args: argparse.Namespace, output_dir:
             date=today(),
             range=label,
         )
-        path = output_dir / safe_text(filename, "wechat-clippings-vp.md")
+        path = unique_path(output_dir / safe_text(filename, "wechat-clippings-vp.md"))
         path.write_text(render_bundle(selected, author, summary, label, len(articles), args.format_mode), encoding="utf-8")
         warn_table_loss(selected, path)
         written.append(path)
     return written
+
+
+def unique_path(path: Path) -> Path:
+    if not path.exists():
+        return path
+    stem = path.stem
+    suffix = path.suffix
+    for index in range(2, 1000):
+        candidate = path.with_name(f"{stem}-{index}{suffix}")
+        if not candidate.exists():
+            return candidate
+    raise RuntimeError(f"Could not find a unique output path for {path}")
 
 
 def render_bundle(

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import shutil
 from pathlib import Path
 
 
@@ -73,6 +74,13 @@ def verify_pdf(path: Path) -> None:
         header = f.read(5)
     if header != b"%PDF-":
         raise SystemExit(f"File is not a valid PDF header: {path}")
+
+
+def move_pdf(source: Path, target: Path) -> Path:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target = unique_path(target)
+    moved_path = shutil.move(str(source), str(target))
+    return Path(moved_path)
 
 
 def bib_key(title: str, year: str | None) -> str:
@@ -214,9 +222,7 @@ def main() -> None:
     filename = f"{name_prefix}_{safe_title(args.title)}.pdf"
     target = target_dir / filename
     if not args.dry_run and pdf.resolve() != target.resolve():
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target = unique_path(target)
-        pdf.rename(target)
+        target = move_pdf(pdf, target)
     elif target.exists():
         target = unique_path(target)
 
