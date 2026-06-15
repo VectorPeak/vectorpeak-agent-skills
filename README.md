@@ -58,6 +58,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 用于工程开发场景，包括编码、调试、测试、代码审查、架构分析、构建修复、发布流程、CI/CD、仓库维护和本地自动化
 
 - [`opensense-pr-attempt-vp`](dev-skills/opensense-pr-attempt-vp/)：把 OpenSense 的每日 issue 筛选、本地 PR 尝试、测试证据和 PR 草稿流程沉淀为可复用 Agent Skill。
+- [`profile-readme-github-vp`](dev-skills/profile-readme-github-vp/)：把 VectorPeak GitHub Profile README 的 facts 收集、双语渲染、公开项目自动补全和 profile 仓库排除规则沉淀为可复用 Agent Skill。
 
 ### `knowledge-skills/`
 

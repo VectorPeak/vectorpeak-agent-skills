@@ -1,0 +1,38 @@
+{
+  "identity": "AI Programmer | BS CS @ Xidian University | 2x CCF-C",
+  "contribution_summary_limit": 12,
+  "project_summary_limit": 12,
+  "min_upstream_repo_stars": 500,
+  "auto_include_public_repos": true,
+  "excluded_projects": [
+    "VectorPeak"
+  ],
+  "linkedin": "https://www.linkedin.com/in/%E6%98%9F%E5%B2%B3-%E6%9C%B1-132b33412/",
+  "projects": [
+    {
+      "area": "LLM tooling",
+      "name": "LLM-Wiki",
+      "stars": 2,
+      "url": "https://github.com/VectorPeak/LLM-Wiki",
+      "notes": "A structured knowledge base for large language model technologies, covering LLMs, Agents, RAG, model training, evaluation methods, and AI engineering practices.",
+      "zh_notes": "大语言模型知识库，覆盖 LLM、Agent、RAG、训练、评测方法和 AI 工程实践。"
+    },
+    {
+      "area": "Research",
+      "name": "carbon-tower-predictor",
+      "stars": 1,
+      "url": "https://github.com/VectorPeak/carbon-tower-predictor",
+      "notes": "Time-series modeling for industrial carbonization tower outlet temperature prediction and predictive maintenance.",
+      "zh_notes": "面向工业碳化塔取出液温度预测与预测性维护的时序建模方案。"
+    },
+    {
+      "area": "Coding agents",
+      "name": "OpenSense",
+      "stars": 0,
+      "url": "https://github.com/VectorPeak/OpenSense",
+      "notes": "Daily PR opportunity finder for known open-source repositories.",
+      "zh_notes": "面向已知开源项目的每日 PR 机会发现工具。"
+    }
+  ],
+  "contributions": []
+}

@@ -42,12 +42,14 @@ engineering problem  ->  repeatable practice  ->  SKILL.md  ->  reliable agent w
 ```text
 dev-skills/
 ├── opensense-pr-attempt-vp/  # OpenSense 开源 PR 尝试工作流
+├── profile-readme-github-vp/ # GitHub Profile README 自动更新工作流
 └── README.md                 # 工程类技能目录说明
 ```
 
 ## 当前技能
 
 - [`opensense-pr-attempt-vp`](opensense-pr-attempt-vp/)：使用 OpenSense 从 watchlist 中筛选 issue，生成 PR 前计划、上下文包、sandbox 执行记录、测试证据和本地 PR 草稿。
+- [`profile-readme-github-vp`](profile-readme-github-vp/)：生成 VectorPeak GitHub Profile README，支持公开项目 facts 收集、stars 更新、中英双语表格、自动补全新公开仓库，并排除 `VectorPeak/VectorPeak` profile 仓库本身。
 
 ## 适合沉淀的技能
 
