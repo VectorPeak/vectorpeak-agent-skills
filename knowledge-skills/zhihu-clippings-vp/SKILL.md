@@ -26,7 +26,7 @@ Run official-first, TikHub-final:
 4. Never create a final clipping from screenshot/OCR text, copied snippets, or official `ContentText` when the user expects a full article/answer body. Use those inputs as search/disambiguation clues only.
 5. Stop and report clearly when neither official search can identify the target nor TikHub can return a complete untruncated body.
 
-Generated Markdown should land in `raw/01.Inbox` by default as unprocessed source material. Do not summarize, rewrite, classify, or move it into the wiki unless the user explicitly asks for that downstream step.
+Generated Markdown should land in `01.raw/01.Inbox` by default as unprocessed source material. Do not summarize, rewrite, classify, or move it into 02.wiki unless the user explicitly asks for that downstream step.
 
 For detailed Markdown QA rules, heading normalization, code fence cleanup, and provider notes, read `references/zhihu-notes.md` when preparing or reviewing final output.
 
@@ -77,7 +77,7 @@ python scripts\clip_zhihu_official.py "何宇峰 月之暗面 Kimi AI Agent 工�
 Default output directory:
 
 ```text
-E:\LLM_wiki\LLM_wiki\raw\01.Inbox
+E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox
 ```
 
 Default filename template:
@@ -88,21 +88,33 @@ Default filename template:
 
 `{summary}` should be concise, filename-safe, human-readable, and free of provider/debug labels. Older templates without `{summary}` remain valid.
 
+## Zhihu Archive Rules
+
+Default clipping output remains `01.raw/01.Inbox` as staging. When the user asks to archive or reorganize Zhihu source material under `01.raw/06.Zhihu`, use root-level author/account folders directly under `06.Zhihu`:
+
+```text
+01.raw/06.Zhihu/
+  何宇峰/
+    知乎_何宇峰_知乎文章搜索剪藏_2026-05-26_1-5.md
+  VoidOc/
+    知乎_VoidOc_AI Agent 入门指南（一）：综述_2026-05-26_1.md
+  苏三说技术/
+  ._Zhihu_metadata/
+  其他零散知乎md.md
+```
+
+- Same author/account with 3 or more files, or an author the user explicitly names as a durable folder: move files under `01.raw/06.Zhihu/<author-or-account>/`.
+- Fewer than 3 files, uncertain author, mixed source, or temporary collection: leave the Markdown files loose in `01.raw/06.Zhihu`.
+- Use the same direct author/account organization for both articles and answers unless the user later asks for separate `Articles/` and `Answers/` trees.
+- `._Zhihu_metadata/` is a special metadata area for future indexes, aliases, logs, or cache manifests. Do not create placeholder metadata files unless there is real metadata to store.
+
 ## Answer Fast Path
 
-For screenshots or copied snippets that show a Zhihu answer but no URL, search official `zhihu_search` with exact visible phrases, author name, and technical keywords. Inspect raw `ContentType=Answer` hits. If official search misses but the text is distinctive, use web search only to recover the public question/answer URL, then return to the official-first/TikHub-final flow.
-
-For known answer URLs, use TikHub `fetch_question_answers`. The script retries both `order=updated` and `order=default`; treat a single-order HTTP 400 as retryable. Match by exact `answer_id` first, then author/title/body snippets. Accept the result only when `content_need_truncated` is false and HTML body is present.
-
-If TikHub succeeds once and later becomes flaky, preserve the raw answer JSON in `.llmwiki-cache/zhihu-clippings-vp/` and regenerate Markdown from that cached full body. Never regenerate final output from screenshot text or official summaries.
+For known answer URLs, use TikHub `fetch_question_answers` after official search verification when possible. Match by exact `answer_id` first, then author/title/body snippets. Accept the result only when `content_need_truncated` is false and HTML body is present. Never regenerate final output from screenshot text or official summaries.
 
 ## Official API Boundary
 
-`zhihu_search` is a search API, not a complete user timeline API. Do not claim official-only output is every article from a Zhihu profile unless an official endpoint explicitly returns that complete set.
-
-The official API caps each `zhihu_search` query `Count` at 10 and does not document pagination. Use visible profile titles as `--title-source`, `--extra-query`, or `--extra-query-file` when broad author probes miss articles the user can see.
-
-TikHub can supply recent article lists, article detail HTML, and answer HTML, but it is a third-party provider. Its results can incur charges, drift, or fail. The script frontmatter records `content_provider` and a `verification` overview; review those fields before describing the clipping as verified.
+`zhihu_search` is a search API, not a complete user timeline API. Do not claim official-only output is every article from a Zhihu profile unless an official endpoint explicitly returns that complete set. TikHub can supply recent article lists, article detail HTML, and answer HTML, but it is a third-party provider; review frontmatter `content_provider` and `verification` before describing output as verified. Load `references/zhihu-notes.md` for detailed answer matching, query expansion, Markdown QA, and provider troubleshooting.
 
 ## Authentication
 

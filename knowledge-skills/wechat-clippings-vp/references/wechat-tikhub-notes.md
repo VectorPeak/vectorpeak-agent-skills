@@ -53,7 +53,7 @@ If TikHub JSON detail includes `article.full_text`, `article.sections`, or `cont
 
 ## Local Archive Fallback
 
-Searching local `raw/01.Inbox`, `raw/05.Wechat`, and `wiki/sources` can reduce cost. Use local exact URL/title matches only when:
+Searching local `01.raw/01.Inbox`, `01.raw/05.Wechat`, and `02.wiki/sources` can reduce cost. Use local exact URL/title matches only when:
 
 - All requested articles are locally matched.
 - The local body is readable UTF-8 full text.

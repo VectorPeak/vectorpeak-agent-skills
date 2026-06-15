@@ -13,7 +13,7 @@ from pathlib import Path
 ILLEGAL = re.compile(r'[<>:"/\\|?*]')
 SPACE = re.compile(r"\s+")
 VALID_FIELDS = ("RAG", "Agent", "SFT", "RL", "Training_Systems", "DL_Frameworks", "Personal", "Other")
-DEFAULT_RESEARCH_ROOT = Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research")
+DEFAULT_RESEARCH_ROOT = Path(r"E:\LLM_wiki\LLM_wiki\01.raw\08.Research")
 FIELD_DIRS = {
     "Agent": Path("00.Agent"),
     "RAG": Path("01.RAG"),

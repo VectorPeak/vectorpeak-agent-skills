@@ -24,7 +24,7 @@ try:
 except ImportError:  # pragma: no cover - non-Windows fallback
     winreg = None
 
-DEFAULT_OUTPUT_DIR = Path(r"E:\LLM_wiki\LLM_wiki\raw\01.Inbox")
+DEFAULT_OUTPUT_DIR = Path(r"E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox")
 DEFAULT_CACHE_DIR = Path.cwd() / ".llmwiki-cache" / "zhihu-clippings-vp"
 API_URL = "https://developer.zhihu.com/api/v1/content/zhihu_search"
 TIKHUB_USER_ARTICLES_URL = "https://api.tikhub.io/api/v1/zhihu/web/fetch_user_articles"

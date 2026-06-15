@@ -90,7 +90,7 @@ python .\scripts\clip_zhihu_official.py "卡卡带我飞 GPU 集群文章合集"
 
 ## 输出格式
 
-Default final output directory for this local LLM_wiki vault is `E:\LLM_wiki\LLM_wiki\raw\01.Inbox`. Generated raw Zhihu clipping Markdown belongs in `raw/01.Inbox` as unprocessed source material; classify/compile it into the wiki later. Use `--output-dir` to override the destination for a specific run.
+Default final output directory for this local LLM_wiki vault is `E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox`. Generated Zhihu clipping Markdown belongs in `01.raw/01.Inbox` as unprocessed source material; classify/compile it into 02.wiki later. Use `--output-dir` to override the destination for a specific run.
 
 
 默认文件名模板：
@@ -165,5 +165,5 @@ zhihu-clippings-vp/
 - 官方 API 有频率限制，脚本默认加入查询间隔和重试
 - 不使用浏览器抓取、cookie 登录或验证码绕过作为默认方案
 - 生成的 Markdown 统一使用 UTF-8
-- Default final output directory is `E:\LLM_wiki\LLM_wiki\raw\01.Inbox`; use `--output-dir` for custom destinations.
+- Default final output directory is `E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox`; use `--output-dir` for custom destinations.
 - 当终端或 PowerShell 出现中文被替换成 `?` 时，优先使用 UTF-8 文件输入或 article_id，避免命令行编码污染

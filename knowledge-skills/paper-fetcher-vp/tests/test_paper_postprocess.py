@@ -236,7 +236,7 @@ def test_default_target_dir_is_local_raw_research_field_folder(tmp_path: Path) -
 
     assert result.returncode == 0, result.stderr
     payload = json.loads(result.stdout)
-    assert Path(payload["saved_path"]).parent == Path(r"E:\LLM_wiki\LLM_wiki\raw\08.Research\01.RAG")
+    assert Path(payload["saved_path"]).parent == Path(r"E:\LLM_wiki\LLM_wiki\01.raw\08.Research\01.RAG")
     assert source.exists()
 
 

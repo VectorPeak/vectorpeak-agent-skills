@@ -31,10 +31,10 @@ For difficult runs, use parallel analysis if useful: one pass to identify accoun
 Default final destination:
 
 ```powershell
-E:\LLM_wiki\LLM_wiki\raw\01.Inbox
+E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox
 ```
 
-Generated raw WeChat clipping Markdown should land in `raw/01.Inbox` by default as unprocessed source material. Do not classify, summarize, rewrite, or compile it into the wiki at clipping time unless the user explicitly asks for that downstream step. If `--output-dir` is supplied, write final Markdown bundles to that directory instead.
+Generated WeChat clipping Markdown should land in `01.raw/01.Inbox` by default as unprocessed source material. Do not classify, summarize, rewrite, or compile it into 02.wiki at clipping time unless the user explicitly asks for that downstream step. If `--output-dir` is supplied, write final Markdown bundles to that directory instead.
 
 Default filename template:
 
@@ -45,6 +45,25 @@ Default filename template:
 `{summary}` should be a short filename-safe topic inferred from selected article titles. Keep it human-readable and free of provider/debug labels.
 
 The script writes one Markdown bundle per group, five articles per file by default. If a target filename already exists, the script must publish to a unique sibling path such as `name-2.md` rather than overwrite existing output.
+
+## WeChat Archive Rules
+
+Default clipping output remains `01.raw/01.Inbox` as staging. When the user asks to archive or reorganize WeChat source material under `01.raw/05.Wechat`, use root-level author/account folders directly under `05.Wechat`:
+
+```text
+01.raw/05.Wechat/
+  乔木mq/
+    微信_乔木mq_大模型架构与注意力机制_2026-05-27_1-8.md
+  波哥/
+  阿东/
+  ._Wechat_metadata/
+  其他零散微信md.md
+```
+
+- Same account/author with 3 or more files, or an account the user explicitly names as a durable folder: move files under `01.raw/05.Wechat/<account-or-author>/`.
+- Fewer than 3 files, uncertain author, or mixed source: leave the Markdown files loose in `01.raw/05.Wechat`.
+- Cross-account collections can stay loose for now; create `Collections/` only when the user explicitly wants it or the volume justifies it.
+- `._Wechat_metadata/` is a special metadata area for future indexes, aliases, logs, or cache manifests. Do not create placeholder metadata files unless there is real metadata to store.
 
 ## Cost And Safety
 
@@ -57,7 +76,7 @@ TikHub calls are billed. Prefer inputs in this order:
 
 Do not retry nonrecoverable HTTP `400`, `401`, `403`, `404`, or `422` detail failures in tight loops. Some TikHub search endpoints may time out or return `400`; use the script retry settings and short randomized backoff rather than manual repeated calls.
 
-Before spending TikHub calls, it is acceptable to search local vault folders such as `raw/01.Inbox`, `raw/05.Wechat`, or `wiki/sources` for exact URL/title matches. Only skip TikHub when all requested articles already exist locally as readable UTF-8 full text and doing so matches the user's intent.
+Before spending TikHub calls, it is acceptable to search local vault folders such as `01.raw/01.Inbox`, `01.raw/05.Wechat`, or `02.wiki/sources` for exact URL/title matches. Only skip TikHub when all requested articles already exist locally as readable UTF-8 full text and doing so matches the user's intent.
 
 Do not fabricate content from snippets. If TikHub cannot return a full article body, report the limitation and the best candidate metadata.
 
@@ -113,61 +132,15 @@ python scripts\clip_wechat_tikhub.py "query" --tikhub-api-key "<tikhub_api_key>"
 
 ## Output Contract
 
-Output must be UTF-8 Markdown with Obsidian-compatible YAML frontmatter and article sections using the script's real schema:
+Output must be UTF-8 Markdown with Obsidian-compatible YAML frontmatter and article sections using the script's real schema. Use `## 0x01. ...`, `## 0x02. ...` for clipped articles and source blockquotes for publish date/source URL. Do not add an in-body document title, query list, capture note, or per-article metadata block beyond the source lines. Do not use level-1 headings in generated clipping body.
 
-```markdown
----
-title: "微信_author_topic_公众号文章剪藏_2026-05-26_1-3"
-source: "https://api.tikhub.io/..."
-author:
-  - "author"
-published: "2026-05-26"
-created: 2026-05-26
-description: "TikHub returned 3 WeChat article candidates; this bundle includes 3."
-tags:
-  - "clippings"
-  - "wechat"
-  - "author"
----
-
-## 0x01. Article title
-> 发布日期：2026-05-26
-> 原文链接：[Article title](https://mp.weixin.qq.com/...)
-Article body.
-
-## 0x02. Another article title
-Article body.
-```
-
-Do not add an in-body document title, query list, capture note, or per-article metadata block beyond the blockquote source lines. Do not use level-1 headings in generated clipping body.
-
-Use heading levels consistently:
-
-- `## 0x01. ...`, `## 0x02. ...` for clipped articles.
-- `###` for major sections inside an article.
-- `####` for numbered subsections inside a major section, using hierarchical numbers such as `#### 2.1 ...`.
+Use `###` for major sections inside an article and `####` for numbered subsections inside a major section, using hierarchical numbers such as `#### 2.1 ...`.
 
 Final QA must fail if body Markdown contains `^# `, empty headings, `^###\s+\d+\.\d+`, raw TikHub/Python structures such as `{'title':`, `item_count`, `metadata`, `images':`, or leaked API/debug payloads.
 
-Preserve full cleaned article text by default. Do not summarize, rewrite, delete article sections, invent missing questions/headings, or add new conclusions unless the user explicitly asks for a summary or rewrite.
+Preserve full cleaned article text by default. Do not summarize, rewrite, delete article sections, invent missing questions/headings, or add new conclusions unless the user explicitly asks for a summary or rewrite. Load `references/wechat-tikhub-notes.md` for detailed cleanup, table/formula/code preservation, API failure handling, and historical debugging guidance.
 
-## Markdown Cleanup
-
-Keep SKILL.md lean; load `references/wechat-tikhub-notes.md` when an article needs detailed cleanup, API failure handling, formula/table preservation, or historical debugging guidance.
-
-Always apply these core cleanup rules before publishing:
-
-- Remove WeChat page chrome, share/open-app prompts, preview controls, and QR/private-contact promotion tails.
-- Remove article table-of-contents blocks that repeat the same headings before the body.
-- Delete standalone empty heading markers and empty list items.
-- Keep headings tight: no blank line immediately after any heading.
-- Keep adjacent ordinary list items compact, with no blank line between `- ...` or numbered items.
-- Preserve real data tables as Markdown pipe tables; do not linearize multi-row/multi-column data tables.
-- Preserve formulas when possible as LaTeX, Markdown images, or explicit formula-loss markers. Do not silently drop SVG/MathJax formulas.
-- Infer code-fence languages from content when obvious; fix empty, `text`, or wrong labels for Python, JavaScript/TypeScript, Bash, JSON, YAML, SQL, Mermaid, C++/CUDA.
-- Escape literal HTML tag examples in prose so Markdown renderers do not execute them.
-
-## Reading Enhancement Mode
+## Formatting Modes
 
 `--format-mode readable` is optional. Default `plain` mode must remain faithful clipping and must not add emphasis, tables, list restructuring, summaries, or invented headings.
 
@@ -181,8 +154,8 @@ For concurrent or high-risk runs, write first to a unique staging directory such
 .\.codex-work\wechat-<slug>-<timestamp>\out
 ```
 
-Use a matching isolated cache directory, QA the staged Markdown, then publish exactly the intended final artifact into `raw/01.Inbox` or the user-supplied `--output-dir`. Avoid sweeping deletions or broad filename rewrites.
+Use a matching isolated cache directory, QA the staged Markdown, then publish exactly the intended final artifact into `01.raw/01.Inbox` or the user-supplied `--output-dir`. Avoid sweeping deletions or broad filename rewrites.
 
-## Deprecated Browser Scraping
+## Browser Boundary
 
 Do not use Playwright, cookies, captcha handling, WeChat logged-in browser state, or undocumented browser scraping for this skill unless the user explicitly asks for a separate browser-based fallback.

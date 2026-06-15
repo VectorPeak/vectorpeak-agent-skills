@@ -95,7 +95,7 @@ python .\scripts\clip_wechat_tikhub.py "公众号名 文章主题" --account-id 
 
 ## 输出格式
 
-Default final output directory for this local LLM_wiki vault is `E:\LLM_wiki\LLM_wiki\raw\01.Inbox`. Generated raw WeChat clipping Markdown belongs in `raw/01.Inbox` as unprocessed source material; classify/compile it into the wiki later. Use `--output-dir` to override the destination for a specific run.
+Default final output directory for this local LLM_wiki vault is `E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox`. Generated WeChat clipping Markdown belongs in `01.raw/01.Inbox` as unprocessed source material; classify/compile it into 02.wiki later. Use `--output-dir` to override the destination for a specific run.
 
 
 默认文件名模板：
@@ -162,6 +162,6 @@ wechat-clippings-vp/
 - 不使用浏览器抓取、cookie 登录、验证码绕过或微信登录态作为默认方案
 - 不绕过付费墙、登录墙、删除状态或访问控制
 - 生成的 Markdown 统一使用 UTF-8
-- Default final output directory is `E:\LLM_wiki\LLM_wiki\raw\01.Inbox`; use `--output-dir` for custom destinations.
+- Default final output directory is `E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox`; use `--output-dir` for custom destinations.
 - 缓存会保存原始 TikHub 响应，公开同步或提交前应确认缓存目录不会被包含
 - 当终端或 PowerShell 出现中文被替换成 `?` 时，优先使用 UTF-8 文件输入，避免命令行编码污染

@@ -21,14 +21,14 @@
 
 ## Local LLM_wiki policy
 
-Default paper storage for this local skill is the numbered taxonomy under `E:\LLM_wiki\LLM_wiki\raw\08.Research`.
+Default paper storage for this local skill is the numbered taxonomy under `E:\LLM_wiki\LLM_wiki\01.raw\08.Research`.
 
-The raw folder is for verified PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and raw paper metadata only. PDFs go into numbered field folders; metadata and BibTeX sidecars go into `_metadata/`. Generated notes, summaries, synthesis, and wiki-ready interpretation should be created later in the processed wiki area or another explicit notes destination, not inside `raw\08.Research`.
+The 01.raw layer is for verified PDFs, `.metadata.json` sidecars, optional BibTeX sidecars, and raw paper metadata only. PDFs go into numbered field folders; metadata and BibTeX sidecars go into `_metadata/`. Generated notes, summaries, synthesis, and wiki-ready interpretation should be created later in the processed 02.wiki area or another explicit notes destination, not inside `01.raw\08.Research`.
 
 Recommended local structure:
 
 ```text
-raw/08.Research/
+01.raw/08.Research/
   00.Agent/
   01.RAG/
   02.PostTraining/
@@ -86,7 +86,7 @@ Paper Fetcher 解决的是“把论文从线索稳定转成可归档、可引用
 
 ### 1. 准备目标文件夹
 
-Paper Fetcher defaults to a numbered field folder under `E:\LLM_wiki\LLM_wiki\raw\08.Research` for this local vault. Use `--target-dir` only when an explicit override is needed; explicit `--target-dir` is treated as the exact PDF destination directory.
+Paper Fetcher defaults to a numbered field folder under `E:\LLM_wiki\LLM_wiki\01.raw\08.Research` for this local vault. Use `--target-dir` only when an explicit override is needed; explicit `--target-dir` is treated as the exact PDF destination directory.
 
 ### 2. PDF 后处理
 
@@ -108,7 +108,7 @@ python .\scripts\paper_postprocess.py `
 ```powershell
 python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\00.Agent" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\01.raw\08.Research\00.Agent" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --name-prefix PPO `
@@ -123,7 +123,7 @@ python .\scripts\paper_postprocess.py `
 ```powershell
 python .\scripts\paper_postprocess.py `
   --pdf "<downloaded-pdf>" `
-  --target-dir "E:\LLM_wiki\LLM_wiki\raw\08.Research\02.PostTraining\RL" `
+  --target-dir "E:\LLM_wiki\LLM_wiki\01.raw\08.Research\02.PostTraining\RL" `
   --title "Proximal Policy Optimization Algorithms" `
   --field RL `
   --name-prefix PPO `
@@ -144,11 +144,11 @@ python .\scripts\paper_postprocess.py `
   "field": "Agent",
   "name_prefix": "Survey",
   "final_name": "Survey_Example Paper.pdf",
-  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\00.Agent\\Survey_Example Paper.pdf",
+  "saved_path": "E:\\LLM_wiki\\LLM_wiki\\01.raw\\08.Research\\00.Agent\\Survey_Example Paper.pdf",
   "pdf_verified": true,
   "dry_run": false,
   "identifier": "2401.00001",
-  "metadata": "E:\\LLM_wiki\\LLM_wiki\\raw\\08.Research\\_metadata\\Survey_Example Paper.metadata.json",
+  "metadata": "E:\\LLM_wiki\\LLM_wiki\\01.raw\\08.Research\\_metadata\\Survey_Example Paper.metadata.json",
   "zotero_status": {
     "status": "identifier_available",
     "identifier": "2401.00001"
