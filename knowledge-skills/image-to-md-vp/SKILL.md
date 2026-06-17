@@ -114,7 +114,8 @@ If a region is a process diagram, architecture diagram, RAG pipeline, layered gr
 1. Write a Mermaid block first.
 2. Match the original layout as closely as Mermaid allows:
    - use `flowchart TB` for top-to-bottom diagrams and `flowchart LR` for left-to-right diagrams;
-   - prefer Obsidian-readable viewport layouts over literal wide layouts: if a linear `LR` pipeline has more than 4 nodes or would require horizontal scrolling, use `flowchart TB`, split it into compact phases, or shorten node labels while preserving the original order;
+   - preserve the original diagram orientation when practical. For left-to-right pipelines in Obsidian, first make a compact `LR` Mermaid using an `%%{init: ...}%%` block to reduce `fontSize`, `nodeSpacing`, and `rankSpacing`, and shorten node labels while preserving meaning;
+   - only switch a wide original `LR` diagram to `TB`, wrapped rows, or grouped phases when compact Mermaid still remains unreadable or the user explicitly prefers vertical layout;
    - use `subgraph` for boxed stages or modules;
    - use `direction LR` inside stages when the original has parallel boxes;
    - keep numbered stage labels such as `1. 混合检索` and `2. Embedding 模型微调`;
