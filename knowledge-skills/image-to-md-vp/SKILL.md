@@ -52,6 +52,18 @@ If any of these appear:
 - In the final response, explicitly name the affected image or position, for example: "第 2 张底部代码块被截断，已按可见内容整理，缺失部分需要补图。"
 - If the user has said there will be more images, also say: "当前文档未完，后续图片发来后可继续追加。"
 
+## Scoped Derived-Version Changes
+
+When the user asks for a new Markdown version with numbering, heading, or formatting changes, treat it as a scoped transform, not a rewrite.
+
+- Create a new versioned file by default, such as `_v2`, `_v3`, or the user-requested name. Overwrite only when explicitly requested.
+- Change only the exact layer and pattern the user named. For example, if asked to change only top-level section headings from `## 1. ...` to `## 0x01. ...`, do not change `### 1.1 ...`, `#### 1. ...`, body ordered lists, tables, examples, or code blocks.
+- Preserve the table of contents, directory, and navigation text unless the user explicitly names them as targets.
+- Distinguish visually similar numbering forms before editing: `## 1.`, `### 1.1`, `#### 1.`, and body `1.` are different scopes.
+- Keep all OCR content, formulas, images, and section order identical outside the requested transform.
+- After writing, run a normalized diff against the baseline when practical. Normalize only the requested change back to the original form, then confirm the remaining diff is empty.
+- Add regex checks for spillover, such as confirming `^#{3,6}\s+0x[0-9A-Fa-f]{2}\.` has zero matches when only `##` headings were supposed to change.
+
 ## Workflow
 
 1. Confirm the target path and filename are explicit.
@@ -172,6 +184,8 @@ After writing, inspect the file for:
 - Markdown tables are not broken by unescaped pipes
 - Any visibly truncated/incomplete image has a corresponding note for the user
 - If the user said more images are coming, the final response explicitly says the document is not complete yet
+- For derived versions, no numbering, heading, TOC, directory, list, formula, or image changes occur outside the user-requested scope
+- For scoped heading renumbering, normalized diff against the baseline passes after reversing only the intended heading transform
 
 When practical, use quick searches such as:
 
