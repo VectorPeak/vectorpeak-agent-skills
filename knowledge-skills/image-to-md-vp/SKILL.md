@@ -28,29 +28,50 @@ The user may provide images across multiple messages.
 
 - Treat newly provided images as part of the current capture set when the user says they are continuing the same document.
 - Do not assume the image set is complete just because one message contains images.
+- If the user says the content is not finished, such as "后续还有", "还没完", "前半部分", or equivalent, explicitly state in the final response that the Markdown is a partial document and can be continued later.
 - Wait for an explicit generation signal before writing the Markdown file.
 - Preserve image order by conversation order and attachment order. If order is ambiguous, ask before writing.
 - If the user adds more images after a file has already been generated, update the same file only when they explicitly ask to continue that file.
+- When a new batch starts or ends in the middle of a section, table, list, formula, or code block, preserve only the visible content and do not invent the missing continuation.
+
+## Truncated or Incomplete Images
+
+Before writing, inspect every image for visible incompleteness:
+
+- Cropped text at the top, bottom, left, or right edge
+- A heading followed by no body content
+- A table, list, formula, or code block that starts or ends mid-item
+- A screenshot that begins mid-section or ends with an unfinished sentence
+- A multi-column screenshot where the next column/page continues a previous block
+
+If any of these appear:
+
+- Continue OCRing the readable visible content.
+- Join cross-column or cross-image continuations only when the continuation is visually clear.
+- Do not guess hidden or missing text; mark uncertain visible text with `[?]` only when needed.
+- In the final response, explicitly name the affected image or position, for example: "第 2 张底部代码块被截断，已按可见内容整理，缺失部分需要补图。"
+- If the user has said there will be more images, also say: "当前文档未完，后续图片发来后可继续追加。"
 
 ## Workflow
 
 1. Confirm the target path and filename are explicit.
 2. Read all provided images in order.
-3. OCR the visible text and reconstruct the document hierarchy:
+3. Check whether any image is visibly truncated, incomplete, or part of a multi-batch continuation.
+4. OCR the visible text and reconstruct the document hierarchy:
    - Main title as `#`
    - Major numbered sections as `##`
    - Subsections as `###` / `####`
    - Lists as Markdown bullets or numbered lists
    - Simple tables as Markdown tables
    - Formulas as LaTeX
-4. Preserve original wording, numbers, examples, equations, labels, and section order.
-5. Preserve emoji. If the exact emoji cannot be identified, use the closest reasonable emoji or a short placeholder such as `[emoji]`.
-6. Convert visual highlighting into Markdown emphasis only when it carries meaning:
+5. Preserve original wording, numbers, examples, equations, labels, and section order.
+6. Preserve emoji. If the exact emoji cannot be identified, use the closest reasonable emoji or a short placeholder such as `[emoji]`.
+7. Convert visual highlighting into Markdown emphasis only when it carries meaning:
    - Important highlighted sentence: `**...**`
    - Warning/correction examples: use bullets, blockquotes, or labels instead of color-only meaning.
-7. Write the Markdown file.
-8. Validate the written file.
-9. Report the exact file path and a concise summary.
+8. Write the Markdown file.
+9. Validate the written file.
+10. Report the exact file path, a concise summary, and any truncation or incomplete-batch notice.
 
 ## Output Style
 
@@ -149,6 +170,8 @@ After writing, inspect the file for:
 - No obvious raw OCR debris such as duplicated `$f$`, broken `$|D|$`, or dangling formula delimiters
 - No unintended omission of emoji; uncertain emoji are replaced rather than deleted
 - Markdown tables are not broken by unescaped pipes
+- Any visibly truncated/incomplete image has a corresponding note for the user
+- If the user said more images are coming, the final response explicitly says the document is not complete yet
 
 When practical, use quick searches such as:
 
@@ -167,6 +190,8 @@ Keep the final response short. Include:
 - The written file path
 - Whether formulas and tables were checked
 - Any unresolved OCR uncertainty, if present
+- Any image that was visibly truncated, incomplete, or only a continuation
+- Whether the document is still partial when the user says more images will follow
 
 Example:
 
