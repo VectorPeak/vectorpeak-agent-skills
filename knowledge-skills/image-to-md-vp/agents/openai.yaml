@@ -1,0 +1,4 @@
+interface:
+  display_name: "Image To Markdown VP"
+  short_description: "OCR screenshots into structured Markdown files"
+  default_prompt: "Use $image-to-md-vp to convert the provided images into a specified Markdown file, preserving structure, formulas, tables, and emoji."
