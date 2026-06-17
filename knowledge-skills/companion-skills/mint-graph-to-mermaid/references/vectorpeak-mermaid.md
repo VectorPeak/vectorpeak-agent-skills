@@ -9,7 +9,7 @@
 - Emphasize the core execution layer with stronger border width, not heavy dark fills
 - Keep helper nodes quieter with `#F8FAFC` fill and soft green border
 - Avoid dark terminal-style blocks unless the user explicitly requests dark mode
-- Avoid too many colors; use green as the brand signal, pastel colors only for meaningful same-level grouping, and slate for readable text
+- Avoid too many colors; use sage green as the brand signal, pastel colors only for meaningful same-level grouping, and soft slate for lines and readable text
 
 ## Base Theme
 
@@ -21,19 +21,19 @@ Use this compact `init` block for most diagrams:
   "flowchart": {
     "curve": "basis",
     "htmlLabels": true,
-    "nodeSpacing": 24,
-    "rankSpacing": 34,
-    "padding": 10
+    "nodeSpacing": 28,
+    "rankSpacing": 40,
+    "padding": 12
   },
   "themeVariables": {
     "background": "#FFFFFF",
     "mainBkg": "#FFFFFF",
     "primaryColor": "#FFFFFF",
-    "primaryTextColor": "#0F172A",
-    "primaryBorderColor": "#86C98A",
-    "lineColor": "#111827",
-    "clusterBkg": "#F6FBF5",
-    "clusterBorder": "#B8DDB8",
+    "primaryTextColor": "#1F2937",
+    "primaryBorderColor": "#9CC7A3",
+    "lineColor": "#64748B",
+    "clusterBkg": "#F7FBF6",
+    "clusterBorder": "#C8DEC8",
     "fontFamily": "Inter, ui-sans-serif, system-ui",
     "fontSize": "13px"
   }
@@ -45,16 +45,16 @@ Use this compact `init` block for most diagrams:
 Append these classes after graph edges. Keep green as the main style; use blue, purple, and yellow only for same-level or parallel groups that need visual separation:
 
 ```mermaid
-classDef primary fill:#FFFFFF,stroke:#86C98A,stroke-width:2px,color:#0F172A;
-classDef green fill:#F6FBF5,stroke:#86C98A,stroke-width:2px,color:#14532D;
-classDef blue fill:#EFF6FF,stroke:#93C5FD,stroke-width:2px,color:#1E3A8A;
-classDef purple fill:#FAF5FF,stroke:#C4B5FD,stroke-width:2px,color:#581C87;
-classDef yellow fill:#FFFBEB,stroke:#FCD34D,stroke-width:2px,color:#78350F;
-classDef neutral fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#334155;
-classDef output fill:#FFFFFF,stroke:#86C98A,stroke-width:2px,color:#0F172A;
+classDef primary fill:#FFFFFF,stroke:#9CC7A3,stroke-width:2px,color:#1F2937;
+classDef green fill:#F7FBF6,stroke:#9CC7A3,stroke-width:2px,color:#245A32;
+classDef blue fill:#F3F8FF,stroke:#B8D4F8,stroke-width:2px,color:#1E3A5F;
+classDef purple fill:#FAF7FF,stroke:#D7C3F7,stroke-width:2px,color:#4C1D95;
+classDef yellow fill:#FFF9E8,stroke:#E8D28A,stroke-width:2px,color:#6B4E16;
+classDef neutral fill:#F8FAFC,stroke:#D8DEE8,stroke-width:1.5px,color:#334155;
+classDef output fill:#FFFFFF,stroke:#9CC7A3,stroke-width:2px,color:#1F2937;
 ```
 
-Use `style AgentLayer fill:#F6FBF5,stroke:#B8DDB8,stroke-width:3px,color:#14532D` for the most important container
+Use `style AgentLayer fill:#F7FBF6,stroke:#C8DEC8,stroke-width:3px,color:#245A32` for the most important container
 
 ## Few-Shot: Standard Output
 
@@ -66,19 +66,19 @@ Prefer this normalized style:
   "flowchart": {
     "curve": "basis",
     "htmlLabels": true,
-    "nodeSpacing": 24,
-    "rankSpacing": 34,
-    "padding": 10
+    "nodeSpacing": 28,
+    "rankSpacing": 40,
+    "padding": 12
   },
   "themeVariables": {
     "background": "#FFFFFF",
     "mainBkg": "#FFFFFF",
     "primaryColor": "#FFFFFF",
-    "primaryTextColor": "#0F172A",
-    "primaryBorderColor": "#86C98A",
-    "lineColor": "#111827",
-    "clusterBkg": "#F6FBF5",
-    "clusterBorder": "#B8DDB8",
+    "primaryTextColor": "#1F2937",
+    "primaryBorderColor": "#9CC7A3",
+    "lineColor": "#64748B",
+    "clusterBkg": "#F7FBF6",
+    "clusterBorder": "#C8DEC8",
     "fontFamily": "Inter, ui-sans-serif, system-ui",
     "fontSize": "13px"
   }
@@ -105,18 +105,18 @@ flowchart TD
   Gateway -->|"统一事件 → session"| AgentLayer
   AgentLayer -->|"最终回复"| Reply
 
-  classDef entry fill:#FFFFFF,stroke:#86C98A,stroke-width:2px,color:#0F172A;
-  classDef gateway fill:#F6FBF5,stroke:#86C98A,stroke-width:2px,color:#14532D;
-  classDef core fill:#FFFFFF,stroke:#86C98A,stroke-width:3px,color:#14532D;
-  classDef aux fill:#F8FAFC,stroke:#CBD5E1,stroke-width:1.5px,color:#334155;
-  classDef output fill:#FFFFFF,stroke:#86C98A,stroke-width:2px,color:#0F172A;
+  classDef entry fill:#FFFFFF,stroke:#9CC7A3,stroke-width:2px,color:#1F2937;
+  classDef gateway fill:#F7FBF6,stroke:#9CC7A3,stroke-width:2px,color:#245A32;
+  classDef core fill:#FFFFFF,stroke:#9CC7A3,stroke-width:3px,color:#245A32;
+  classDef aux fill:#F8FAFC,stroke:#D8DEE8,stroke-width:1.5px,color:#334155;
+  classDef output fill:#FFFFFF,stroke:#9CC7A3,stroke-width:2px,color:#1F2937;
 
   class Trigger entry;
   class Gateway gateway;
   class Loop,Feedback core;
   class Models,Memory aux;
   class Reply output;
-  style AgentLayer fill:#F6FBF5,stroke:#B8DDB8,stroke-width:3px,color:#14532D
+  style AgentLayer fill:#F7FBF6,stroke:#C8DEC8,stroke-width:3px,color:#245A32
 ```
 
 ## Few-Shot Notes
@@ -139,19 +139,19 @@ Use this pattern when a single node contains a title plus many parallel componen
   "flowchart": {
     "curve": "basis",
     "htmlLabels": true,
-    "nodeSpacing": 24,
-    "rankSpacing": 34,
-    "padding": 10
+    "nodeSpacing": 28,
+    "rankSpacing": 40,
+    "padding": 12
   },
   "themeVariables": {
     "background": "#FFFFFF",
     "mainBkg": "#FFFFFF",
     "primaryColor": "#FFFFFF",
-    "primaryTextColor": "#0F172A",
-    "primaryBorderColor": "#86C98A",
-    "lineColor": "#111827",
-    "clusterBkg": "#F6FBF5",
-    "clusterBorder": "#B8DDB8",
+    "primaryTextColor": "#1F2937",
+    "primaryBorderColor": "#9CC7A3",
+    "lineColor": "#64748B",
+    "clusterBkg": "#F7FBF6",
+    "clusterBorder": "#C8DEC8",
     "fontFamily": "Inter, ui-sans-serif, system-ui",
     "fontSize": "13px"
   }
@@ -174,14 +174,14 @@ flowchart TD
   Workspace -->|"被索引"| Index
   Index -.->|"搜索请求"| Workspace
 
-  classDef context fill:#FFFFFF,stroke:#86C98A,stroke-width:3px,color:#14532D;
-  classDef source fill:#FFFFFF,stroke:#86C98A,stroke-width:2px,color:#0F172A;
-  classDef index fill:#F8FAFC,stroke:#86EFAC,stroke-width:1.5px,color:#334155;
+  classDef context fill:#FFFFFF,stroke:#9CC7A3,stroke-width:3px,color:#245A32;
+  classDef source fill:#FFFFFF,stroke:#9CC7A3,stroke-width:2px,color:#1F2937;
+  classDef index fill:#F8FAFC,stroke:#D8DEE8,stroke-width:1.5px,color:#334155;
 
   class Context context;
   class Workspace,Transcript,Honcho source;
   class Index index;
-  style Sources fill:#F6FBF5,stroke:#B8DDB8,stroke-width:3px,color:#14532D
+  style Sources fill:#F7FBF6,stroke:#C8DEC8,stroke-width:3px,color:#245A32
 ```
 
 ## Few-Shot: Bracketed Layer Labels

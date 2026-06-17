@@ -75,9 +75,9 @@ These requirements are mandatory. Do not treat them as style preferences.
 - MUST classify each visible region before OCR-only conversion: prose, code, table, formula, process diagram, architecture diagram, UI evidence, visual example, or ignorable page chrome.
 - MUST convert process diagrams, architecture diagrams, RAG pipelines, layered relationship graphs, and decision flows into Mermaid as the primary representation.
 - MUST preserve a diagram's structure as closely as Mermaid allows: orientation, numbered stages, subgraph grouping, parallel branches, side examples, arrows, and meaningful color cues.
-- MUST include the Obsidian-friendly VectorPeak compact Mermaid init block in every Mermaid diagram unless the user explicitly asks for another theme or full-size rendering: use `theme: "base"`, `nodeSpacing: 24`, `rankSpacing: 34`, `padding: 10`, `fontSize: "13px"`, primary light-green border `#86C98A`, pale-green container `#F6FBF5`, and dark readable lines `#111827`.
+- MUST include the Obsidian-friendly VectorPeak compact Mermaid init block in every Mermaid diagram unless the user explicitly asks for another theme or full-size rendering: use `theme: "base"`, `nodeSpacing: 28`, `rankSpacing: 40`, `padding: 12`, `fontSize: "13px"`, primary sage-green border `#9CC7A3`, pale-green container `#F7FBF6`, soft container border `#C8DEC8`, and soft slate lines `#64748B`.
 - MUST scale every Mermaid diagram for direct reading in Obsidian/Mintlify without meaningful horizontal dragging. If the first draft is too wide, shorten labels, add `<br/>`, reduce spacing/font size, switch to stacked/two-column `TB`, or group phases before final output.
-- MUST keep light green as the dominant Mermaid color, but may use pastel blue (`#DBEAFE` / `#93C5FD`), pastel purple (`#F3E8FF` / `#C4B5FD`), and pastel yellow (`#FEF3C7` / `#FCD34D`) to distinguish same-level or parallel modules.
+- MUST keep sage/light green as the dominant Mermaid color, but may use pastel blue (`#F3F8FF` / `#B8D4F8`), pastel purple (`#FAF7FF` / `#D7C3F7`), and pastel yellow (`#FFF9E8` / `#E8D28A`) to distinguish same-level or parallel modules.
 - MUST NOT replace a required Mermaid diagram with only a cropped screenshot. Cropped/uploaded diagrams are allowed only as an "original diagram" reference after the Mermaid block.
 - MUST NOT insert whole-page continuation screenshots with generic labels such as `续页截图 02`, `原始截图 03`, or `screenshot page 4`.
 - MUST NOT keep screenshots that are mostly prose or code after the content has been transcribed; use Markdown text or fenced code instead.
@@ -117,9 +117,9 @@ If a region is a process diagram, architecture diagram, RAG pipeline, layered gr
 1. Write a Mermaid block first.
 2. Match the original layout as closely as Mermaid allows:
    - use `flowchart TB` for top-to-bottom diagrams and `flowchart LR` for left-to-right diagrams;
-   - every Mermaid block MUST begin with the Obsidian-friendly VectorPeak compact `theme: "base"` init block: default `nodeSpacing: 24`, `rankSpacing: 34`, `padding: 10`, `fontSize: "13px"`, primary border `#86C98A`, cluster background `#F6FBF5`, cluster border `#B8DDB8`, and line color `#111827`;
+   - every Mermaid block MUST begin with the Obsidian-friendly VectorPeak compact `theme: "base"` init block: default `nodeSpacing: 28`, `rankSpacing: 40`, `padding: 12`, `fontSize: "13px"`, primary border `#9CC7A3`, cluster background `#F7FBF6`, cluster border `#C8DEC8`, and line color `#64748B`;
    - use class definitions for `green`, `blue`, `purple`, `yellow`, and `neutral` when same-level modules need visual distinction, while keeping green as the dominant theme;
-   - if a diagram is dense, reduce to `fontSize: "12px"`, `nodeSpacing: 20`, and `rankSpacing: 28` before changing semantics;
+   - if a diagram is dense, reduce to `fontSize: "12px"`, `nodeSpacing: 22`, and `rankSpacing: 30` before changing semantics;
    - preserve the original diagram orientation when practical. For left-to-right pipelines in Obsidian, use compact `LR` Mermaid and shorten node labels while preserving meaning;
    - only switch a wide original `LR` diagram to `TB`, wrapped rows, or grouped phases when compact Mermaid still remains unreadable or the user explicitly prefers vertical layout;
    - use `subgraph` for boxed stages or modules;

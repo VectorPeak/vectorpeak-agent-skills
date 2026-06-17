@@ -23,13 +23,13 @@ When processing OCR screenshots for Obsidian notes, only convert the diagrammati
 2. Use `flowchart TD` for layered flows, Agent loops, RAG pipelines, gateway structures, and architecture overviews
 3. Use the Obsidian-friendly VectorPeak light Mermaid style by default:
    - use `theme: "base"` with a compact `%%{init: ...}%%` block on every generated Mermaid diagram unless the user explicitly asks for another theme
-   - primary light green border `#86C98A`
-   - pale green container/background `#F6FBF5`
-   - soft green container border `#B8DDB8`
-   - readable text `#0F172A`
-   - line color `#111827`
+   - primary sage-green border `#9CC7A3`
+   - pale green container/background `#F7FBF6`
+   - soft green container border `#C8DEC8`
+   - readable text `#1F2937`
+   - soft slate line color `#64748B`; avoid harsh black lines unless the source diagram requires strong contrast
    - green remains the dominant brand color
-   - same-level or parallel groups may use pastel blue (`#DBEAFE` / `#93C5FD`), pastel purple (`#F3E8FF` / `#C4B5FD`), and pastel yellow (`#FEF3C7` / `#FCD34D`) for clearer visual distinction
+   - same-level or parallel groups may use soft pastel blue (`#F3F8FF` / `#B8D4F8`), pastel purple (`#FAF7FF` / `#D7C3F7`), and pastel yellow (`#FFF9E8` / `#E8D28A`) for clearer visual distinction
 4. Use quoted labels for all non-trivial nodes
 5. Use `<br/>` for controlled line breaks inside labels
 6. Use `<b>...</b>` for emphasis inside Mermaid labels; avoid Markdown emphasis such as `**Agent 层**` inside node or subgraph labels
@@ -38,7 +38,7 @@ When processing OCR screenshots for Obsidian notes, only convert the diagrammati
 9. Fit diagrams for direct reading without horizontal dragging:
    - For wide source diagrams, preserve the original grouping first, then choose a compact layout that fits a typical Obsidian/Mintlify reading pane
    - Prefer `flowchart TB` with stacked or two-column subgraphs for dense dashboard-style diagrams; use `flowchart LR` only when the source is a true left-to-right pipeline and remains readable
-   - Add a compact `%%{init: ...}%%` block on every graph: default to `fontSize: "13px"`, `nodeSpacing: 24`, `rankSpacing: 34`, and `padding: 10`; for very dense graphs, reduce to `fontSize: "12px"`, `nodeSpacing: 20`, and `rankSpacing: 28`
+   - Add a compact but breathable `%%{init: ...}%%` block on every graph: default to `fontSize: "13px"`, `nodeSpacing: 28`, `rankSpacing: 40`, and `padding: 12`; for very dense graphs, reduce to `fontSize: "12px"`, `nodeSpacing: 22`, and `rankSpacing: 30`
    - Shorten labels with controlled `<br/>` line breaks instead of making wide single-line boxes
    - If the first Mermaid draft would require horizontal scrolling, revise the layout before final output; do not leave an oversized diagram for the user to drag around
 10. After completing the Mermaid graph, run a label cleanup pass:
