@@ -11,6 +11,8 @@
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
   <a href="./"><img src="https://img.shields.io/badge/category-knowledge--skills-purple" alt="knowledge skills"></a>
+  <a href="daily-notes-vp/"><img src="https://img.shields.io/badge/daily--notes--vp-notes-green" alt="daily notes vp"></a>
+  <a href="image-to-md-vp/"><img src="https://img.shields.io/badge/image--to--md--vp-ocr-blue" alt="image to md vp"></a>
   <a href="project-concept-explainer-vp/"><img src="https://img.shields.io/badge/project--concept--explainer--vp-study-blueviolet" alt="project concept explainer vp"></a>
   <a href="learning-repo-log-vp/"><img src="https://img.shields.io/badge/learning--repo--log--vp-notes-green" alt="learning repo log vp"></a>
   <a href="gif-showcase-maker-vp/"><img src="https://img.shields.io/badge/gif--showcase--maker--vp-media-orange" alt="gif showcase maker vp"></a>
@@ -47,6 +49,8 @@ raw input  ->  structured thinking  ->  reusable skill  ->  durable knowledge wo
 
 ```text
 knowledge-skills/
+├── daily-notes-vp/              # 原始学习日记：10 天一个文件，按 Goal / Question / Concept 轻量记录
+├── image-to-md-vp/              # 图片/截图 OCR 为指定 Markdown，保留结构、公式、表格和 emoji
 ├── project-concept-explainer-vp/  # 项目伴读、概念讲解、知识地图与术语表生成
 ├── learning-repo-log-vp/          # 按仓库沉淀学习复盘、技术栈、概念、架构决策和待复习问题
 ├── gif-showcase-maker-vp/         # 多张图片按顺序生成轮播 GIF，支持停留帧和淡入转场
@@ -58,6 +62,14 @@ knowledge-skills/
 ```
 
 ## 已有技能
+
+### [`daily-notes-vp/`](daily-notes-vp/)
+
+用于记录个人日常学习原始材料：当用户说“记一下这个问题”“今天的目标是”“这个概念先放到 daily notes”时，将短期目标、疑问和概念轻量追加到 `01.raw/02.DailyNotes/YYYY-MM-DD_YYYY-MM-DD.md`，10 天一个文件，每天按 `Goal-目标 -> Question-疑问 -> Concept-概念` 排列
+
+### [`image-to-md-vp/`](image-to-md-vp/)
+
+用于把截图或图片 OCR 成指定 Markdown 文件：当用户提供一批或多批图片，并显式指定输出目录、输出文件名和生成信号时，按图片顺序还原标题层级、列表、表格、公式、emoji 与可读结构，适合课程截图、技术笔记、RAG 学习材料和原始语料整理
 
 ### [`project-concept-explainer-vp/`](project-concept-explainer-vp/)
 

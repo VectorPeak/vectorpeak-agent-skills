@@ -64,6 +64,9 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 用于知识工作场景，包括自顶向下学习、概念解释、论文阅读、知乎文章剪藏、文章摘要、知识地图抽取、笔记整理、学习检查和写作流程
 
+- [`daily-notes-vp`](knowledge-skills/daily-notes-vp/)：把个人学习中的短期目标、疑问和概念轻量追加到 raw 层 `01.raw/02.DailyNotes`，10 天一个文件，按 Goal / Question / Concept 组织。
+- [`image-to-md-vp`](knowledge-skills/image-to-md-vp/)：把多轮输入的截图或图片 OCR 成指定路径下的 Markdown 文件，保留标题层级、表格、公式、emoji 和原始结构。
+
 ### `job-skills/`
 
 用于工作与职场场景，包括合同审查、Offer 对比、简历优化、面试准备、薪资谈判、入职离职流程和职场沟通
