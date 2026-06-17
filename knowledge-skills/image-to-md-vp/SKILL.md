@@ -16,11 +16,11 @@ This skill is for image/screenshot-to-Markdown capture. It is not for rewriting,
 Before writing a file, the user must explicitly provide:
 
 - Output directory path
-- Output Markdown filename, including `.md`
+- Output Markdown filename or an unambiguous Markdown basename. If the user gives a clear Markdown basename without `.md`, append `.md` automatically.
 - One or more images or screenshots
 - A generation signal, such as "生成", "为我生成一下", "图片给完了", "输出到文件", or equivalent
 
-If the output directory or filename is missing, ask for it before writing. Do not invent the destination.
+If the output directory or filename/basename is missing, ask for it before writing. Do not invent the destination.
 
 ## Multi-Batch Image Handling
 
@@ -68,7 +68,7 @@ When the user asks for a new Markdown version with numbering, heading, or format
 
 These requirements are mandatory. Do not treat them as style preferences.
 
-- MUST stop and ask if the output path or Markdown filename is missing.
+- MUST stop and ask if the output path or Markdown filename/basename is missing. If the basename is clear but `.md` is omitted, MUST append `.md` automatically and continue.
 - MUST wait for an explicit generation or continuation signal before writing a file.
 - MUST preserve image order by conversation order and attachment order unless the user corrects it.
 - MUST inspect whether each image is truncated, incomplete, or a continuation before writing.
@@ -92,7 +92,7 @@ These requirements are mandatory. Do not treat them as style preferences.
 1. Confirm the target directory and Markdown filename are explicit.
 2. Confirm the user gave a generation signal such as "生成", "输出到文件", "继续补充", or equivalent.
 3. Confirm the target directory exists and is writable. If not, stop and ask for a valid destination.
-4. Confirm the filename is legal for the filesystem and ends in `.md`.
+4. Confirm the filename is legal for the filesystem. If it has no extension and is an unambiguous Markdown basename, append `.md`; if it has a non-`.md` extension, stop and ask.
 5. If appending to an existing document, read the file tail first and identify the exact continuation point.
 6. Preserve attachment order. If the order is ambiguous, stop and ask.
 
