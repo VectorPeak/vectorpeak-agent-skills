@@ -75,9 +75,9 @@ These requirements are mandatory. Do not treat them as style preferences.
 - MUST classify each visible region before OCR-only conversion: prose, code, table, formula, process diagram, architecture diagram, UI evidence, visual example, or ignorable page chrome.
 - MUST convert process diagrams, architecture diagrams, RAG pipelines, layered relationship graphs, and decision flows into Mermaid as the primary representation.
 - MUST preserve a diagram's structure as closely as Mermaid allows: orientation, numbered stages, subgraph grouping, parallel branches, side examples, arrows, and meaningful color cues.
-- MUST include the Obsidian-friendly VectorPeak compact Mermaid init block in every Mermaid diagram unless the user explicitly asks for another theme or full-size rendering: use `theme: "base"`, `nodeSpacing: 28`, `rankSpacing: 40`, `padding: 12`, `fontSize: "13px"`, primary sage-green border `#9CC7A3`, pale-green container `#F7FBF6`, soft container border `#C8DEC8`, and soft slate lines `#64748B`.
+- MUST include the Obsidian-friendly Material Light Mermaid init block in every Mermaid diagram unless the user explicitly asks for another theme, raw Mermaid, or full-size rendering: use `theme: "base"`, `nodeSpacing: 32`, `rankSpacing: 46`, `padding: 16`, `htmlLabels: true`, `curve: "basis"`, `fontSize: "14px"`, `fontFamily: "Source Code Pro, JetBrains Mono, Consolas, Microsoft YaHei, monospace"`, white card background `#FFFFFF`, Google/Material-style blue accent `#1A73E8`, light gray border `#DADCE0`, dark text `#202124`, and soft gray lines `#5F6368`.
 - MUST scale every Mermaid diagram for direct reading in Obsidian/Mintlify without meaningful horizontal dragging. If the first draft is too wide, shorten labels, add `<br/>`, reduce spacing/font size, switch to stacked/two-column `TB`, or group phases before final output.
-- MUST keep sage/light green as the dominant Mermaid color, but may use pastel blue (`#F3F8FF` / `#B8D4F8`), pastel purple (`#FAF7FF` / `#D7C3F7`), and pastel yellow (`#FFF9E8` / `#E8D28A`) to distinguish same-level or parallel modules.
+- MUST keep the default Mermaid style clean and technical: white/near-white nodes, gray borders, blue accents for primary steps, pale blue/amber/purple fills only when same-level or parallel modules need distinction. Avoid the previous sage/light-green dominant palette unless the user explicitly asks for it.
 - MUST NOT replace a required Mermaid diagram with only a cropped screenshot. Cropped/uploaded diagrams are allowed only as an "original diagram" reference after the Mermaid block.
 - MUST NOT insert whole-page continuation screenshots with generic labels such as `续页截图 02`, `原始截图 03`, or `screenshot page 4`.
 - MUST NOT keep screenshots that are mostly prose or code after the content has been transcribed; use Markdown text or fenced code instead.
@@ -117,9 +117,9 @@ If a region is a process diagram, architecture diagram, RAG pipeline, layered gr
 1. Write a Mermaid block first.
 2. Match the original layout as closely as Mermaid allows:
    - use `flowchart TB` for top-to-bottom diagrams and `flowchart LR` for left-to-right diagrams;
-   - every Mermaid block MUST begin with the Obsidian-friendly VectorPeak compact `theme: "base"` init block: default `nodeSpacing: 28`, `rankSpacing: 40`, `padding: 12`, `fontSize: "13px"`, primary border `#9CC7A3`, cluster background `#F7FBF6`, cluster border `#C8DEC8`, and line color `#64748B`;
-   - use class definitions for `green`, `blue`, `purple`, `yellow`, and `neutral` when same-level modules need visual distinction, while keeping green as the dominant theme;
-   - if a diagram is dense, reduce to `fontSize: "12px"`, `nodeSpacing: 22`, and `rankSpacing: 30` before changing semantics;
+   - every Mermaid block MUST begin with the Obsidian-friendly Material Light `theme: "base"` init block: default `nodeSpacing: 32`, `rankSpacing: 46`, `padding: 16`, `htmlLabels: true`, `curve: "basis"`, `fontSize: "14px"`, `fontFamily: "Source Code Pro, JetBrains Mono, Consolas, Microsoft YaHei, monospace"`, white node/card background `#FFFFFF`, primary border `#DADCE0`, blue accent `#1A73E8`, readable text `#202124`, and line color `#5F6368`;
+   - use class definitions for `card`, `accent`, `blue`, `purple`, `yellow`, and `neutral` when same-level modules need visual distinction, while keeping white cards and blue-gray accents as the default theme;
+   - if a diagram is dense, reduce to `fontSize: "12px"`, `nodeSpacing: 24`, and `rankSpacing: 34` before changing semantics;
    - preserve the original diagram orientation when practical. For left-to-right pipelines in Obsidian, use compact `LR` Mermaid and shorten node labels while preserving meaning;
    - only switch a wide original `LR` diagram to `TB`, wrapped rows, or grouped phases when compact Mermaid still remains unreadable or the user explicitly prefers vertical layout;
    - use `subgraph` for boxed stages or modules;
@@ -212,6 +212,7 @@ Do:
 混合检索通过 BM25 与向量检索并行召回候选片段，再经过重排和指标评估形成闭环。
 
 ```mermaid
+%%{init: {"theme": "base", "flowchart": {"nodeSpacing": 32, "rankSpacing": 46, "padding": 16, "htmlLabels": true, "curve": "basis"}, "themeVariables": {"fontFamily": "Source Code Pro, JetBrains Mono, Consolas, Microsoft YaHei, monospace", "fontSize": "14px", "background": "#FFFFFF", "primaryColor": "#FFFFFF", "primaryTextColor": "#202124", "primaryBorderColor": "#DADCE0", "lineColor": "#5F6368", "secondaryColor": "#F8F9FA", "tertiaryColor": "#E8F0FE", "clusterBkg": "#FFFFFF", "clusterBorder": "#DADCE0", "edgeLabelBackground": "#FFFFFF"}}}%%
 flowchart TB
     Q["用户查询"]
 
@@ -245,6 +246,12 @@ flowchart TB
     K --> R
     R --> M
     E -.-> R
+
+    classDef card fill:#FFFFFF,stroke:#DADCE0,stroke-width:1.4px,color:#202124;
+    classDef accent fill:#E8F0FE,stroke:#1A73E8,stroke-width:1.6px,color:#174EA6;
+    classDef neutral fill:#F8F9FA,stroke:#DADCE0,stroke-width:1.2px,color:#202124;
+    class Q,M accent;
+    class B,V,D,C,K,R,E card;
 ```
 
 ![RAG 检索召回优化方案原始图例](https://img.vectorpeak.cn/obsidian/2026/05-06/rag-retrieval-rerank-pipeline.png?imageSlim)
