@@ -61,7 +61,8 @@ These are mandatory.
 %%{init: {"theme": "forest", "flowchart": {"nodeSpacing": 24, "rankSpacing": 34, "padding": 16, "htmlLabels": true, "curve": "basis"}}}%%
 ```
 
-- MUST scale Mermaid so it reads in Obsidian without meaningful horizontal dragging. Shorten labels, add `<br/>`, group phases, or switch layout when needed.
+- MUST scale Mermaid so it reads in Obsidian without meaningful horizontal dragging. Shorten labels, add `<br/>`, group phases, switch layout, reduce side branches, or split one oversized graph into multiple focused Mermaid blocks when needed.
+- MUST treat "the user can see the whole Mermaid at a glance on a normal desktop note view" as the default success bar. Do not stop at merely valid Mermaid if the result still requires obvious horizontal dragging to understand the full graph.
 - MUST NOT replace a required Mermaid diagram with only a screenshot.
 - MUST NOT omit a required cropped visual reference when the screenshot is the primary proof or when layout, color, legend, annotation, or spatial grouping carries meaning that Markdown cannot preserve well.
 - MUST NOT insert whole-page continuation screenshots with generic labels such as `screenshot page 4`, `续页截图`, or `原始截图`.
@@ -129,6 +130,7 @@ For every image, record:
 2. Match orientation, stage numbering, grouping, branches, and side examples as closely as Mermaid allows.
 3. Use `flowchart TB` or `LR` as appropriate.
 4. Preserve the original diagram as a tight cropped image after Mermaid when visual comparison or semantic fidelity depends on layout, color, or annotation.
+5. Before finalizing, compress the Mermaid for viewport fit: shorten labels, move detail into nearby bullets, prefer top-to-bottom layering for tall flows, use `<br/>` inside long labels, and split dense diagrams into multiple Mermaid blocks if one block would still require horizontal dragging.
 
 #### Quantitative charts / infographics
 
@@ -183,6 +185,7 @@ Run validation before the final response.
 12. No obvious secrets remain.
 13. Formula delimiters and `$$` counts are paired.
 14. Markdown tables are not broken by raw unescaped `|`.
+15. Every Mermaid diagram has been compacted enough that a reader can understand the global structure without needing obvious horizontal dragging in a typical Obsidian desktop view.
 
 Recommended searches when practical:
 
