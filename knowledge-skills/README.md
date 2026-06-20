@@ -14,7 +14,6 @@
   <a href="daily-notes-vp/"><img src="https://img.shields.io/badge/daily--notes--vp-notes-green" alt="daily notes vp"></a>
   <a href="image-to-md-vp/"><img src="https://img.shields.io/badge/image--to--md--vp-ocr-blue" alt="image to md vp"></a>
   <a href="project-concept-explainer-vp/"><img src="https://img.shields.io/badge/project--concept--explainer--vp-study-blueviolet" alt="project concept explainer vp"></a>
-  <a href="learning-repo-log-vp/"><img src="https://img.shields.io/badge/learning--repo--log--vp-notes-green" alt="learning repo log vp"></a>
   <a href="gif-showcase-maker-vp/"><img src="https://img.shields.io/badge/gif--showcase--maker--vp-media-orange" alt="gif showcase maker vp"></a>
   <a href="paper-fetcher-vp/"><img src="https://img.shields.io/badge/paper--fetcher--vp-research-orange" alt="paper fetcher vp"></a>
   <a href="zhihu-clippings-vp/"><img src="https://img.shields.io/badge/zhihu--clippings--vp-notes-green" alt="zhihu clippings vp"></a>
@@ -52,7 +51,6 @@ knowledge-skills/
 ├── daily-notes-vp/              # 原始学习日记：10 天一个文件，按 Goal / Question / Concept 轻量记录
 ├── image-to-md-vp/              # 图片/截图 OCR 为指定 Markdown，保留结构、公式、表格和 emoji
 ├── project-concept-explainer-vp/  # 项目伴读、概念讲解、知识地图与术语表生成
-├── learning-repo-log-vp/          # 按仓库沉淀学习复盘、技术栈、概念、架构决策和待复习问题
 ├── gif-showcase-maker-vp/         # 多张图片按顺序生成轮播 GIF，支持停留帧和淡入转场
 ├── paper-fetcher-vp/       # 论文识别、官方 PDF 下载、重命名与 Zotero identifier 辅助
 ├── zhihu-clippings-vp/     # 知乎文章定位、正文补全、公式图片表格保留与 Obsidian Markdown 剪藏
@@ -74,10 +72,6 @@ knowledge-skills/
 ### [`project-concept-explainer-vp/`](project-concept-explainer-vp/)
 
 用于项目伴读和技术概念讲解：读取当前仓库上下文，解释项目里的关键术语、模型、算法、数据字段和架构决策，也可以生成项目知识地图、术语表、学习笔记和研究笔记
-
-### [`learning-repo-log-vp/`](learning-repo-log-vp/)
-
-用于按仓库维护学习复盘记录：当用户说“记一下”“记录到复盘”“把这个概念加入学习文档”时，将技术栈、名词概念、架构决策、工程实践、业务理解和待复习问题追加到 `{{项目名}}_学习复盘_技术栈与概念记录.md`
 
 ### [`gif-showcase-maker-vp/`](gif-showcase-maker-vp/)
 

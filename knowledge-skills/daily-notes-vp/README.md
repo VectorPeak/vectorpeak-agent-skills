@@ -168,5 +168,4 @@ daily-notes-vp/
 ## 与其他 Skill 的关系
 
 - `daily-notes-vp` 记录个人日常学习原始材料，位置是 `01.raw/02.DailyNotes`
-- `learning-repo-log-vp` 记录某个代码仓库里的项目学习复盘，位置是当前仓库的学习复盘文档
 - 如果用户明确要求整理成正式知识页，可以在记录之后再使用 Wiki/知识整理类 workflow

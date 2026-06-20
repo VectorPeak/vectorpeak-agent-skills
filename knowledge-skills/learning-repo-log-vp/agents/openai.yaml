@@ -1,4 +1,0 @@
-interface:
-  display_name: "Learning Repo Log VP"
-  short_description: "Project-scoped learning notes and concept logs"
-  default_prompt: "Use $learning-repo-log-vp to record this concept in the current repo learning log."
