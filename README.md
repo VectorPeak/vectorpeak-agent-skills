@@ -57,6 +57,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 用于工程开发场景，包括编码、调试、测试、代码审查、架构分析、构建修复、发布流程、CI/CD、仓库维护和本地自动化
 
+- [`code-comments-vp`](dev-skills/code-comments-vp/)：为代码补充面向维护者的模块职责、执行流程、边界、副作用、fallback 和设计原因说明，默认粗粒度，复杂逻辑再加细粒度块注释。
 - [`opensense-pr-attempt-vp`](dev-skills/opensense-pr-attempt-vp/)：把 OpenSense 的每日 issue 筛选、本地 PR 尝试、测试证据和 PR 草稿流程沉淀为可复用 Agent Skill。
 - [`profile-readme-github-vp`](dev-skills/profile-readme-github-vp/)：把 VectorPeak GitHub Profile README 的 facts 收集、双语渲染、公开项目自动补全和 profile 仓库排除规则沉淀为可复用 Agent Skill。
 
@@ -64,7 +65,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 用于知识工作场景，包括自顶向下学习、概念解释、论文阅读、知乎文章剪藏、文章摘要、知识地图抽取、笔记整理、学习检查和写作流程
 
-- [`daily-notes-vp`](knowledge-skills/daily-notes-vp/)：把个人学习中的短期目标、疑问和概念轻量追加到 raw 层 `01.raw/02.DailyNotes`，10 天一个文件，按 Goal / Question / Concept 组织。
+- [`daily-notes-vp`](knowledge-skills/daily-notes-vp/)：把个人学习中的短期目标、疑问、代码记录、概念和踩坑经验轻量追加到 `E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes`，10 天一个文件，按 Goal / Question / Code / Concept / Pitfall 组织。
 - [`image-to-md-vp`](knowledge-skills/image-to-md-vp/)：把多轮输入的截图或图片 OCR 成指定路径下的 Markdown 文件，保留标题层级、表格、公式、emoji 和原始结构。
 
 ### `job-skills/`

@@ -1,4 +1,4 @@
 interface:
   display_name: "Daily Notes VP"
-  short_description: "Raw daily learning goals, questions, and concepts"
-  default_prompt: "Use $daily-notes-vp to record this note into 01.raw/02.DailyNotes, classified as Goal, Question, or Concept without timestamps."
+  short_description: "Raw daily learning goals, questions, code, concepts, and pitfalls"
+  default_prompt: "Use $daily-notes-vp to record this note into E:\\LLM_wiki\\LLM_wiki\\01.raw\\02.DailyNotes, classified as Goal, Question, Code, Concept, or Pitfall without timestamps."

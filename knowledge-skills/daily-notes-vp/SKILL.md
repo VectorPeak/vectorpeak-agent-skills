@@ -1,6 +1,6 @@
 ---
 name: daily-notes-vp
-description: Capture raw personal learning notes, short goals, questions, and concepts into 10-day Markdown files under 01.raw/02.DailyNotes. Use when the user asks to record daily notes, learning goals, doubts, questions, concepts, study fragments, review items, or says to put something into DailyNotes/raw daily notes.
+description: Capture raw personal learning notes, short goals, questions, code notes, concepts, and pitfall lessons into 10-day Markdown files under E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes. Use when the user asks to record daily notes, learning goals, doubts, questions, code snippets, code ideas, commands, concepts, study fragments, review items, pitfall lessons, debugging lessons, deployment lessons, or says to put something into DailyNotes/raw daily notes.
 ---
 
 # Daily Notes VP
@@ -13,10 +13,10 @@ This skill is for raw capture, not polished Wiki writing. Preserve the user's in
 
 ## Destination
 
-Default destination inside the current vault:
+Default destination:
 
 ```text
-01.raw/02.DailyNotes/YYYY-MM-DD_YYYY-MM-DD.md
+E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\YYYY-MM-DD_YYYY-MM-DD.md
 ```
 
 Use 10-day buckets:
@@ -28,12 +28,12 @@ Use 10-day buckets:
 Examples:
 
 ```text
-01.raw/02.DailyNotes/2026-06-01_2026-06-10.md
-01.raw/02.DailyNotes/2026-06-11_2026-06-20.md
-01.raw/02.DailyNotes/2026-06-21_2026-06-30.md
+E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\2026-06-01_2026-06-10.md
+E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\2026-06-11_2026-06-20.md
+E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\2026-06-21_2026-06-30.md
 ```
 
-If `01.raw/02.DailyNotes/` does not exist in the current directory, search upward for a vault root that contains it. If still absent, ask the user for the vault path before writing.
+If `E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes` does not exist, ask the user before writing somewhere else. Do not silently fall back to the current workspace.
 
 ## File Header
 
@@ -70,10 +70,14 @@ Each date uses this fixed order:
 
 ### Question-疑问
 
+### Code-代码
+
 ### Concept-概念
+
+### Pitfall-踩坑
 ```
 
-If the date section does not exist, create it with all three headings in this order. If a category heading is missing, add it in the correct order.
+If the date section does not exist, create it with all five headings in this order. If a category heading is missing, add it in the correct order.
 
 ## Categories
 
@@ -81,9 +85,11 @@ Classify each item into exactly one category unless the user explicitly gives mu
 
 - `Goal-目标`: short-term learning goals, small study tasks, today's focus, review plans
 - `Question-疑问`: doubts, questions, interview questions, things the user wants explained later
+- `Code-代码`: code questions, code snippets, commands, tiny examples, API usage notes, implementation ideas, or code-shaped material the user wants to revisit later. Treat it as close to `Question-疑问`, but use it when the note is centered on code, command usage, function behavior, configuration snippets, or implementation details.
 - `Concept-概念`: terms, definitions, methods, models, mechanisms, reusable conceptual notes
+- `Pitfall-踩坑`: debugging lessons, deployment incidents, configuration traps, dependency or route conflicts, "what went wrong / why / how to avoid it next time" experience notes
 
-If classification is uncertain, prefer `Question-疑问`.
+If classification is uncertain between `Question-疑问` and `Code-代码`, prefer `Code-代码` when the title/body contains concrete code, commands, APIs, config, function names, file paths, stack traces, or implementation details; otherwise prefer `Question-疑问`.
 
 ## Entry Format
 
@@ -125,11 +131,27 @@ Rules:
 
 后续：整理成 Wiki/questions 页面。
 
+### Code-代码
+
+#### 1. FastAPI WebSocket 入口如何避免阻塞事件循环？ #python #fastapi #async
+
+同步生成器或阻塞检索不能直接在 async handler 里跑，可以用 `asyncio.to_thread(...)` 推进一步，再把事件通过 WebSocket 发回前端。
+
+后续：整理成 FastAPI 异步服务 checklist。
+
 ### Concept-概念
 
 #### 1. Semantic Chunking #rag #concept
 
 Semantic chunking 是按语义边界切分文本，而不是机械按 token 数切。它更适合问答和知识库场景，但实现成本更高。
+
+### Pitfall-踩坑
+
+#### 1. FastAPI `/docs` 与项目文档路由冲突 #fastapi #docs #pitfall
+
+FastAPI 默认会把 Swagger UI 挂到 `/docs`。如果项目也想把 MkDocs 或静态课程文档挂到 `/docs`，需要显式把 Swagger 改到 `/api/docs`，否则线上访问 `/docs` 时会被 Swagger 抢占。
+
+后续：部署前把路由约定写进 README 或 guardrail。
 ```
 
 ## Multi-item Input
@@ -156,7 +178,7 @@ Raw daily notes are source material. Do not create Wiki pages unless the user ex
 Keep the response short:
 
 ```text
-已记录到 01.raw/02.DailyNotes/YYYY-MM-DD_YYYY-MM-DD.md 的 Question-疑问。
+已记录到 E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\YYYY-MM-DD_YYYY-MM-DD.md 的 Question-疑问。
 ```
 
 If several categories were updated, list them briefly.

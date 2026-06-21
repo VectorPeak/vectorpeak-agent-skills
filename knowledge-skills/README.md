@@ -48,7 +48,7 @@ raw input  ->  structured thinking  ->  reusable skill  ->  durable knowledge wo
 
 ```text
 knowledge-skills/
-├── daily-notes-vp/              # 原始学习日记：10 天一个文件，按 Goal / Question / Concept 轻量记录
+├── daily-notes-vp/              # 原始学习日记：10 天一个文件，按 Goal / Question / Code / Concept / Pitfall 轻量记录
 ├── image-to-md-vp/              # 图片/截图 OCR 为指定 Markdown，保留结构、公式、表格和 emoji
 ├── project-concept-explainer-vp/  # 项目伴读、概念讲解、知识地图与术语表生成
 ├── gif-showcase-maker-vp/         # 多张图片按顺序生成轮播 GIF，支持停留帧和淡入转场
@@ -63,7 +63,7 @@ knowledge-skills/
 
 ### [`daily-notes-vp/`](daily-notes-vp/)
 
-用于记录个人日常学习原始材料：当用户说“记一下这个问题”“今天的目标是”“这个概念先放到 daily notes”时，将短期目标、疑问和概念轻量追加到 `01.raw/02.DailyNotes/YYYY-MM-DD_YYYY-MM-DD.md`，10 天一个文件，每天按 `Goal-目标 -> Question-疑问 -> Concept-概念` 排列
+用于记录个人日常学习原始材料：当用户说“记一下这个问题”“今天的目标是”“这个代码点先放到 daily notes”“这个概念先记一下”时，将短期目标、疑问、代码记录、概念和踩坑经验轻量追加到 `E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\YYYY-MM-DD_YYYY-MM-DD.md`，10 天一个文件，每天按 `Goal-目标 -> Question-疑问 -> Code-代码 -> Concept-概念 -> Pitfall-踩坑` 排列
 
 ### [`image-to-md-vp/`](image-to-md-vp/)
 

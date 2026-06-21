@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Comments VP"
+  short_description: "Maintainable code comments and docstrings."
+  default_prompt: "Use $code-comments-vp to add maintainable Chinese comments to this code."
