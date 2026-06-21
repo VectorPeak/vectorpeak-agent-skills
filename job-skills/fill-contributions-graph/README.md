@@ -1,46 +1,43 @@
 # fill-contributions-graph
 
-显式调用型 Codex Skill，用于为用户自己的 GitHub 仓库生成回顾式维护提交计划，并在用户确认后执行本地提交。
+Explicit-only Codex skill for planning retrospective maintenance commits across the user's own GitHub repositories.
 
-这个 skill 默认只做计划，不会自动 commit 或 push。执行前必须先生成 Excel 审核表，并由用户明确确认。
-
-## 适用场景
-
-- 为个人或组织名下的多个仓库规划回顾式维护提交。
-- 按日期范围生成较自然的活跃日与提交数分布。
-- 在已有真实提交的日期上做扣减，避免重复堆叠。
-- 为测试性本地提交保留 manifest 和 rollback dry-run。
-
-## 强制流程
-
-1. 显式调用 `fill-contributions-graph`。
-2. 输入 GitHub account、日期范围和可选 profile。
-3. 运行 preflight，确认 `gh`、GitHub 登录和 API 连接正常。
-4. 扫描账号仓库，要求 eligible repositories `> 10`。
-5. 生成 Excel 审核表。
-6. 用户审核 Excel，并明确确认。
-7. 才允许进入 `local-commit`。
-8. 本地提交完成后生成 manifest 和 rollback dry-run。
-9. push 需要第二次明确确认。
-
-任何 TSV、终端预览或聊天摘要都不能替代 Excel 确认。
-
-## Excel 审核表
-
-默认输出每日聚合视图：
+The current execution rule is:
 
 ```text
-日期 | 目标提交数 | 已有作者提交数 | 本次计划新增数 | commit细则
+Excel review -> explicit approval -> commit -> push -> verify remote -> withdraw
 ```
 
-其中：
+The skill must not run a standalone local-only commit batch. A local commit is only a transient step inside the push-and-withdraw workflow.
 
-- `目标提交数` 来自 activity profile。
-- `已有作者提交数` 通过 GitHub commit search 查询。
-- `本次计划新增数 = max(0, 目标提交数 - 已有作者提交数)`。
-- `commit细则` 包含时间、仓库、commit message、计划文件路径。
+## Core Rules
 
-示例：
+- Trigger only when the user explicitly names `fill-contributions-graph` or `$fill-contributions-graph`.
+- Generate an Excel review file before any execution.
+- Require explicit approval of that exact Excel file before creating commits.
+- Subtract existing same-day author commits before finalizing the plan.
+- Push created commits to GitHub default branches before withdrawal.
+- Verify pushed commits are reachable from the remote default branch.
+- Withdraw by `git revert` by default, then push the revert commits.
+- Use force rewriting only after a separate explicit confirmation.
+
+## Excel Review
+
+The default review table is:
+
+```text
+date | target_commit_count | existing_commit_count | planned_new_commit_count | commit_details
+```
+
+The daily count is adjusted with:
+
+```python
+planned_new_commit_count = max(0, target_commit_count - existing_author_commit_count)
+```
+
+Example: if the profile generates 5 commits for 2026-03-25 and GitHub already has 2 matching author commits that day, the plan keeps only 3 new commit tasks.
+
+## Generate A Plan
 
 ```powershell
 python scripts/generate_plan.py `
@@ -51,7 +48,7 @@ python scripts/generate_plan.py `
   --excel-out plan.xls
 ```
 
-如果下游执行器需要逐条 commit 明细：
+For downstream execution, export one row per planned commit:
 
 ```powershell
 python scripts/generate_plan.py `
@@ -63,42 +60,44 @@ python scripts/generate_plan.py `
   --out commit-detail.tsv
 ```
 
-## Activity Profiles
+The script only plans. It does not commit, push, or withdraw.
 
-当前只保留两个 profile：
+## Push-And-Withdraw
 
-- `vibe_coding_builder`：默认，更贴近 AI 辅助高频迭代。
-- `active_personal_builder`：更保守的个人项目维护节奏。
+After Excel approval, execution must:
 
-详细分布见 `references/activity-profiles.md`。
+1. Select clean local worktrees or isolated clones.
+2. Record each repository's branch and pre-session HEAD.
+3. Create durable maintenance commits with planned author and committer dates.
+4. Push the commits to the repository default branch.
+5. Verify the remote default branch contains each pushed commit.
+6. Prepare withdrawal immediately.
+7. Revert pushed commits by default and push the revert commits.
 
-## 工作区策略
+This keeps the operation auditable and avoids the previous failure mode where local-only commits never affected GitHub.
 
-执行 `local-commit` 前必须选择本地 worktree：
+## Withdrawal
 
-- 优先使用 remote URL 匹配且 `git status --porcelain` 干净的现有仓库。
-- 如果本地仓库是 dirty，必须停止并让用户选择处理方式。
-- 如果同一仓库存在多个 clone，必须展示候选路径后再选择。
-- 测试执行或需要强 rollback 时，推荐使用隔离 clone。
+Default withdrawal uses `git revert`, not local reset:
 
-这条规则来自实际执行经验：直接在已有工作区提交虽然更快，但容易把用户原本未提交的改动混进本次批处理。隔离 clone 更慢，但 manifest、rollback 和审计都更干净。
+```text
+git revert <skill-created-sha>
+git push origin <default-branch>
+```
 
-## Rollback
+Do not force-push away pushed commits unless the user explicitly asks for history rewriting and confirms each affected repository. Removing commits from the remote default branch can make contribution graph attribution unstable because the original commits may no longer be reachable.
 
-`local-commit` 测试完成后，默认准备 rollback：
+## Worktree Safety
 
-- manifest 记录每个仓库的 pre-session HEAD、commit SHA、路径、分支、作者日期和 message。
-- rollback dry-run 先展示将回到哪个 HEAD。
-- 未 push 的测试提交优先用 `git reset --hard <pre-session-head>` 回滚。
-- 已 push 的提交默认用 `git revert`，不默认改写远端历史。
+- Prefer a clean local repository whose remote URL matches the target repository.
+- If a matching repository is dirty, stop and ask the user whether to use an isolated clone.
+- If multiple clones match, show candidates before selecting one.
+- Record a manifest before creating commits.
+- Never withdraw commits that are not listed in the manifest.
 
-rollback 只能作用于 manifest 中记录的 skill-created commits，不能回滚用户其他提交。
+## Profiles
 
-## 安全边界
+- `vibe_coding_builder` is the default high-frequency AI-assisted profile.
+- `active_personal_builder` is a more conservative personal project profile.
 
-- 不创建空 commit。
-- 不写临时占位代码。
-- 不生成提交后再删除的假内容。
-- 不自动 push。
-- 不在脏工作区里混入提交。
-- 不在未确认 Excel 的情况下执行 local commit。
+See `references/activity-profiles.md` for exact distributions.

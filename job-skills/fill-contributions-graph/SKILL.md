@@ -7,7 +7,7 @@ description: Explicit-only skill for planning and optionally applying retrospect
 
 Use this skill only after the user explicitly invokes it by name.
 
-The skill generates a reproducible retrospective maintenance plan across the user's own GitHub repositories. It must output an Excel review file first, then wait for explicit user approval before any local commit or push execution.
+The skill generates a reproducible retrospective maintenance plan across the user's own GitHub repositories. It must output an Excel review file first, then wait for explicit user approval before executing a push-and-withdraw workflow.
 
 ## Boundaries
 
@@ -17,8 +17,9 @@ The skill generates a reproducible retrospective maintenance plan across the use
 - Do not operate on repositories that are not owned or maintained by the target account.
 - Do not include forks by default.
 - Do not push unless the user explicitly requests push after reviewing the plan.
-- Do not mutate Git history during rollback until the user reviews the created commit manifest and rollback dry-run.
-- Do not run `local-commit` until the user reviews and explicitly approves the generated Excel plan.
+- Do not mutate Git history during withdrawal until the user reviews the pushed commit manifest and withdrawal dry-run.
+- Do not create standalone local-only commit batches.
+- Do not execute push-and-withdraw until the user reviews and explicitly approves the generated Excel plan.
 - Do not open PRs, issues, releases, or comments.
 - Prefer durable artifacts: documentation, analysis notes, evaluation checklists, test plans, configuration notes, maintenance checklists.
 
@@ -63,9 +64,10 @@ Do not create repositories unless the user explicitly asks for repository creati
 Default mode is `plan-only`.
 
 - `plan-only`: generate a dated Excel review plan. Do not write repository files.
-- `local-commit`: only after explicit approval of the Excel plan, create files and local commits. Do not push.
-- `push`: after a second explicit confirmation, push already-created local commits.
-- `rollback`: default post-execution cleanup step for `local-commit` test runs; roll back only commits created by this skill and recorded in the session manifest after dry-run confirmation.
+- `push-and-withdraw`: after explicit approval of the Excel plan, create durable commits, push them to GitHub default branches, verify the remote contains the pushed commits, then prepare the withdrawal step.
+- `withdraw`: withdraw only commits created by this skill and recorded in the pushed manifest.
+
+Do not offer `local-commit` as a final execution mode. A local commit may exist only as a transient step inside `push-and-withdraw`, and it must be pushed before the operation is considered complete.
 
 When unsure, stay in `plan-only`.
 
@@ -74,7 +76,7 @@ When unsure, stay in `plan-only`.
 Always split execution into two turns:
 
 1. Generate an Excel review file with daily totals and commit details.
-2. Stop and ask the user to approve that exact file before any `local-commit`.
+2. Stop and ask the user to approve that exact file before any `push-and-withdraw`.
 
 The Excel review file must include:
 
@@ -106,25 +108,27 @@ Example: if the profile generates `5` commits for `2026-03-25` and GitHub alread
 
 ## Worktree Selection
 
-Before `local-commit`, map each planned repository to a local worktree.
+Before `push-and-withdraw`, map each planned repository to a local worktree.
 
 - Prefer an existing local repository only when its remote URL matches the planned GitHub repository and `git status --porcelain` is clean.
 - If the matching local repository is dirty, stop and ask the user whether to use an isolated clone or handle the dirty worktree first.
 - If multiple local clones match the same repository, choose a clean canonical path only after showing the candidates to the user.
-- Use an isolated clone when the user wants a test run, when existing worktrees are dirty, or when rollback safety is more important than reusing local checkout state.
+- Use an isolated clone when the user wants a test run, when existing worktrees are dirty, or when withdrawal safety is more important than reusing local checkout state.
 - Record the selected path and pre-session `HEAD` for every repository in the manifest before creating any commit.
 
-## Rollback Mode
+## Push-And-Withdraw Mode
 
-Rollback must be manifest-driven.
+Push-and-withdraw must be manifest-driven.
 
-- Require the manifest from the matching `local-commit` session.
-- Roll back only commit SHAs listed in that manifest.
-- Never roll back unrelated user commits, merge commits, or commits not created by this skill.
-- After a `local-commit` test run, default to preparing rollback unless the user explicitly says to keep the commits.
-- If commits have not been pushed, prefer restoring each repository to its recorded pre-session `HEAD`.
-- If commits have already been pushed, prefer `git revert` over history rewriting unless the user explicitly requests force rewriting and confirms the affected repositories.
-- Show a dry-run summary before any rollback: repository, current branch, current `HEAD`, pre-session `HEAD`, commits to remove or revert, and whether the branch is ahead of origin.
+- Create commits only after Excel approval.
+- Push every skill-created commit to the repository default branch.
+- Verify that each pushed commit is reachable from the remote default branch before starting withdrawal.
+- Record repository path, branch, pre-session `HEAD`, pushed commit SHAs, remote verification status, and withdrawal SHAs in the manifest.
+- Default withdrawal is `git revert`, followed by pushing the revert commits. This withdraws the content while preserving public history.
+- Do not use `git reset --hard` plus force push unless the user explicitly requests history rewriting and confirms each affected repository.
+- Warn that force-pushing away the original commits may remove or destabilize contribution graph attribution because the commits are no longer reachable from the default branch.
+- Never withdraw unrelated user commits, merge commits, or commits not created by this skill.
+- Show a dry-run summary before any withdrawal: repository, current branch, current `HEAD`, pushed commit SHAs, withdrawal method, expected revert commits, and whether the remote default branch contains the pushed commits.
 - Stop on dirty working trees unless the user explicitly provides a safe stash/commit instruction.
 
 ## Activity Profiles
@@ -160,9 +164,10 @@ Allow a user-provided seed to override this value.
 10. Generate commit tasks matching each repository type.
 11. Count existing author commits per planned active day and subtract them from the generated daily targets.
 12. Output an Excel review file and stop for mandatory user approval.
-13. In `local-commit`, only after Excel approval, write durable files and create local commits with both `GIT_AUTHOR_DATE` and `GIT_COMMITTER_DATE`.
-14. In `push`, push only after the user explicitly confirms the target repositories.
-15. In `rollback`, default to preparing rollback after `local-commit`, then use the manifest to roll back only skill-created commits after a dry-run summary and explicit confirmation.
+13. In `push-and-withdraw`, only after Excel approval, write durable files and create commits with both `GIT_AUTHOR_DATE` and `GIT_COMMITTER_DATE`.
+14. Push the created commits to the GitHub default branch and verify remote reachability.
+15. Prepare withdrawal immediately after remote verification.
+16. In `withdraw`, default to reverting the pushed commits and pushing the revert commits; use force rewriting only after separate explicit confirmation.
 
 ## Task Type Distribution
 
@@ -194,7 +199,7 @@ Use `scripts/generate_plan.py` for deterministic plan generation:
 python scripts/generate_plan.py --account VectorPeak --start 2026-03-01 --end 2026-04-01 --profile vibe_coding_builder --excel-out plan.xls
 ```
 
-The script only generates a plan and Excel review file. It does not commit or push.
+The script only generates a plan and Excel review file. It does not commit, push, or withdraw.
 
 Default output is a daily table:
 
@@ -215,11 +220,14 @@ For plan output, include:
 - default daily table with `date`, `target_commit_count`, `existing_commit_count`, `planned_new_commit_count`, and `commit_details`;
 - warnings for repository gate failures or excluded repositories.
 
-For local execution summaries, include:
+For push-and-withdraw execution summaries, include:
 
 - repository path;
 - branch;
-- commit SHA;
+- pushed commit SHA;
+- remote verification status;
+- withdrawal method;
+- withdrawal commit SHA when using revert;
 - author date;
 - message;
-- whether the branch is ahead of origin.
+- whether the remote default branch contains the pushed commit before withdrawal.
