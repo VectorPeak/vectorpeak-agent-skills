@@ -1,46 +1,37 @@
-# fill-contributions-graph
+# Fill Contributions Graph
 
-Explicit-only Codex skill for planning retrospective maintenance commits across the user's own GitHub repositories.
+Explicit-only Codex skill for planning GitHub maintenance activity across repositories.
 
-The current execution rule is:
-
-```text
-Excel review -> explicit approval -> commit -> push -> verify remote -> withdraw
-```
-
-The skill must not run a standalone local-only commit batch. A local commit is only a transient step inside the push-and-withdraw workflow.
-
-## Core Rules
-
-- Trigger only when the user explicitly names `fill-contributions-graph` or `$fill-contributions-graph`.
-- Generate an Excel review file before any execution.
-- Require explicit approval of that exact Excel file before creating commits.
-- Subtract existing same-day author commits before finalizing the plan.
-- Push created commits to GitHub default branches before withdrawal.
-- Verify pushed commits are reachable from the remote default branch.
-- Withdraw by `git revert` by default, then push the revert commits.
-- Use force rewriting only after a separate explicit confirmation.
-
-## Excel Review
-
-The default review table is:
+This skill is intentionally conservative: it plans first, writes an Excel review file, waits for explicit approval, and records every pushed commit in manifests before any withdrawal or recovery step.
 
 ```text
-date | target_commit_count | existing_commit_count | planned_new_commit_count | commit_details
+GitHub account -> repo scan -> existing commit deduction -> Excel review -> approved execution
 ```
 
-The daily count is adjusted with:
+## What It Does
 
-```python
-planned_new_commit_count = max(0, target_commit_count - existing_author_commit_count)
-```
+- Scans repositories owned by a target GitHub account or organization.
+- Requires more than 10 eligible repositories before planning.
+- Generates a deterministic activity plan for a date range.
+- Subtracts commits that already exist on GitHub for each planned date.
+- Writes an Excel review file before any execution.
+- Supports manifest-driven push, withdrawal, and history-rewrite recovery workflows.
 
-Example: if the profile generates 5 commits for 2026-03-25 and GitHub already has 2 matching author commits that day, the plan keeps only 3 new commit tasks.
+## Safety Rules
 
-## Generate A Plan
+- Trigger only when the user explicitly names `fill-contributions-graph`.
+- Do not create empty commits.
+- Do not create fake placeholder code.
+- Do not execute until the Excel plan is explicitly approved.
+- Do not rewrite Git history unless the user explicitly confirms the affected repositories.
+- Prefer one cleanup PR per affected repository. GitHub PRs cannot span multiple repositories.
+
+## Planning
+
+Generate a daily Excel review file:
 
 ```powershell
-python scripts/generate_plan.py `
+python .\scripts\generate_plan.py `
   --account VectorPeak `
   --start 2026-03-01 `
   --end 2026-04-01 `
@@ -48,10 +39,10 @@ python scripts/generate_plan.py `
   --excel-out plan.xls
 ```
 
-For downstream execution, export one row per planned commit:
+Generate one row per planned commit:
 
 ```powershell
-python scripts/generate_plan.py `
+python .\scripts\generate_plan.py `
   --account VectorPeak `
   --start 2026-03-01 `
   --end 2026-04-01 `
@@ -60,44 +51,62 @@ python scripts/generate_plan.py `
   --out commit-detail.tsv
 ```
 
-The script only plans. It does not commit, push, or withdraw.
+`--end` is exclusive. To include `2026-03-31`, pass `--end 2026-04-01`.
 
-## Push-And-Withdraw
+## Existing Commit Deduction
 
-After Excel approval, execution must:
-
-1. Select clean local worktrees or isolated clones.
-2. Record each repository's branch and pre-session HEAD.
-3. Create durable maintenance commits with planned author and committer dates.
-4. Push the commits to the repository default branch.
-5. Verify the remote default branch contains each pushed commit.
-6. Prepare withdrawal immediately.
-7. Revert pushed commits by default and push the revert commits.
-
-This keeps the operation auditable and avoids the previous failure mode where local-only commits never affected GitHub.
-
-## Withdrawal
-
-Default withdrawal uses `git revert`, not local reset:
+The plan counts existing author commits on GitHub for each active day:
 
 ```text
-git revert <skill-created-sha>
-git push origin <default-branch>
+author:<author> author-date:<YYYY-MM-DD>..<YYYY-MM-DD> user:<account>
 ```
 
-Do not force-push away pushed commits unless the user explicitly asks for history rewriting and confirms each affected repository. Removing commits from the remote default branch can make contribution graph attribution unstable because the original commits may no longer be reachable.
+Then it plans only the remainder:
 
-## Worktree Safety
+```python
+planned_new_commit_count = max(0, target_commit_count - existing_author_commit_count)
+```
 
-- Prefer a clean local repository whose remote URL matches the target repository.
-- If a matching repository is dirty, stop and ask the user whether to use an isolated clone.
-- If multiple clones match, show candidates before selecting one.
-- Record a manifest before creating commits.
-- Never withdraw commits that are not listed in the manifest.
+## Recovery Workflow
 
-## Profiles
+If a `git revert` withdrawal was pushed and the user later asks to remove the revert commits from GitHub-visible history, do not revert the reverts. That creates additional current-day commits.
 
-- `vibe_coding_builder` is the default high-frequency AI-assisted profile.
-- `active_personal_builder` is a more conservative personal project profile.
+Use history-rewrite recovery only after explicit confirmation:
 
-See `references/activity-profiles.md` for exact distributions.
+1. Load the push and withdrawal manifests.
+2. Verify affected repositories, branches, `pre_withdraw_head`, `post_withdraw_head`, source SHAs, and revert SHAs.
+3. For branches still at `post_withdraw_head`, reset to `pre_withdraw_head`.
+4. For branches with legitimate later commits, replay only those later commits on top of `pre_withdraw_head`.
+5. Push with `git push --force-with-lease`.
+6. Verify no recorded revert SHA remains reachable from the remote default branch.
+7. Open cleanup PRs that delete restored generated docs.
+
+Generated docs commonly live under:
+
+```text
+docs/notes/
+docs/testing/
+docs/config/
+docs/maintenance/
+docs/evaluation/
+docs/editorial/
+docs/experiments/
+docs/review/
+```
+
+Delete manifest-owned generated files from those directories, and remove directories when they become empty.
+
+## Files
+
+```text
+fill-contributions-graph/
+|-- SKILL.md
+|-- README.md
+|-- LICENSE
+|-- agents/
+|   `-- openai.yaml
+|-- references/
+|   `-- activity-profiles.md
+`-- scripts/
+    `-- generate_plan.py
+```

@@ -22,6 +22,7 @@ The skill generates a reproducible retrospective maintenance plan across the use
 - Do not execute push-and-withdraw until the user reviews and explicitly approves the generated Excel plan.
 - Do not open PRs, issues, releases, or comments.
 - Prefer durable artifacts: documentation, analysis notes, evaluation checklists, test plans, configuration notes, maintenance checklists.
+- Do not remove pushed revert records with another revert. If the user asks to remove revert commits from public history, require explicit history-rewrite approval and use `git push --force-with-lease`.
 
 ## Required Inputs
 
@@ -66,6 +67,7 @@ Default mode is `plan-only`.
 - `plan-only`: generate a dated Excel review plan. Do not write repository files.
 - `push-and-withdraw`: after explicit approval of the Excel plan, create durable commits, push them to GitHub default branches, verify the remote contains the pushed commits, then prepare the withdrawal step.
 - `withdraw`: withdraw only commits created by this skill and recorded in the pushed manifest.
+- `history-rewrite-recovery`: after explicit user confirmation, remove skill-created revert commits from remote default branches, preserve unrelated later commits, then create cleanup PRs for the restored generated docs.
 
 Do not offer `local-commit` as a final execution mode. A local commit may exist only as a transient step inside `push-and-withdraw`, and it must be pushed before the operation is considered complete.
 
@@ -131,6 +133,36 @@ Push-and-withdraw must be manifest-driven.
 - Show a dry-run summary before any withdrawal: repository, current branch, current `HEAD`, pushed commit SHAs, withdrawal method, expected revert commits, and whether the remote default branch contains the pushed commits.
 - Stop on dirty working trees unless the user explicitly provides a safe stash/commit instruction.
 
+## History-Rewrite Recovery
+
+Use this only when the user explicitly confirms that public history may be rewritten for each affected default branch.
+
+This mode is for the case where `git revert` was used as withdrawal, but the user then asks to remove the revert commits themselves from GitHub-visible history. Do not solve that by reverting the revert commits, because that creates more current-day commits. Instead:
+
+1. Load the pushed manifest and withdrawal manifest.
+2. Verify every affected repository, branch, `pre_withdraw_head`, `post_withdraw_head`, source commit SHA, and revert commit SHA.
+3. Confirm all affected worktrees are clean.
+4. For repositories whose remote default branch is exactly `post_withdraw_head`, reset the branch to `pre_withdraw_head` and push with `--force-with-lease`.
+5. For repositories with legitimate later commits after `post_withdraw_head`, drop only the revert segment and replay or rebase the later commits onto `pre_withdraw_head`.
+6. Verify no recorded revert SHA remains reachable from the remote default branch.
+7. Create cleanup branches and PRs to delete restored generated docs. A GitHub PR is scoped to one repository, so cross-repository cleanup requires one PR per affected repository.
+8. Delete only manifest-owned generated docs unless the user explicitly asks to remove whole generated directories.
+
+Generated docs directories commonly used by this skill are:
+
+```text
+docs/notes/
+docs/testing/
+docs/config/
+docs/maintenance/
+docs/evaluation/
+docs/editorial/
+docs/experiments/
+docs/review/
+```
+
+When the user asks to "delete the docs folders", remove the generated files under these directories in each affected repository and remove now-empty directories. Do not delete unrelated documentation outside the manifest scope.
+
 ## Activity Profiles
 
 Only use these two profiles:
@@ -168,6 +200,7 @@ Allow a user-provided seed to override this value.
 14. Push the created commits to the GitHub default branch and verify remote reachability.
 15. Prepare withdrawal immediately after remote verification.
 16. In `withdraw`, default to reverting the pushed commits and pushing the revert commits; use force rewriting only after separate explicit confirmation.
+17. In `history-rewrite-recovery`, remove the recorded revert commits with `--force-with-lease`, preserve later legitimate commits, verify revert SHAs are unreachable, and then open cleanup PRs for restored generated docs.
 
 ## Task Type Distribution
 
