@@ -1,4 +1,6 @@
-<h1 align="center">Github 绿墙刷漆计划</h1>
+<h1 align="center">
+  <a href="https://github.com/VectorPeak/fill-contributions-graph">fill-contributions-graph</a> | 绿墙刷漆计划
+</h1>
 
 <p align="center">
   一个先审核、再推送、再按仓库清理 docs 的 GitHub 贡献计划技能
