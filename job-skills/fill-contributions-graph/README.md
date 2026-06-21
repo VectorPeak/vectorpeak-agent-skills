@@ -1,34 +1,44 @@
-# Fill Contributions Graph
+# Github 绿墙刷漆计划
 
-Explicit-only Codex skill for planning GitHub maintenance activity across repositories.
-
-This skill is intentionally conservative: it plans first, writes an Excel review file, waits for explicit approval, and records every pushed commit and cleanup PR in manifests.
+显式调用的 Codex Skill：扫描用户自己的 GitHub 仓库，生成可审核的 Excel 贡献计划，扣除已有提交数，并在用户确认后执行 `push -> cleanup PR` 工作流。
 
 ```text
-GitHub account -> repo scan -> existing commit deduction -> Excel review -> approved execution
+GitHub account -> repo scan -> existing commit deduction -> Excel review -> push -> cleanup PR
 ```
 
-## What It Does
+## 为什么要做
 
-- Scans repositories owned by a target GitHub account or organization.
-- Requires more than 10 eligible repositories before planning.
-- Generates a deterministic activity plan for a date range.
-- Subtracts commits that already exist on GitHub for each planned date.
-- Writes an Excel review file before any execution.
-- Supports manifest-driven push and per-repository cleanup PR workflows.
+GitHub contribution graph 只会统计已经进入 GitHub 仓库、位于默认分支或 `gh-pages` 分支、并且作者邮箱能归属到账号的提交。只在本地 `git commit` 不会改变贡献图；提交后不 `push`，也不会被 GitHub 统计。
 
-## Safety Rules
+`fill-contributions-graph` 把跨仓库维护操作拆成可审核、可执行、可追踪的流程。它不会隐式触发，也不会直接跳到提交，而是先生成 Excel 审核表，让用户确认日期、提交数、仓库分布和 commit 细则。
 
-- Trigger only when the user explicitly names `fill-contributions-graph`.
-- Do not create empty commits.
-- Do not create fake placeholder code.
-- Do not execute until the Excel plan is explicitly approved.
-- Do not rewrite Git history unless the user explicitly confirms the affected repositories.
-- Prefer one cleanup PR per affected repository. GitHub PRs cannot span multiple repositories.
+核心策略：
 
-## Planning
+- **Excel-first**：任何执行前必须先生成 Excel 审核表，并等待用户明确确认。
+- **existing-commit-aware**：先查询 GitHub 上同一天已有的作者提交数，再扣减计划新增数。
+- **push-then-cleanup**：执行阶段必须先 `push` 到 GitHub 默认分支并验证远端可达，然后为每个仓库单独创建 cleanup PR 删除生成的 `docs/` 文件。
 
-Generate a daily Excel review file:
+## 工作原理
+
+1. 显式调用 `fill-contributions-graph` 或 `$fill-contributions-graph`。
+2. 检查 `gh`、GitHub 登录状态和 API 连通性。
+3. 扫描账号仓库，默认排除 fork 和 archived 仓库。
+4. 要求 eligible repositories `> 10`。
+5. 使用 activity profile 生成活跃日和每日目标提交数。
+6. 查询当天已有作者提交数并扣减：
+
+```python
+planned_new_commit_count = max(0, target_commit_count - existing_author_commit_count)
+```
+
+7. 输出 Excel 审核表。
+8. 用户确认后才允许执行。
+9. 创建计划内提交，`push` 到默认分支并验证远端包含提交。
+10. 每个受影响仓库单独创建 cleanup PR，删除本次生成的 `docs/` 文件。
+
+## 快速上手
+
+生成每日聚合审核表：
 
 ```powershell
 python .\scripts\generate_plan.py `
@@ -39,7 +49,7 @@ python .\scripts\generate_plan.py `
   --excel-out plan.xls
 ```
 
-Generate one row per planned commit:
+导出逐 commit 明细：
 
 ```powershell
 python .\scripts\generate_plan.py `
@@ -51,37 +61,38 @@ python .\scripts\generate_plan.py `
   --out commit-detail.tsv
 ```
 
-`--end` is exclusive. To include `2026-03-31`, pass `--end 2026-04-01`.
+`--end` 使用左闭右开语义。如果要包含 `2026-03-31`，应传入 `--end 2026-04-01`。
 
-## Existing Commit Deduction
+## 输出格式
 
-The plan counts existing author commits on GitHub for each active day:
+默认 Excel 审核表字段：
 
 ```text
-author:<author> author-date:<YYYY-MM-DD>..<YYYY-MM-DD> user:<account>
+日期 | 目标提交数 | 已有作者提交数 | 本次计划新增数 | commit 细则
 ```
 
-Then it plans only the remainder:
+逐 commit 明细字段：
 
-```python
-planned_new_commit_count = max(0, target_commit_count - existing_author_commit_count)
+```text
+date | time | repo | kind | task_type | message | path | summary | target_commit_count | existing_commit_count | planned_new_commit_count
 ```
 
-## Cleanup PR Workflow
+计划脚本只负责生成审核材料，不会 `commit`、`push` 或创建 cleanup PR。
 
-After the Excel plan is approved, the normal execution path is:
+## Cleanup PR
 
-1. Create planned commits and push them to each repository default branch.
-2. Verify every pushed commit is reachable from the remote default branch.
-3. Create one cleanup branch per affected repository.
-4. Delete manifest-owned generated docs from that repository.
-5. Commit and push the cleanup branch.
-6. Open one draft cleanup PR per repository.
-7. Verify no manifest-owned generated docs remain on each cleanup PR branch.
+执行模式采用 `push-and-cleanup-pr`：
 
-A GitHub PR is scoped to one repository, so cross-repository cleanup requires one PR per affected repository.
+- 先将计划内提交推送到各仓库默认分支。
+- 验证每条提交都能从远端默认分支访问。
+- 为每个受影响仓库创建一个 cleanup 分支。
+- 删除 manifest 记录的生成文件。
+- 提交并推送 cleanup 分支。
+- 为每个仓库打开一个 draft PR。
 
-Generated docs commonly live under:
+GitHub PR 只能属于单个仓库，因此跨仓库清理必须是一仓库一个 PR。
+
+常见生成目录：
 
 ```text
 docs/notes/
@@ -94,15 +105,7 @@ docs/experiments/
 docs/review/
 ```
 
-Delete manifest-owned generated files from those directories, and remove directories when they become empty.
-
-## Operational Lesson
-
-History rewriting is not the default workflow. Keep it only as incident recovery knowledge.
-
-If an older run used `git revert` and the user later asks to remove those revert commits from GitHub-visible history, do not revert the reverts. That creates additional current-day commits. Use `git push --force-with-lease` only after explicit repository-by-repository confirmation, preserve legitimate later commits, verify the recorded revert SHAs are no longer reachable, and then return to the cleanup PR workflow.
-
-## Files
+## 目录结构
 
 ```text
 fill-contributions-graph/
@@ -116,3 +119,12 @@ fill-contributions-graph/
 `-- scripts/
     `-- generate_plan.py
 ```
+
+## 注意事项
+
+- 只允许显式触发，不从普通 GitHub、commit、贡献图或绿墙讨论中隐式启动。
+- 生成 Excel 后必须等待用户确认，不能直接进入执行。
+- 默认流程不使用 `git revert` 做撤回，也不使用 `reset --hard + force push`。
+- 历史重写只作为事故恢复经验，不作为常规执行路径。
+- 不创建空 commit、不写临时占位代码、不生成提交后再删除的假内容。
+- 如果本地已有同仓库 dirty worktree，必须先询问用户是否使用隔离 clone。

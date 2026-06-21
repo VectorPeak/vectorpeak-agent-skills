@@ -3,7 +3,7 @@ name: fill-contributions-graph
 description: Explicit-only skill for planning and optionally applying retrospective maintenance commits across the user's own GitHub repositories. Use only when the user directly names `fill-contributions-graph` or `$fill-contributions-graph`. Do not trigger implicitly from generic mentions of GitHub, commits, contribution graphs, or green walls.
 ---
 
-# Fill Contributions Graph
+# Github 绿墙刷漆计划
 
 Use this skill only after the user explicitly invokes it by name.
 
