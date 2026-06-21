@@ -159,3 +159,6 @@ Use a matching isolated cache directory, QA the staged Markdown, then publish ex
 ## Browser Boundary
 
 Do not use Playwright, cookies, captcha handling, WeChat logged-in browser state, or undocumented browser scraping for this skill unless the user explicitly asks for a separate browser-based fallback.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

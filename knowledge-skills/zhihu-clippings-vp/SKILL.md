@@ -141,3 +141,6 @@ Optional TikHub fulltext key:
 ## Safety Boundaries
 
 Do not use Playwright, cookies, captcha handling, profile-page scraping, or undocumented Zhihu web APIs in this skill. If a requested object type is unsupported and no verified TikHub fulltext endpoint is available, stop and report that the current toolchain cannot produce a complete clipping.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

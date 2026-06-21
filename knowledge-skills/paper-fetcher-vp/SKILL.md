@@ -103,3 +103,6 @@ Do not create hand-written Zotero metadata entries through the Web API, store Zo
 ## Final Response
 
 Always include paper title, arXiv ID or `arXiv: not found`, DOI or `DOI: not found`, Zotero Add Item by Identifier value or `not available`, other source ID when relevant, PDF source URL, saved local path, file size, and Zotero status.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

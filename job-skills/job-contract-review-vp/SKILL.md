@@ -120,3 +120,6 @@ Quote only the shortest relevant contract excerpt for each issue. Keep suggestio
 - When jurisdiction matters, say what needs local legal confirmation.
 - Do not overstate certainty; distinguish textual risk from legal enforceability.
 - Do not upload or share contract contents unless the user explicitly asks and understands the privacy impact.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

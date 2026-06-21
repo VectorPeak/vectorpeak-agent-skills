@@ -160,3 +160,6 @@ When the user asks to push a generated interview report:
 
 - Large wiki worktrees may contain unrelated modified, deleted, and untracked files. Leave them untouched.
 - If `.git/index.lock` reports permission denied but no lock file exists, treat it as a sandbox/filesystem permission issue and retry the Git operation with normal user privileges. Do not delete lock files unless a stale lock is actually present and no Git process is running.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

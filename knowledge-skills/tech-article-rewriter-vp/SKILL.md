@@ -162,3 +162,6 @@ Read `references/source-corpus-workflow.md` when source URLs, screenshots, OCR, 
 Read `references/cache-and-corpus.md` for staging/cache rules.
 Read `references/rewrite-rules.md` for detailed rewrite rules.
 Read `references/template-contract.md` when the user provides a custom Markdown template.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

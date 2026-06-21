@@ -109,3 +109,6 @@ GIF encoders can merge identical hold frames into a single frame with a longer d
 - Do not hardcode local user paths.
 - Keep dependencies in `requirements.txt`.
 - Keep examples reproducible with generated placeholder images or documented input images.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

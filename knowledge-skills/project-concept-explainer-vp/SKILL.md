@@ -107,3 +107,6 @@ Default style:
 - Do not create or modify files unless the user asks for a report, note, glossary, or persistent artifact
 - If creating a Markdown artifact, use UTF-8
 - Keep the final answer focused; put detailed reusable explanations in files when they are long
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

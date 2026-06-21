@@ -161,3 +161,6 @@ Before finishing:
 - Are side effects documented, such as DB writes, trace writes, network calls, cache updates, or event pushes?
 - Do inline comments explain reasons instead of repeating code?
 - Is comment density appropriate for the code complexity?
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????

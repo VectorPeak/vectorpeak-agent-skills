@@ -81,3 +81,6 @@ For normal user-facing summaries, report:
 - the next human decision: abandon, revise, run more tests, or manually open a PR.
 
 Keep the final answer concise. Link local artifact paths when useful.
+## Sync Rule
+
+????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????
