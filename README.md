@@ -47,6 +47,8 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 ├── dev-skills/          # 工程开发技能：debug、review、test、CI/CD、release
 ├── knowledge-skills/    # 知识沉淀技能：学习法、论文处理、知乎剪藏、概念解释、笔记整理
 ├── job-skills/          # 工作职场技能：合同审查、Offer 对比、简历面试、职场沟通
+├── templates/           # 新 skill 的 README / 结构模板
+├── CONTRIBUTING.md      # skill 入库规则
 ├── README.md            # 仓库说明
 └── LICENSE              # Apache-2.0 license
 ```
@@ -59,6 +61,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 - [`code-comments-vp`](dev-skills/code-comments-vp/)：为代码补充面向维护者的模块职责、执行流程、边界、副作用、fallback 和设计原因说明，默认粗粒度，复杂逻辑再加细粒度块注释。
 - [`opensense-pr-attempt-vp`](dev-skills/opensense-pr-attempt-vp/)：把 OpenSense 的每日 issue 筛选、本地 PR 尝试、测试证据和 PR 草稿流程沉淀为可复用 Agent Skill。
+- [`pr-case-collector-vp`](dev-skills/pr-case-collector-vp/)：把真实 GitHub PR 按项目、改动类型、评级和备注收录为 LLM 可参考的简表案例库。
 - [`profile-readme-github-vp`](dev-skills/profile-readme-github-vp/)：把 VectorPeak GitHub Profile README 的 facts 收集、双语渲染、公开项目自动补全和 profile 仓库排除规则沉淀为可复用 Agent Skill。
 
 ### `knowledge-skills/`
@@ -87,6 +90,9 @@ git clone https://github.com/VectorPeak/vectorpeak-agent-skills.git
 ```text
 dev-skills/example-skill/
 ├── SKILL.md             # 必需：技能入口说明
+├── README.md            # 必需：人类可读说明，参考已有 skill README 风格
+├── agents/
+│   └── openai.yaml      # 推荐：Codex / OpenAI UI 元数据
 ├── scripts/             # 可选：自动化脚本
 ├── references/          # 可选：参考材料
 └── templates/           # 可选：输出模板
@@ -109,6 +115,20 @@ extract-concept-map
 - 最终应该输出什么
 - 如何验证结果是可靠的
 - 哪些行为应该避免
+
+## Skill 入库流程
+
+新增或更新 skill 时，遵循 [`CONTRIBUTING.md`](CONTRIBUTING.md) 中的入库规则。
+
+核心要求：
+
+- 新 skill 必须说明输入要求、输出结果、工作流程和验证方式。
+- 新 skill 必须生成自己的 `README.md`，并参考仓库已有 skill 的 README 风格。
+- 入库前必须经过多 agent 审查，至少覆盖触发条件、可执行性、安全边界和 README 可读性。
+- 当用户要求本地更新、入库、同步或上传时，默认同步到远端仓库 `VectorPeak/vectorpeak-agent-skills`。
+- 同步远端时使用独立分支和 draft PR，且只提交本次 skill 相关文件。
+
+新 README 可从 [`templates/skill/README.md`](templates/skill/README.md) 复制起步。
 
 ## 许可证
 
