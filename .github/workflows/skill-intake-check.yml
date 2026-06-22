@@ -1,0 +1,40 @@
+name: Skill Intake Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  skill-intake:
+    name: Check skill intake rules
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Write PR body
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          Path("pr-body.md").write_text(os.environ.get("PR_BODY", ""), encoding="utf-8")
+          PY
+
+      - name: Check skill intake
+        env:
+          BASE_REF: origin/${{ github.base_ref }}
+        run: |
+          python scripts/check_skill_intake.py \
+            --base "$BASE_REF" \
+            --pr-body-file pr-body.md \
+            --require-review
+

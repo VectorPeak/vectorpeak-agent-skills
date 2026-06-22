@@ -74,3 +74,4 @@ PR 描述中需要简要记录多 agent 审查结论。推荐格式：
 
 如果当前环境不能启动 sub-agent，PR 中必须显式说明原因，并把多 agent 审查列为合并前待办。
 
+仓库的 GitHub Actions 会检查 PR 描述是否包含 `Multi-Agent Review` 记录。如果缺少 Reviewer A/B/C 的记录，检查会失败，用来提醒 Agent 不要忘记审查记录。

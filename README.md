@@ -127,6 +127,7 @@ extract-concept-map
 - 入库前必须经过多 agent 审查，至少覆盖触发条件、可执行性、安全边界和 README 可读性。
 - 当用户要求本地更新、入库、同步或上传时，默认同步到远端仓库 `VectorPeak/vectorpeak-agent-skills`。
 - 同步远端时使用独立分支和 draft PR，且只提交本次 skill 相关文件。
+- PR 会通过 GitHub Actions 检查 `Multi-Agent Review` 记录，防止 Agent 忘记写审查结论。
 
 新 README 可从 [`templates/skill/README.md`](templates/skill/README.md) 复制起步。
 
