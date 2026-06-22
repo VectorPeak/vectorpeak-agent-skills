@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Case Collector"
+  short_description: "Collects GitHub PR examples for LLM reference"
+  default_prompt: "Use $pr-case-collector-vp to add this GitHub PR as a concise LLM reference case."
