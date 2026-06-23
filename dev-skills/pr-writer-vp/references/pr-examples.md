@@ -1,62 +1,62 @@
-# PR Examples Reference
+# PR 案例参考
 
-Use these examples as style references for concise, evidence-driven bug-fix PRs.
+这些案例用于参考小型 bug-fix PR 的写法：正文要简洁，证据要具体，影响范围要说清楚。
 
-## Examples
+## 案例
 
-- `langgenius/dify#37799`: `fix(web): prevent ssePost error handler from throwing`
-- `AstrBotDevs/AstrBot#8968`: `fix: prevent path traversal vulnerability in plugin upload filenames`
+- `langgenius/dify#37799`：`fix(web): prevent ssePost error handler from throwing`
+- `AstrBotDevs/AstrBot#8968`：`fix: prevent path traversal vulnerability in plugin upload filenames`
 
-## Shared Structure
+## 共性结构
 
 ```markdown
-<one-sentence summary>
+<一句话摘要>
 
 ## What Problem This Solves
 
-<Explain the concrete bug; do not only say "fixes an issue".>
-<Point to the failing function, path, endpoint, or entry point.>
-<Explain why it affects users, developers, security, or diagnostics.>
+<说明具体 bug，不要只说“修复问题”。>
+<指出出错函数、路径、接口或入口。>
+<解释为什么这会影响用户、开发者、安全性或可诊断性。>
 
 ## Change
 
-<Describe the actual change in 1-3 bullets or short paragraphs.>
-<Emphasize the narrow scope: only affects one fallback path, filename parser, edge case, etc.>
+<用 1-3 条说明实际改了什么。>
+<强调改动范围很窄：只影响某个 fallback path、文件名解析、边界 case 等。>
 
 ## Evidence
 
-<Steps to reproduce the bug.>
-<Expected behavior.>
-<Actual behavior or failure output.>
-<Provide backend logs for backend issues when available; docker-compose logs are especially useful.>
-<Provide screenshots or videos when applicable.>
-<Prefer before / after when possible.>
-<For security/path/error-handling bugs, include the payload or exception.>
+<重现此错误的步骤。>
+<预期行为。>
+<实际行为或失败输出。>
+<后端问题尽量提供日志；docker-compose logs 尤其有价值。>
+<适用时提供截图或视频。>
+<尽量提供 before / after。>
+<安全、路径或错误处理类问题要给出 payload 或 exception。>
 
 ## Possible call chain / impact
 
-<Trace from user entry point or module entry point to the affected function.>
-<Explain which paths are affected and which paths are not affected.>
+<从用户入口或模块入口追踪到受影响函数。>
+<说明哪些路径受影响，哪些路径不受影响。>
 
 ## Testing
 
-- `<targeted command>`
-- `<lint/type/compile command>`
-- `<unit or focused test command>`
+- `<定向验证命令>`
+- `<lint/type/compile 命令>`
+- `<unit 或 focused test 命令>`
 ```
 
-## Common Traits
+## 共同特征
 
-- The title names the bug and the affected area.
-- The title is clear, descriptive, and specific enough for maintainers to understand the behavior at a glance.
-- The first section explains the behavioral problem before describing code.
-- Evidence includes reproduction steps, expected behavior, actual behavior, and concrete failure output.
-- Backend issues include logs when available; docker-compose logs are especially valuable.
-- Screenshots or videos are included when they help demonstrate the issue.
-- The call-chain section helps maintainers see how the bug is reached.
-- The impact section also states what is not affected.
-- Testing uses focused commands rather than vague "tested locally" claims.
+- 标题直接点出 bug 和受影响区域。
+- 标题清晰、有描述性，维护者一眼能看出行为变化。
+- 第一部分先解释行为问题，再解释代码改动。
+- Evidence 包含复现步骤、预期行为、实际行为和具体失败输出。
+- 后端问题尽量包含日志；`docker-compose logs` 尤其有价值。
+- 截图或视频只在能帮助说明问题时提供。
+- 调用链部分帮助维护者理解 bug 如何被触发。
+- 影响范围部分同时说明哪些路径不受影响。
+- Testing 使用聚焦命令，避免只写笼统的 “tested locally”。
 
-## Writing Rule
+## 写作原则
 
-Small PRs should convince maintainers of three things: the bug is real, the change is narrow, and validation is reproducible.
+小 PR 要让维护者相信三件事：bug 真实、改动很窄、验证可复现。
