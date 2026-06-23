@@ -10,8 +10,10 @@ import json
 import os
 import random
 import re
+import shutil
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
@@ -27,6 +29,7 @@ except ImportError:  # pragma: no cover - non-Windows fallback
 
 DEFAULT_OUTPUT_DIR = Path(r"E:\LLM_wiki\LLM_wiki\01.raw\01.Inbox")
 DEFAULT_CACHE_DIR = Path.cwd() / ".llmwiki-cache" / "wechat-clippings-vp"
+DEFAULT_STAGING_ROOT = Path.cwd() / ".codex-work"
 TIKHUB_BASE_URL = "https://api.tikhub.io"
 DEFAULT_ACCOUNT_SEARCH_PATH = "/api/v1/wechat_mp/web/fetch_search_official_account"
 DEFAULT_ARTICLE_SEARCH_PATH = "/api/v1/wechat_mp/web/fetch_search_article"
@@ -269,20 +272,35 @@ class BodyHTMLParser(HTMLParser):
         return text.replace("|", "\\|")
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Clip WeChat Official Account articles through TikHub.")
-    parser.add_argument("input", help="Official account name, article URL, article title, screenshot OCR text, or mixed clue.")
-    parser.add_argument("-n", "--count", type=int, default=5, help="Maximum article candidates to keep.")
+    parser.add_argument(
+        "input",
+        nargs="*",
+        help="Official account name, article URL(s), article title, screenshot OCR text, or mixed clue.",
+    )
+    parser.add_argument(
+        "-n",
+        "--count",
+        type=int,
+        default=0,
+        help="Maximum article candidates to keep. 0 keeps all explicit URLs, or 5 discovery candidates.",
+    )
     parser.add_argument("--author", default=None, help="Known account/author name.")
     parser.add_argument("--title-source", default=None, help="UTF-8 OCR/page text file or raw text used to discover titles.")
     parser.add_argument("--extra-query", action="append", default=[], help="Additional title/account query. Can be repeated.")
     parser.add_argument("--extra-query-file", default=None, help="UTF-8 text file with one additional query per line.")
     parser.add_argument("--article-url", action="append", default=[], help="Specific mp.weixin.qq.com URL. Can be repeated.")
+    parser.add_argument("--article-url-file", default=None, help="UTF-8 text file with one mp.weixin.qq.com URL per line.")
     parser.add_argument("--account-id", default=None, help="Known account identifier from TikHub response.")
     parser.add_argument("--group-size", "--batch-size", dest="group_size", type=int, default=5, help="Articles per Markdown bundle.")
+    parser.add_argument("--workers", type=int, default=3, help="Parallel workers for article-detail fetches.")
     parser.add_argument("--ranges", default=None, help='Custom 1-based article ranges, for example "1", "2-3", or "1-4".')
     parser.add_argument("--filename-template", default="微信_{author}_{summary}_公众号文章剪藏_{date}_{range}.md")
-    parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Directory for Markdown bundle files.")
+    parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT_DIR), help="Final publish directory for Markdown bundle files.")
+    parser.add_argument("--staging-dir", default=None, help="Directory for staged Markdown before QA. Defaults to .codex-work/wechat-*/out.")
+    parser.add_argument("--no-publish", action="store_true", help="Write staged Markdown only; do not copy QA-passed files to --output-dir.")
+    parser.add_argument("--skip-qa", action="store_true", help="Skip built-in Markdown QA before publishing.")
     parser.add_argument("--cache-dir", default=str(DEFAULT_CACHE_DIR), help="Directory for raw API response cache.")
     parser.add_argument("--tikhub-api-key", default=None, help="TikHub API key. Defaults to TIKHUB_API_KEY.")
     parser.add_argument("--base-url", default=TIKHUB_BASE_URL, help="TikHub base URL.")
@@ -299,18 +317,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--retry", type=int, default=4, help="Retries for TikHub calls.")
     parser.add_argument("--retry-delay", type=float, default=1.5, help="Initial retry delay in seconds.")
     parser.add_argument("--dry-run", action="store_true", help="Fetch and print summary without writing Markdown.")
-    return parser.parse_args()
+    return parser.parse_args(argv)
 
 
 def main() -> int:
     args = parse_args()
     validate_args(args)
     key = get_tikhub_key(args.tikhub_api_key)
-    output_dir = Path(args.output_dir)
+    publish_dir = Path(args.output_dir)
+    staging_dir = Path(args.staging_dir) if args.staging_dir else default_staging_dir()
     cache_dir = Path(args.cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
-    explicit_urls = list(args.article_url) + extract_wechat_urls(args.input)
+    input_text = collect_input_text(args)
+    explicit_urls = collect_explicit_urls(args, input_text)
+    effective_count = args.count or (len(explicit_urls) if explicit_urls else 5)
+    args.count = effective_count
     title_queries = collect_queries(args)
     articles: list[Article] = []
 
@@ -318,23 +340,31 @@ def main() -> int:
         articles.append(Article(title="", author=args.author or "微信公众号", url=url, source_api="direct-url"))
 
     if not articles:
-        articles.extend(fetch_candidates(args, key, title_queries, cache_dir))
+        articles.extend(fetch_candidates(args, key, title_queries, cache_dir, input_text))
 
-    articles = dedupe_articles(articles)[: args.count]
+    articles = dedupe_articles(articles)[:effective_count]
     if not articles:
         raise RuntimeError("No WeChat article candidates were found. Add a direct article URL, --title-source, or --extra-query.")
 
-    enriched: list[Article] = []
-    for article in articles:
-        enriched.append(fetch_article_detail(args, key, article, cache_dir))
+    enriched = fetch_article_details(args, key, articles, cache_dir)
 
     if args.dry_run:
         for index, article in enumerate(enriched, 1):
             print(f"{index}. {article.title or '(untitled)'} | {article.author} | {article.url}")
         return 0
 
-    output_dir.mkdir(parents=True, exist_ok=True)
-    written = write_bundles(enriched, args, output_dir)
+    staging_dir.mkdir(parents=True, exist_ok=True)
+    staged = write_bundles(enriched, args, staging_dir)
+    if not args.skip_qa:
+        for path in staged:
+            qa_markdown_file(path)
+    if args.no_publish:
+        for path in staged:
+            print(path)
+        return 0
+
+    publish_dir.mkdir(parents=True, exist_ok=True)
+    written = publish_bundles(staged, publish_dir)
     for path in written:
         print(path)
     return 0
@@ -350,6 +380,11 @@ def get_tikhub_key(explicit: str | None) -> str:
     return key
 
 
+def default_staging_dir() -> Path:
+    stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    return DEFAULT_STAGING_ROOT / f"wechat-{stamp}" / "out"
+
+
 def read_user_env(name: str) -> str | None:
     if winreg is None:
         return None
@@ -362,10 +397,12 @@ def read_user_env(name: str) -> str | None:
 
 
 def validate_args(args: argparse.Namespace) -> None:
-    if args.count < 1:
-        raise RuntimeError("--count must be >= 1")
+    if args.count < 0:
+        raise RuntimeError("--count must be >= 0")
     if args.group_size < 1:
         raise RuntimeError("--group-size must be >= 1")
+    if args.workers < 1:
+        raise RuntimeError("--workers must be >= 1")
     if args.retry < 1:
         raise RuntimeError("--retry must be >= 1")
     if args.retry_delay < 0:
@@ -373,10 +410,31 @@ def validate_args(args: argparse.Namespace) -> None:
     parsed = urlparse(args.base_url)
     if parsed.scheme != "https" or parsed.netloc != "api.tikhub.io":
         raise RuntimeError("--base-url is restricted to https://api.tikhub.io to avoid leaking TIKHUB_API_KEY")
+    if args.article_url_file and not Path(args.article_url_file).exists():
+        raise RuntimeError(f"--article-url-file does not exist: {args.article_url_file}")
+    if not collect_input_text(args) and not args.article_url and not args.article_url_file and not args.extra_query and not args.extra_query_file:
+        raise RuntimeError("Provide input text, --article-url, --article-url-file, --extra-query, or --extra-query-file.")
+
+
+def collect_input_text(args: argparse.Namespace) -> str:
+    value = args.input
+    if isinstance(value, list):
+        return "\n".join(str(item) for item in value if str(item).strip())
+    return str(value or "")
+
+
+def collect_explicit_urls(args: argparse.Namespace, input_text: str) -> list[str]:
+    values: list[str] = []
+    values.extend(args.article_url)
+    if args.article_url_file:
+        values.extend(read_lines_or_text(args.article_url_file))
+    values.extend(extract_wechat_urls(input_text))
+    return unique(extract_wechat_urls("\n".join(values)))
 
 
 def collect_queries(args: argparse.Namespace) -> list[str]:
-    queries = [args.input]
+    input_without_urls = re.sub(r"https?://mp\.weixin\.qq\.com/\S+", " ", collect_input_text(args))
+    queries = [input_without_urls]
     queries.extend(args.extra_query)
     if args.extra_query_file:
         queries.extend(read_lines_or_text(args.extra_query_file))
@@ -402,12 +460,12 @@ def discover_title_queries(text: str) -> list[str]:
     return candidates[:20]
 
 
-def fetch_candidates(args: argparse.Namespace, key: str, queries: list[str], cache_dir: Path) -> list[Article]:
+def fetch_candidates(args: argparse.Namespace, key: str, queries: list[str], cache_dir: Path, input_text: str) -> list[Article]:
     articles: list[Article] = []
     account_ids = [args.account_id] if args.account_id else []
     account_queries = [args.author] if args.author else []
-    if not account_queries and not extract_wechat_urls(args.input):
-        account_queries.append(args.input)
+    if not account_queries and not extract_wechat_urls(input_text):
+        account_queries.append(input_text)
     for account_query in unique([q for q in account_queries if q]):
         if not account_ids:
             try:
@@ -429,6 +487,19 @@ def fetch_candidates(args: argparse.Namespace, key: str, queries: list[str], cac
         if len(articles) >= args.count:
             break
     return articles
+
+
+def fetch_article_details(
+    args: argparse.Namespace,
+    key: str,
+    articles: list[Article],
+    cache_dir: Path,
+) -> list[Article]:
+    if args.workers <= 1 or len(articles) <= 1:
+        return [fetch_article_detail(args, key, article, cache_dir) for article in articles]
+    max_workers = min(args.workers, len(articles))
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        return list(executor.map(lambda article: fetch_article_detail(args, key, article, cache_dir), articles))
 
 
 def fetch_account_articles(
@@ -495,6 +566,8 @@ def fetch_article_detail(args: argparse.Namespace, key: str, article: Article, c
         try:
             data = tikhub_get(args, key, path, params, cache_dir)
             detail = extract_detail(data, article)
+            if not is_usable_detail(detail):
+                raise RuntimeError(f"empty detail response from {path}")
             detail.source_api = path
             return detail
         except Exception as exc:
@@ -504,6 +577,16 @@ def fetch_article_detail(args: argparse.Namespace, key: str, article: Article, c
         print(f"Warning: detail fetch failed for {article.url or article.title}: {last_error}", file=sys.stderr)
     article.content = article.content or ""
     return article
+
+
+def is_usable_detail(article: Article) -> bool:
+    title = clean_inline(article.title)
+    content = clean_inline(article.content)
+    if title in {"", "????????", "未命名公众号文章"} and len(content) < 160:
+        return False
+    if content.startswith("> 未能从 TikHub") or len(content) < 80:
+        return False
+    return True
 
 
 def detail_params(article: Article) -> dict[str, str]:
@@ -735,15 +818,10 @@ def is_heading_like_text(text: str) -> bool:
 
 
 def format_structured_heading(text: str) -> str:
-    title = normalize_heading_number(text)
+    title = clean_inline(text)
     if not title or title.lower() == "none":
         return ""
-    level = 3
-    if re.match(r"^\d+\.\d+(?:\.\d+)*\s+", title):
-        level = 4
-    elif re.match(r"^\d+\.\s+", title):
-        level = 3
-    return "#" * level + f" {title}"
+    return "### " + title
 
 
 def is_formula_like_text(text: str) -> bool:
@@ -882,6 +960,124 @@ def write_bundles(articles: list[Article], args: argparse.Namespace, output_dir:
     return written
 
 
+def publish_bundles(staged: list[Path], publish_dir: Path) -> list[Path]:
+    written: list[Path] = []
+    for source in staged:
+        target = copy_unique(source, publish_dir / source.name)
+        written.append(target)
+    return written
+
+
+def copy_unique(source: Path, target: Path) -> Path:
+    stem = target.stem
+    suffix = target.suffix
+    for index in range(1, 1000):
+        candidate = target if index == 1 else target.with_name(f"{stem}-{index}{suffix}")
+        try:
+            with source.open("rb") as src, candidate.open("xb") as dst:
+                shutil.copyfileobj(src, dst)
+            shutil.copystat(source, candidate)
+            return candidate
+        except FileExistsError:
+            continue
+    raise RuntimeError(f"Could not publish to a unique output path for {target}")
+
+
+def qa_markdown_file(path: Path) -> None:
+    text = path.read_text(encoding="utf-8-sig")
+    qa_text = markdown_outside_fences(strip_frontmatter(text))
+    failures: list[str] = []
+    checks = [
+        ("level-1 heading", r"(?m)^# "),
+        ("empty heading", r"(?m)^#{1,6}\s*$"),
+        ("bad level-3 decimal heading", r"(?m)^###\s+\d+\.\d+"),
+        ("runaway nested heading", r"(?m)^####\s+\d+\.(?:1[3-9]|[2-9]\d)\s+"),
+        ("raw TikHub/Python title dict", r"\{'title':"),
+        ("raw item_count field", r"\bitem_count\b"),
+        ("raw metadata structure", r"['\"]metadata['\"]\s*:"),
+        ("raw images structure", r"images':|\}\], 'images'"),
+        ("leaked API key marker", r"TIKHUB_API_KEY|Bearer\s+[A-Za-z0-9_.-]{12,}"),
+    ]
+    for label, pattern in checks:
+        if re.search(pattern, qa_text):
+            failures.append(label)
+    if not re.search(r"(?m)^## 0x\d{2}\. .+", text):
+        failures.append("missing article section headings")
+    if "https://mp.weixin.qq.com/" not in text:
+        failures.append("missing source links")
+    for title, body in iter_article_sections(text):
+        if len(body.strip()) < 160:
+            failures.append(f"article body too short: {title}")
+        if re.search(r"(?m)^\s*(打开微信|继续滑动看下一个|取消|允许|知道了)\s*$", body):
+            failures.append(f"WeChat page chrome remains: {title}")
+    if failures:
+        joined = "; ".join(unique(failures))
+        raise RuntimeError(f"Markdown QA failed for {path}: {joined}")
+
+
+def has_quiz_question_headings(body: str) -> bool:
+    for line in body.splitlines():
+        match = re.match(r"^#{3,4}\s+(.+)$", line.strip())
+        if not match:
+            continue
+        heading = match.group(1).strip()
+        if re.match(r"^\d+(?:\.\d+)*\.\s+\S+", heading):
+            continue
+        if looks_like_quiz_prompt(heading):
+            return True
+    return False
+
+
+def has_runaway_quiz_numbering(body: str) -> bool:
+    for line in body.splitlines():
+        match = re.match(r"^#{3,4}\s+(\d+)\.(\d+)\s+(.+)$", line.strip())
+        if not match:
+            continue
+        child = int(match.group(2))
+        text = match.group(3).strip()
+        if child > 12 or text.endswith(("?", "？")):
+            return True
+    return False
+
+
+def has_quiz_subheadings(body: str) -> bool:
+    return bool(re.search(r"(?m)^####\s+", body))
+
+
+def has_numbered_quiz_headings(body: str) -> bool:
+    return bool(re.search(r"(?m)^###\s+\d+(?:\.\d+)?\.?\s+", body))
+
+
+def strip_frontmatter(text: str) -> str:
+    if text.startswith("---\n"):
+        end = text.find("\n---", 4)
+        if end != -1:
+            return text[end + 4 :]
+    return text
+
+
+def markdown_outside_fences(text: str) -> str:
+    lines: list[str] = []
+    in_fence = False
+    for line in text.splitlines():
+        if re.match(r"^\s*```", line):
+            in_fence = not in_fence
+            continue
+        if not in_fence:
+            lines.append(line)
+    return "\n".join(lines)
+
+
+def iter_article_sections(text: str) -> list[tuple[str, str]]:
+    matches = list(re.finditer(r"(?m)^## 0x\d{2}\. (.+)$", text))
+    sections: list[tuple[str, str]] = []
+    for index, match in enumerate(matches):
+        start = match.end()
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
+        sections.append((match.group(1).strip(), text[start:end]))
+    return sections
+
+
 def unique_path(path: Path) -> Path:
     if not path.exists():
         return path
@@ -930,8 +1126,12 @@ def render_bundle(
                 lines.append(f"> 原文链接：[{article.title or '原文'}]({article.url})")
             lines.append("")
         body = article.content.strip() or f"> 未能从 TikHub 详情接口解析到正文。原文链接：{article.url}"
-        body = downgrade_body_headings(body)
+        body = downgrade_body_headings(body, article.title)
+        body = demote_hash_prefix_heading_artifacts(body)
         body = demote_list_heading_artifacts(body)
+        body = demote_quiz_heading_artifacts(body, article.title)
+        body = normalize_answer_question_headings(body, article.title)
+        body = demote_body_list_heading_artifacts(body, article.title)
         if format_mode == "readable":
             body = enhance_readability(body)
         lines.append(body)
@@ -1425,7 +1625,177 @@ def demote_list_heading_artifacts(value: str) -> str:
     text = re.sub(r"(?m)^###\s+(\d+)\.\s+(.{70,})$", lambda m: f"{m.group(1)}. {m.group(2).strip()}", text)
     text = re.sub(r"(- [^\n]+)\n\n(?=- )", r"\1\n", text)
     text = re.sub(r"(\d+\. [^\n]+)\n\n(?=\d+\. )", r"\1\n", text)
-    return text
+    return restore_escaped_section_headings(text)
+
+
+def restore_escaped_section_headings(value: str) -> str:
+    lines: list[str] = []
+    for line in (value or "").splitlines():
+        stripped = line.strip()
+        match = re.match(r"^\\#{2,6}\s*((?:[\u4e00-\u9fff]{1,8}|\d{1,3})[、.．]\s*.+)$", stripped)
+        if match:
+            lines.append("### " + match.group(1).strip())
+            continue
+        lines.append(line)
+    return "\n".join(lines).strip()
+
+
+def demote_quiz_heading_artifacts(value: str, article_title: str = "") -> str:
+    """Keep quiz questions and coverage bullets as body text, not headings."""
+    if "自测题" not in (article_title or "") or "答案" in (article_title or ""):
+        return value
+    lines: list[str] = []
+    in_coverage = False
+    for line in (value or "").splitlines():
+        stripped = line.strip()
+        if stripped == "覆盖范围":
+            in_coverage = True
+            lines.append(line)
+            continue
+        escaped_hash = re.match(r"^\\#{2,6}\s*(.+)$", stripped)
+        if escaped_hash:
+            heading = escaped_hash.group(1).strip()
+            if in_coverage and is_plain_section_heading(heading):
+                in_coverage = False
+                lines.append(f"### {heading}")
+                continue
+            if in_coverage:
+                lines.append(f"- {heading}")
+                continue
+            lines.append(heading)
+            continue
+        match = re.match(r"^(#{3,4})\s+(.+)$", stripped)
+        if not match:
+            if is_plain_section_heading(stripped):
+                if in_coverage:
+                    in_coverage = False
+                lines.append(f"### {stripped}")
+                continue
+            lines.append(line)
+            continue
+        heading = match.group(2).strip()
+        numbered_heading = re.match(r"^(\d+)(?:\.(\d+))?\.?\s+(.+)$", heading)
+        is_section_heading = False
+        if numbered_heading:
+            child = int(numbered_heading.group(2) or "0")
+            heading_text = numbered_heading.group(3).strip()
+            is_section_heading = (
+                child <= 12
+                and not heading_text.endswith(("?", "？"))
+                and not looks_like_quiz_prompt(heading_text)
+            )
+        if not is_section_heading and is_plain_section_heading(heading):
+            is_section_heading = True
+        if in_coverage and is_section_heading:
+            in_coverage = False
+        if in_coverage:
+            lines.append(f"- {heading}")
+            continue
+        is_question = looks_like_quiz_prompt(heading)
+        is_nested_question = bool(numbered_heading and numbered_heading.group(2) and not is_section_heading)
+        if is_section_heading and numbered_heading:
+            heading_text = numbered_heading.group(3).strip()
+            lines.append(f"### {heading_text}")
+            continue
+        if is_section_heading:
+            lines.append(f"### {heading}")
+            continue
+        if is_nested_question and numbered_heading:
+            child = numbered_heading.group(2)
+            heading_text = numbered_heading.group(3).strip()
+            lines.append(f"{child}. {heading_text}")
+            continue
+        if is_question and numbered_heading:
+            number = numbered_heading.group(1)
+            heading_text = numbered_heading.group(3).strip()
+            lines.append(f"{number}. {heading_text}")
+            continue
+        if is_question and not is_section_heading:
+            lines.append(heading)
+            continue
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def is_plain_section_heading(text: str) -> bool:
+    stripped = clean_inline(text)
+    if re.match(r"^(?:[一二三四五六七八九十百]+|\d{1,3})[、.．]\s*.+$", stripped):
+        return True
+    return False
+
+
+def looks_like_quiz_prompt(text: str) -> bool:
+    question_starters = (
+        "请",
+        "为什么",
+        "什么",
+        "如何",
+        "怎么",
+        "怎样",
+        "哪些",
+        "哪",
+        "是否",
+        "能否",
+        "如果",
+        "假设",
+        "举例",
+        "对比",
+        "解释",
+        "说明",
+    )
+    return (
+        text.endswith(("?", "？"))
+        or text.startswith(question_starters)
+        or bool(re.search(r"(是什么|为什么|如何|哪些|区别是什么|有什么|怎么|能否|是否|请|区别|影响|作用|解决|适合|不足|注意)", text))
+    )
+
+
+def demote_body_list_heading_artifacts(value: str, article_title: str = "") -> str:
+    if "自测题" in (article_title or ""):
+        return value
+    lines: list[str] = []
+    for line in (value or "").splitlines():
+        stripped = line.strip()
+        match = re.match(r"^###\s+(.+)$", stripped)
+        if not match:
+            lines.append(line)
+            continue
+        heading = match.group(1).strip()
+        if should_demote_body_heading(heading):
+            lines.append(heading)
+            continue
+        lines.append(line)
+    return "\n".join(lines).strip()
+
+
+def normalize_answer_question_headings(value: str, article_title: str = "") -> str:
+    if "自测题答案" not in (article_title or ""):
+        return value
+    lines: list[str] = []
+    for line in (value or "").splitlines():
+        match = re.match(r"^###\s+(\d{1,3}[.、．]\s+.+)$", line.strip())
+        if match:
+            lines.append(f"#### {match.group(1).strip()}")
+            continue
+        lines.append(line)
+    return "\n".join(lines).strip()
+
+
+def should_demote_body_heading(text: str) -> bool:
+    stripped = clean_inline(text)
+    if not stripped:
+        return False
+    if re.match(r"^\d{1,3}[.、．]\s+", stripped):
+        return False
+    if re.match(r"^[一二三四五六七八九十]+[、.．]\s+", stripped):
+        return False
+    if looks_like_quiz_prompt(stripped):
+        return True
+    if stripped.endswith(("。", "；", ";")):
+        return True
+    if re.search(r"(正确|不当|不匹配|不支持|写错|OOM|NaN|显存|量化|LoRA|QLoRA|adapter|prompt|参数量|训练|推理|任务|指标|延迟|数据)", stripped, re.I):
+        return True
+    return False
 
 
 def remove_repeated_toc_blocks(value: str) -> str:
@@ -1581,26 +1951,7 @@ def repair_plain_text_headings(value: str) -> str:
 
 
 def enforce_numbered_heading_levels(value: str) -> str:
-    lines: list[str] = []
-    current_major = ""
-    for line in value.splitlines():
-        match = re.match(r"^(#{3,5})\s+(\d+)\.(\d+(?:\.\d+)*)\s+(.+)$", line)
-        if match:
-            current_major = match.group(2)
-            lines.append(f"#### {match.group(2)}.{match.group(3)} {match.group(4).strip()}")
-            continue
-        match = re.match(r"^(#{3,5})\s+(\d+)\.\s+(.+)$", line)
-        if match:
-            number = match.group(2)
-            title = match.group(3).strip()
-            if current_major and int(number) != int(current_major) and len(title) <= 90:
-                lines.append(f"#### {current_major}.{number} {title}")
-            else:
-                current_major = number
-                lines.append(f"### {number}. {title}")
-            continue
-        lines.append(line)
-    return "\n".join(lines)
+    return value
 
 
 def split_glued_heading_summary(value: str) -> str:
@@ -1784,30 +2135,58 @@ def normalize_block_spacing(value: str) -> str:
     return text
 
 
-def downgrade_body_headings(value: str) -> str:
+def downgrade_body_headings(value: str, article_title: str = "") -> str:
     lines = []
-    last_major = ""
     for line in value.splitlines():
         match = re.match(r"^(#{1,6})\s+(.*)$", line)
         if match:
             level = max(3, min(4, len(match.group(1))))
-            title = normalize_heading_number(match.group(2).strip())
-            if re.match(r"^\d+\.\d+(?:\.\d+)*\s+", title):
-                level = 4
-                last_major = title.split(".", 1)[0]
-            elif re.match(r"^\d+\.\s+", title):
-                current_num = int(title.split(".", 1)[0])
-                heading_text = title.split(".", 1)[1].strip()
-                if last_major and current_num != int(last_major) and len(heading_text) <= 90:
-                    title = f"{last_major}.{current_num} {heading_text}"
-                    level = 4
-                else:
-                    level = 3
-                    last_major = str(current_num)
+            title = clean_inline(match.group(2).strip())
             lines.append("#" * level + f" {title}")
         else:
             lines.append(line)
     return "\n".join(lines).strip()
+
+
+def demote_hash_prefix_heading_artifacts(value: str) -> str:
+    lines: list[str] = []
+    for line in (value or "").splitlines():
+        match = re.match(r"^###\s+(.+)$", line.strip())
+        if match:
+            section_title = normalize_embedded_hash_section_heading(match.group(1))
+            if section_title:
+                lines.append("### " + section_title)
+                continue
+            if is_hash_prefix_body_text(match.group(1)):
+                lines.append("\\##" + match.group(1))
+                continue
+        lines.append(line)
+    return "\n".join(lines).strip()
+
+
+def normalize_embedded_hash_section_heading(text: str) -> str:
+    stripped = clean_inline(text)
+    for pattern in (
+        r"^#{1,3}\s*([\u4e00-\u9fff]{1,8}[、.．]\s*.+)$",
+        r"^#{1,3}\s*(\d{1,3}[、.．]\s*.+)$",
+    ):
+        match = re.match(pattern, stripped)
+        if match:
+            return match.group(1).strip()
+    return ""
+
+
+def is_hash_prefix_body_text(text: str) -> bool:
+    stripped = clean_inline(text)
+    if not stripped:
+        return False
+    if re.match(r"^\d+(?:[.、．]\d*)?\s+", stripped):
+        return False
+    if re.match(r"^[一二三四五六七八九十]+[、.．]\s+", stripped):
+        return False
+    if len(stripped) >= 32:
+        return True
+    return bool(re.search(r"(表示|通常|不是|而是|接在|前缀|token|wordpiece)", stripped, re.I))
 
 
 def normalize_heading_number(value: str) -> str:
@@ -1912,6 +2291,10 @@ def infer_bundle_summary(articles: list[Article]) -> str:
     if not titles:
         return "AI总结内容"
 
+    series = infer_title_series_summary(titles)
+    if series:
+        return series
+
     joined = " ".join(titles)
     topics: list[str] = []
     if re.search(r"大模型|LLM|Large\s*Language\s*Model", joined, re.I):
@@ -1957,6 +2340,42 @@ def infer_bundle_summary(articles: list[Article]) -> str:
     if tokens:
         return "与".join(unique(tokens)[:3])[:24]
     return clean_inline(cleaned_titles[0])[:24] or "AI总结内容"
+
+
+def infer_title_series_summary(titles: list[str]) -> str:
+    cleaned = [strip_quiz_suffix(strip_title_prefix(title)) for title in titles if title]
+    cleaned = [title for title in cleaned if title]
+    if not cleaned:
+        return ""
+
+    first = cleaned[0]
+    numbered = re.match(r"^([一二三四五六七八九十百\d]+)[：:]\s*(.+)$", first)
+    if numbered:
+        topic = numbered.group(2).strip()
+        if 2 <= len(topic) <= 36 and all(topic in title for title in cleaned):
+            return topic
+
+    prefix = common_chinese_prefix(cleaned)
+    prefix = strip_quiz_suffix(prefix)
+    prefix = re.sub(r"^[一二三四五六七八九十百\d]+[：:]\s*", "", prefix).strip()
+    if 2 <= len(prefix) <= 36:
+        return prefix
+
+    if len(cleaned) >= 2:
+        tokens = [token for token in split_query_tokens(cleaned[0]) if not re.fullmatch(r"\d+", token)]
+        for token in tokens:
+            if 2 <= len(token) <= 36 and all(token.lower() in title.lower() for title in cleaned):
+                return token
+    return ""
+
+
+def strip_quiz_suffix(value: str) -> str:
+    text = clean_inline(value)
+    text = re.sub(r"\s*自测题答案\s*$", "", text)
+    text = re.sub(r"\s*自测题\s*$", "", text)
+    text = re.sub(r"\s*测试题答案\s*$", "", text)
+    text = re.sub(r"\s*测试题\s*$", "", text)
+    return text.strip()
 
 
 def strip_title_prefix(title: str) -> str:

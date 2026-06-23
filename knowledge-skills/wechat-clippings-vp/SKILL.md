@@ -24,7 +24,40 @@ Use TikHub-first mode. TikHub is a third-party provider, not an official WeChat 
 7. Convert the article body from `#js_content` or structured detail fields into Markdown, preserving source URLs, images, tables, formulas, code blocks, and readable text.
 8. Cache raw TikHub responses for QA, but never print or write the API key.
 
-For difficult runs, use parallel analysis if useful: one pass to identify account/title candidates, one pass to inspect TikHub response fields, and one pass to QA the staged Markdown.
+For difficult runs, use parallel analysis if useful: one pass to identify account/title candidates, one pass to inspect TikHub response fields, and one pass to QA the staged Markdown. The script also supports parallel article-detail fetches with `--workers`; keep the output article order identical to the user input order.
+
+## Parallel Agent Pattern
+
+Use multi-agent parallelism for expensive or risky batches when the environment supports subagents and the user allows it.
+
+- Main agent owns final file edits, publishing, and QA decisions.
+- Explorer agent A may inspect account/title candidates or local cache shape.
+- Explorer agent B may inspect staged Markdown for structure loss, bad headings, leaked API/debug payloads, mojibake, or missing tails.
+- Worker agents must not edit the same script or final Inbox files in parallel; use them only for disjoint helper scripts or isolated validation artifacts.
+- Never let a subagent publish to `01.raw/01.Inbox`; publish only after the main agent reviews staged output and built-in QA passes.
+
+## Default Pipeline
+
+All clipping runs should follow a stage, QA, then publish flow. The script does this by default.
+
+1. Write generated Markdown first to a unique staging directory such as `.\.codex-work\wechat-<timestamp>\out`.
+2. Run built-in QA against every staged Markdown file.
+3. If QA fails, fix the staged artifact or report the blocker; do not publish failed output.
+4. Publish only QA-passed final Markdown files into `01.raw/01.Inbox` or the user-supplied `--output-dir`.
+5. Never overwrite an existing final file; publish to a unique sibling path such as `name-2.md`.
+
+Use `--staging-dir` to choose the staging directory, `--no-publish` to keep staged files only, and `--skip-qa` only when intentionally debugging the converter.
+
+## Direct URL Batch Rules
+
+When the user provides one or more direct `mp.weixin.qq.com` article URLs, treat those URLs as the complete requested scope.
+
+- Do not run account search or article search for direct URL batches.
+- Preserve the user's URL order in the output article order.
+- Fetch article detail for each URL, preferably HTML detail first.
+- If `--count` is omitted, default to the number of direct URLs.
+- Accept repeated `--article-url`, pasted multiline URLs in the positional input, or `--article-url-file`.
+- If `--ranges` is supplied, it controls grouping only; it must not expand scope beyond the provided URLs.
 
 ## Defaults
 
@@ -45,6 +78,8 @@ Default filename template:
 `{summary}` should be a short filename-safe topic inferred from selected article titles. Keep it human-readable and free of provider/debug labels.
 
 The script writes one Markdown bundle per group, five articles per file by default. If a target filename already exists, the script must publish to a unique sibling path such as `name-2.md` rather than overwrite existing output.
+
+Topic inference should prefer the final article titles after detail fetch. For series such as `二十七：RAG 优化`, `二十七：RAG 优化自测题`, and `二十七：RAG 优化自测题答案`, use the shared meaningful topic `RAG 优化` instead of a broad category such as `检索增强`. Remove issue numbers and quiz suffixes before falling back to broad topic labels.
 
 ## WeChat Archive Rules
 
@@ -94,6 +129,24 @@ Fetch from a known article URL:
 python scripts\clip_wechat_tikhub.py "https://mp.weixin.qq.com/s/xxxx" --count 1 --ranges "1"
 ```
 
+Fetch multiple direct URLs pasted in one command:
+
+```powershell
+python scripts\clip_wechat_tikhub.py "https://mp.weixin.qq.com/s/aaa https://mp.weixin.qq.com/s/bbb https://mp.weixin.qq.com/s/ccc" --ranges "1-3"
+```
+
+Fetch multiple direct URLs from a file:
+
+```powershell
+python scripts\clip_wechat_tikhub.py --article-url-file ".\wechat-urls.txt" --ranges "1-3"
+```
+
+Fetch direct URLs with parallel detail workers:
+
+```powershell
+python scripts\clip_wechat_tikhub.py "https://mp.weixin.qq.com/s/aaa https://mp.weixin.qq.com/s/bbb https://mp.weixin.qq.com/s/ccc" --ranges "1-3" --workers 3
+```
+
 Fetch and apply conservative reading-enhancement formatting:
 
 ```powershell
@@ -136,7 +189,11 @@ Output must be UTF-8 Markdown with Obsidian-compatible YAML frontmatter and arti
 
 Use `###` for major sections inside an article and `####` for numbered subsections inside a major section, using hierarchical numbers such as `#### 2.1 ...`.
 
+Prefer the source article's own heading and numbering structure. If TikHub detail HTML contains `h2`/`h3` style headings such as `七、白板推导与面试追问题` and `51. ...`, preserve those labels and relative levels instead of inventing or normalizing a new numbering scheme. Do not convert Chinese section numbers to Arabic numbers, do not strip meaningful source numbers, and do not create inherited numbers such as `1.23`, `1.31`, or `13.14`. Only apply light quiz cleanup when the source is plain text without reliable heading tags.
+
 Final QA must fail if body Markdown contains `^# `, empty headings, `^###\s+\d+\.\d+`, raw TikHub/Python structures such as `{'title':`, `item_count`, `metadata`, `images':`, or leaked API/debug payloads.
+
+Built-in QA must run before publishing. It should also verify article section headings, source links, reasonable body length, and obvious WeChat page chrome. A QA failure blocks publish.
 
 Preserve full cleaned article text by default. Do not summarize, rewrite, delete article sections, invent missing questions/headings, or add new conclusions unless the user explicitly asks for a summary or rewrite. Load `references/wechat-tikhub-notes.md` for detailed cleanup, table/formula/code preservation, API failure handling, and historical debugging guidance.
 
@@ -148,17 +205,17 @@ Readable mode may apply only conservative, meaning-preserving formatting such as
 
 ## Concurrency
 
-For concurrent or high-risk runs, write first to a unique staging directory such as:
+For concurrent or high-risk runs, choose an explicit staging directory such as:
 
 ```powershell
 .\.codex-work\wechat-<slug>-<timestamp>\out
 ```
 
-Use a matching isolated cache directory, QA the staged Markdown, then publish exactly the intended final artifact into `01.raw/01.Inbox` or the user-supplied `--output-dir`. Avoid sweeping deletions or broad filename rewrites.
+Use a matching isolated cache directory when needed. Avoid sweeping deletions or broad filename rewrites.
 
 ## Browser Boundary
 
 Do not use Playwright, cookies, captcha handling, WeChat logged-in browser state, or undocumented browser scraping for this skill unless the user explicitly asks for a separate browser-based fallback.
 ## Sync Rule
 
-????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????
+When this skill is updated, keep the corresponding copy in `VectorPeak/vectorpeak-agent-skills` in sync. Do not leave local-only behavior undocumented if the skill is expected to be reused from that repository.
