@@ -1,232 +1,222 @@
 ---
 name: pr-writer-vp
-description: Manage the user's external GitHub PR workflow from project name to draft PR. Use when the user asks to fork/clone a project, find small bug-fix PR opportunities, launch multi-agent source review, draft a PR, update PR wording, align with contribution guidelines, collect evidence, or submit a draft PR after explicit confirmation.
+description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, evidence-driven draft PR writing, and explicit submit/update. Use when the user asks to fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, prepare or update a PR draft, align with project PR templates and contribution rules, or submit a PR after explicit confirmation.
 ---
 
 # PR Writer
 
-Use this skill for the user's open-source PR workflow. It covers project setup, small bug discovery, PR drafting, and confirmed draft submission. It complements GitHub publishing skills such as `github:yeet`; use those for final commit, push, and open-PR mechanics when needed.
+Use this skill for external open-source PR work. The workflow has four phases:
 
-## Operating Defaults
+1. Step1 Fork & Clone
+2. Step2 Find PR Chances
+3. Step3 Make A Draft
+4. Step4 Submit/Update
 
-- Default mode is dry-run for PR submission. Do not open or update a PR unless the user explicitly says to submit, create, or update it.
-- Default target directory is `E:\Github\<repo-name>` on Windows unless the user gives another path.
-- Keep the fork's `main` synchronized with upstream `main`; do feature work on a separate `fix` branch or a non-conflicting `fix/<topic>` branch when the remote has namespace conflicts.
-- Prefer small, reviewable bug fixes. For the user's default bug-hunting direction, target code changes of 0-20 lines.
-- Do not include unrelated refactors, generated churn, or `CHANGELOG.md` unless the project explicitly requires it.
-- Be honest about evidence: distinguish real runtime reproduction, UI reproduction, installed-package reproduction, unit reproduction, and inferred risk.
+## Non-Negotiables
 
-## Step 1 / Phase 1: Fork & Clone
+- Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2 and Step3 when the repository is large or the task is ambiguous.
+- Treat submission as dry-run by default. Do not commit, push, create, mark ready, or update a PR unless the user explicitly asks for that action.
+- Do not modify `references/` files as part of ordinary PR workflow.
+- Default clone path is `E:\Github\<repo-name>` on Windows unless the user gives another path.
+- Prefer small, reviewable bug fixes. The default target is a production-code fix of 0-20 changed lines.
+- Do not include unrelated refactors, generated churn, broad formatting, or `CHANGELOG.md` unless the project explicitly requires it.
+- Keep evidence honest. Distinguish runtime reproduction, UI reproduction, package reproduction, focused unit reproduction, inferred risk, and unavailable validation.
+- Read `references/pr-examples.md` before drafting or revising PR prose. Treat it as the few-shot style guide for concise, evidence-driven bug-fix PRs.
 
-When the user gives a project name or GitHub URL:
+## Multi-Agent Baseline
 
-1. Resolve the upstream repository URL.
-   - Prefer GitHub official repo search or the URL supplied by the user.
+At the start of every skill run:
+
+1. Launch a coordinator/main pass in the current thread.
+2. Launch at least two independent agents with separate scopes.
+3. Ask agents for concrete findings with file paths, evidence, risks, and next actions.
+4. Merge findings yourself. Do not paste raw agent output unless the user asks.
+5. If subagents are unavailable in the runtime, state that the skill requires them and continue only after explaining the limitation to the user.
+
+Mechanical gate:
+
+- Before taking phase-specific actions in Step1, Step2, Step3, or Step4, at least two independent agents must have been successfully started for that phase or for the overall skill run.
+- Before completing Step2, Step3, or Step4, collect outputs from at least two agents and reconcile them in the main thread.
+- If two agents cannot be started or cannot return useful output, pause the phase, tell the user the exact blocker, and ask whether to continue with a degraded single-agent pass.
+- Do not describe ordinary sequential self-review as "multi-agent" work.
+
+Recommended agent roles:
+
+- Repo rules agent: contribution guide, PR template, issue requirements, CLA, tests, AI disclosure, submission norms.
+- Bug-hunt agents: independent source review by area, language, package, or feature surface.
+- Evidence agent: reproduction path, failing payload, focused test, command output, before/after proof.
+- Diff/body agent: actual diff review, PR-body claim audit, validation gap check.
+
+## Step1 Fork & Clone
+
+Use this phase when the user gives a project name, GitHub URL, or asks to prepare a local PR workspace.
+
+1. Resolve the upstream repository.
+   - Prefer the user-provided URL or official GitHub repository search.
    - Record upstream URL and fork URL in the response.
 
-2. Fork and clone.
+2. Start multi-agent setup review.
+   - Assign one agent to inspect repository contribution/setup files.
+   - Assign one agent to inspect package manager, build, test, and project-specific agent instructions.
+
+3. Fork and clone.
    - Fork to the user's GitHub account when no suitable fork exists.
-   - Clone the fork into `E:\Github\<repo-name>`.
+   - Clone the fork into `E:\Github\<repo-name>` unless another path is requested.
    - Add `upstream` pointing to the original repository.
 
-3. Synchronize `main`.
+4. Synchronize `main`.
    - Fetch `upstream main`.
    - Fast-forward fork `main` to upstream when possible.
    - Do not force-push `main` unless the user explicitly approves and the reason is clear.
 
-4. Create a work branch.
+5. Create a work branch.
    - Use local branch `fix` if available and pushable.
-   - If the fork already has `fix/...` refs that conflict with bare `fix`, use `fix/<short-topic>` or `codex/<short-topic>`.
-   - Keep `main` unchanged locally except for synchronization.
+   - If `fix` conflicts with existing refs, use `fix/<short-topic>` or `codex/<short-topic>`.
+   - Keep `main` unchanged except for synchronization.
 
-5. Bootstrap only as much environment as needed.
-   - Read README, CONTRIBUTING, package manager files, and project-specific agent instructions.
+6. Bootstrap only what is needed.
+   - Read README, CONTRIBUTING, AGENTS, package manager files, and project-specific instructions.
    - Install dependencies only when needed for targeted validation.
-   - If install/build fails because of environment or network issues, capture exact commands and errors.
+   - If install/build fails, capture exact commands and errors.
 
-6. Leave the workspace ready for PR work.
-   - Confirm current branch, upstream remote, fork remote, and whether `main` is synchronized.
-   - Summarize the local path, active branch, upstream URL, fork URL, and any bootstrap blockers.
-   - Treat this step as complete only when the user can continue from a clean, explainable repository state.
+7. Finish with repository state.
+   - Report local path, active branch, upstream remote, fork remote, whether `main` is synchronized, and bootstrap blockers.
+   - Treat Step1 as complete only when the user can continue from a clean, explainable repository state.
 
-## Step 2 / Phase 2: Find PR Chances
+## Step2 Find PR Chances
 
-When the user asks to find PR opportunities, inspect a project for small fixes, or launch multi-agent bug hunting:
+Use this phase when the user asks to find PR opportunities, inspect a project for small fixes, or launch bug hunting.
 
-1. Launch multi-agent review when available.
-   - Ask agents to independently search for simple bug candidates in different areas.
-   - Give the first direction by default: "Find likely real bugs with fixes under 20 changed code lines, especially compatibility regressions, API contract mismatches, parser edge cases, tool/function calling schema issues, serialization/deserialization bugs, path/URL handling, validation bypasses, and small runtime failures with reproducible impact."
-   - Keep each candidate grounded in files, call chains, and a plausible user impact.
-   - Assign agents different search templates so they do not all inspect the same surface.
-   - Do not edit code in this step unless the user explicitly asks to choose and implement one candidate immediately.
+1. Start multi-agent bug hunting. This phase must use multiple agents.
+   - Give agents different source areas or bug templates so they do not duplicate work.
+   - Default prompt direction: "Find likely real bugs with fixes under 20 changed production-code lines, especially compatibility regressions, API contract mismatches, parser edge cases, tool/function calling schema issues, serialization/deserialization bugs, path/URL handling, validation bypasses, and small runtime failures with reproducible impact."
+   - Require each agent to return candidates with file path, call chain, suspected failure mode, user impact, fix sketch, evidence plan, and risk.
+   - Do not edit code in Step2 unless the user explicitly asks to implement a chosen candidate immediately.
 
-2. Use these preferred PR chance templates.
-   - Real bug fix: deterministic runtime errors, broken branches, bad exception handling, null/undefined access, incorrect state transitions, or code paths that fail under realistic input.
-   - Compatibility fix: Windows/Linux path differences, Python/Node/browser version drift, encoding differences, dependency API changes, case sensitivity, newline/path separator behavior, or backwards-compatible fallback handling.
-   - API contract fix: returned fields, parameter names, default values, status codes, optional/required semantics, or type expectations that differ from documented or existing caller behavior.
-   - Parser edge-case fix: empty input, escaping, nested structures, partial parsing, invalid-but-common input, whitespace/newline handling, or malformed structured data.
-   - Tool/function calling fix: JSON schema mismatch, required/optional field mistakes, tool result parsing failures, streaming/tool-call ordering bugs, or provider-specific tool-call quirks.
-   - Serialization/deserialization fix: JSON, YAML, TOML, env/config parsing, encoding, date/time conversion, numeric conversion, or round-trip loss.
-   - API / parser / tool calling fix: malformed request/response handling, schema mismatch, argument parsing, URL/path encoding, JSON/YAML/TOML parsing, function/tool-call validation, streaming/SSE edge cases, or provider-specific API quirks.
-   - Security-adjacent small fix: path traversal, unsafe filename handling, URL validation bypass, escaping, header/cookie parsing, or input validation holes when the evidence is concrete and disclosure is appropriate.
-   - Diagnostics fix: error paths that mask the original exception, misleading messages, swallowed failures, or logs that make a real bug hard to diagnose.
+2. Search for fixable bugs, not cleanup.
+   - Prefer deterministic runtime errors, broken branches, bad exception handling, null/undefined access, incorrect state transitions, and realistic failing code paths.
+   - Prefer compatibility bugs: Windows/Linux path differences, Python/Node/browser version drift, encoding differences, dependency API changes, case sensitivity, newline/path separator behavior, and fallback handling.
+   - Prefer API contract bugs: returned fields, parameter names, default values, status codes, optional/required semantics, and type expectations that differ from documented or caller behavior.
+   - Prefer parser and serialization bugs: empty input, escaping, nested structures, partial parsing, malformed structured data, JSON/YAML/TOML/env/config conversion, date/time conversion, numeric conversion, and round-trip loss.
+   - Prefer tool/function-calling bugs: JSON schema mismatches, required/optional field mistakes, tool result parsing failures, streaming/tool-call ordering bugs, and provider-specific quirks.
+   - Prefer path, URL, validation, diagnostics, and security-adjacent bugs when the evidence is concrete.
 
-3. Filter candidates.
-   - Prefer deterministic bugs, cross-platform edge cases, validation mistakes, null/undefined handling, path/URL encoding, casing, escaping, or simple boundary errors.
-   - Avoid speculative style changes, broad refactors, large migrations, and issues requiring credentials or production services.
-   - Estimate fix size, test size, risk, and evidence difficulty.
-   - Default to candidates whose production code fix is likely 0-20 changed lines.
-   - Treat production-code fixes over 20 changed lines as exceptions that require explicit justification.
-   - Tests, reproduction scripts, and PR body evidence can exceed 20 lines when they materially improve maintainer confidence.
-   - Prefer candidates that can be reproduced with a focused script, unit test, console snippet, or small payload.
-   - Prefer candidates with observable wrong behavior over cleanup, typing-only improvements, naming fixes, or theoretical robustness changes.
+3. Filter candidates aggressively.
+   - Return a set of concrete, fixable bug candidates, not a single vague lead.
+   - Default to candidates whose production-code fix is likely 0-20 changed lines.
+   - Treat production-code fixes over 20 lines as exceptions requiring explicit justification.
+   - Tests, reproduction scripts, and PR body evidence can exceed 20 lines when they improve maintainer confidence.
+   - Reject speculative style changes, broad refactors, large migrations, typing-only improvements, naming fixes, theoretical robustness, and issues requiring unavailable credentials or production services.
+   - Prefer candidates reproducible with a focused script, unit test, console snippet, small payload, or narrow command.
+   - Do not promote a candidate into the shortlist unless it has either a plausible executable reproduction entry point, a minimal payload/snippet, an existing failing path, or a clearly stated smallest-evidence plan.
 
 4. Present a shortlist before editing.
-   - Include file path, candidate type, bug summary, why it matters, likely production-code fix size, evidence plan, validation approach, and risk.
+   - Include rank, candidate type, file path, bug summary, why it matters, likely production-code fix size, evidence plan, validation approach, and risk.
    - Use candidate types such as runtime bug, compatibility, API contract, parser, tool calling, serialization, validation, path handling, diagnostics, or security-adjacent.
-   - Rank candidates by maintainer value, confidence, smallness, and reproducibility.
-   - Wait for the user to choose a candidate unless they explicitly delegated the choice.
-   - Treat this step as complete when the user receives a set of concrete, fixable PR chances.
+   - Rank by maintainer value, confidence, smallness, reproducibility, and reviewability.
+   - Recommend the best candidate if one is clearly strongest, but separate recommendation from action.
+   - Wait for the user to choose unless they explicitly delegated the choice.
 
 5. Stop at the phase boundary by default.
-   - Do not modify files, commit, push, or draft a PR body in Step 2 unless the user explicitly asks to continue.
-   - If one candidate is clearly best, recommend it, but still distinguish recommendation from action.
-   - If no good candidate is found, report the search areas covered and why the options were rejected.
+   - Do not modify files, commit, push, or draft a PR body in Step2 unless explicitly asked to continue.
+   - If no good candidates are found, report search areas covered, rejected options, and why they failed the fixable-bug bar.
 
-## Step 3 / Phase 3: Make A Draft
+## Step3 Make A Draft
 
-When the user chooses a PR candidate or asks to prepare a draft PR:
+Use this phase when the user chooses a candidate or asks to prepare/update PR wording.
 
-1. Reconfirm the chosen candidate.
-   - Restate the bug, affected files, expected fix size, reproduction plan, and validation plan.
-   - If the candidate no longer looks valid after deeper inspection, stop and explain the mismatch before editing.
+1. Start multi-agent draft work. This phase must use multiple agents.
+   - Assign one agent to inspect contribution rules, PR templates, `.github/`, docs, issue-link requirements, CLA, AI disclosure, and submission norms.
+   - Assign one agent to inspect the actual diff, changed files, evidence, tests, and claim accuracy.
+   - Add an evidence/reproduction agent for parser, path, URL, validation, tool-calling, security-adjacent, and boundary bugs.
+   - Merge findings into one draft. Do not paste raw agent output unless asked.
 
-2. Read the target project's PR template before drafting prose.
-   - Before writing any PR body, read `.github/PULL_REQUEST_TEMPLATE*`, `CONTRIBUTING.md`, relevant docs, and linked contribution guidance when available.
-   - Treat the target repository's PR template as the only outer shell for the PR body.
-   - Fit this skill's required facts into the closest matching project sections instead of drafting in the default shape first and repairing later.
-   - If the project template uses `Testing`, use `Testing`; if it uses `Validation`, use `Validation`; otherwise default to `Validation`.
+2. Reconfirm the selected bug before editing.
+   - Restate the bug, affected files, expected fix size, reproduction plan, validation plan, and risk.
+   - If deeper inspection invalidates the candidate, stop and explain the mismatch before changing code.
 
-3. Reproduce before fixing when feasible.
+3. Read the project PR template and rules before drafting prose.
+   - Read `.github/PULL_REQUEST_TEMPLATE*`, `CONTRIBUTING.md`, AGENTS files, relevant docs, and linked contribution guidance when available.
+   - Use the target project's original PR template text and heading structure as the outer shell for the PR body.
+   - Do not append a second generic template below the project template.
+   - Do not replace the repository template headings with this skill's default headings when a project template exists.
+   - Keep required warning callouts, issue-link language, checklists, CLA notes, docs checkboxes, screenshots requirements, and AI-assistance disclosures.
+
+4. Read the few-shot reference before writing.
+   - Read `references/pr-examples.md` for every new draft and every major PR-body revision.
+   - Follow its persuasion order: make the bug believable first, show the narrow change second, provide reproducible evidence third, then trace the call chain and non-affected paths.
+   - Use the Dify example pattern for one-line frontend/runtime fixes.
+   - Use the AstrBot example pattern for narrow path-handling or security-adjacent fixes.
+
+5. Reproduce before fixing when feasible.
    - Prefer realistic product/runtime reproduction.
-   - If full UI reproduction is not feasible, say why and use the closest honest reproduction.
-   - Keep logs, commands, screenshots, or output snippets for PR Evidence.
-   - For one-line or small frontend/backend fixes, create the smallest script, unit test, console snippet, or focused test that demonstrates the old behavior first.
-   - For path, URL, upload, validation, escaping, or security-adjacent bugs, include concrete payloads and before/after behavior when safe.
-   - When there is a nearby correct implementation in the same file, compare against it as evidence that the fix follows local intent.
-   - For bug, security, path, parser, validation, API, or tool-calling PRs, if there is no script, test, command, payload, or log reproduction, the PR body must explicitly state why direct reproduction was not possible and what alternative evidence supports the claim.
+   - For small frontend/backend fixes, create the smallest script, unit test, console snippet, or focused test that demonstrates old behavior first.
+   - For path, URL, upload, validation, escaping, parser, tool-calling, or security-adjacent bugs, include concrete payloads and before/after behavior when safe.
+   - If direct reproduction is not possible, state why and identify the alternative evidence used.
 
-4. Implement narrowly.
-   - Keep the production-code fix close to the 0-20 line target unless the chosen candidate genuinely requires more.
-   - Prefer local helpers and existing patterns over new abstractions.
-   - Do not include unrelated refactors, formatting churn, generated files, or broad cleanup.
+6. Implement narrowly.
+   - Keep the production-code fix near the 0-20 line target unless the chosen candidate genuinely requires more.
+   - Use local helpers and existing project patterns.
+   - Avoid unrelated refactors, broad cleanup, formatting churn, generated files, and undocumented behavior changes.
 
-5. Draft first, do not submit by default.
-   - Prepare the proposed title, body, evidence, validation plan, and expected diff.
-   - Ask for explicit confirmation before creating or updating a GitHub PR.
-
-6. Launch multi-agent PR drafting review when available.
-   - This phase must use multiple agents when the runtime supports subagents.
-   - Assign at least one agent to inspect the target project's contribution and PR submission rules.
-   - Assign at least one agent to inspect the actual diff, evidence, and validation claims.
-   - Ask the contribution-rules agent to read project-specific sources such as `CONTRIBUTING.md`, PR templates, `.github/`, docs, and linked contribution pages.
-   - Example targets:
-     - Dify: `langgenius/dify`, contribution page `https://github.com/langgenius/dify?tab=contributing-ov-file`
-     - OpenClaw: `openclaw/openclaw`, contribution page `https://github.com/openclaw/openclaw?tab=contributing-ov-file`
-   - Merge the agents' findings into one PR draft; do not paste raw agent output unless the user asks.
-   - If subagents are unavailable, explicitly say so and perform the contribution-rules and diff/evidence passes sequentially yourself.
-
-7. Inspect the actual diff before writing.
+7. Inspect the actual diff before writing final body.
    - Run `git status -sb`, `git diff --stat`, and the narrow relevant `git diff`.
-   - Identify whether tests, docs, generated files, or unrelated files are included.
-   - Never claim a file, test, screenshot, or log is included unless it is present in the diff or verified output.
+   - Identify included tests, docs, generated files, and unrelated files.
+   - Never claim a file, test, screenshot, log, or command exists unless it is present in the diff or verified output.
 
-8. Re-check project contribution rules before finalizing the body.
-   - Prefer repository files such as `CONTRIBUTING.md`, `AGENTS.md`, PR templates, and `.github/`.
-   - If the user links contribution guidance, read the linked page before drafting.
-   - Preserve project-specific required sections and disclosure requirements.
-   - If contribution rules conflict with this skill's default body shape, follow the project's rules.
-   - Note unusual submission constraints, such as required issue links, screenshots, test commands, sign-off text, CLA expectations, AI disclosure, or labels.
-   - Treat the repository's PR template as the outer container, then fit this skill's required content into the closest matching sections.
-   - If the template does not have matching headings, weave the required facts into the existing sections instead of appending a bulky second template.
-   - Keep required project checklist items exactly when the template needs them, and add honest checked/unchecked states based on real validation.
-   - Do not delete warning callouts, required issue-link language, CLA notes, documentation checkboxes, or AI-assistance disclosures from the target template.
+8. Draft using the project template as the shell.
+   - Fill the repository's template sections with the required facts instead of replacing the template.
+   - Always account for these facts somewhere in the target template:
+     - Problem solved: concrete bug, vulnerability, failure mode, missing guard, or bad behavior.
+     - What changed: exact implementation behavior, affected files, and intentionally unchanged behavior.
+     - Evidence: reproduction script, focused test, command output, failing payload, log, screenshot, or clearly labeled reason direct reproduction was not possible.
+     - Call chain / impact: entry point, affected function or module path, who can trigger it, practical impact, and non-affected paths when known.
+   - Use this call-chain shape when possible: `User action/API/CLI -> route/component -> handler/helper -> faulty expression/branch -> observed impact`.
+   - If the template has no matching headings, weave the facts into the closest sections rather than adding a bulky second structure.
+   - If the project has no template, use the default body shape below.
 
 9. Write a concise title.
-   - Use the repository's title style when visible.
-   - Make the title clear, descriptive, and specific enough to show the affected area and behavior.
+   - Match the repository's title style when visible.
    - Prefer `fix(scope): summary` for small bug fixes.
-   - Do not add agent branding such as `[codex]` unless the user or repo explicitly wants it.
+   - Name the affected area and behavior.
+   - Do not add agent branding unless the user or repository explicitly wants it.
 
-10. Write the body around facts.
-   - Start with the user-visible or maintainer-visible problem.
-   - Explain the root cause only as far as the diff supports it.
-   - Describe the change in one short section.
-   - Add realistic Evidence with commands, logs, screenshots, or reproduction steps.
-   - Add Validation with exact commands and outcomes.
-   - State limitations plainly, for example dependency failures, timed-out tests, or paths not exercised.
-   - Follow the target project's contribution rules, but do not add a dedicated "project checklist" section unless the project template requires it.
-   - Always account for these four facts, even when the target template uses different section names:
-     - What problem was solved: concrete bug, vulnerability, failure mode, missing guard, or bad behavior.
-     - What changed: exact implementation behavior, affected files, and intentionally unchanged behavior.
-     - Evidence: reproduction script, focused test, command output, failing payload, log, screenshot, or a clearly labeled reason why direct reproduction was not possible.
-     - Call chain / impact: entry point, affected function or module path, who can trigger it, and the practical impact.
-   - Use this call-chain shape when possible: `User action/API/CLI -> route/component -> handler/helper -> faulty expression/branch -> observed impact`.
-   - Also state which nearby or normal paths are not affected when the diff supports that claim.
-   - Prefer creating a small local reproduction script for bugs, vulnerabilities, parser issues, path handling, URL handling, validation bypasses, and boundary cases.
-   - For vulnerabilities, include a minimal payload and before/after behavior when safe to disclose under the project's norms.
-   - Do not inflate the body with generic claims; every claim should be backed by a diff line, command, test, or observed output.
-   - Follow the few-shot persuasion order from `references/pr-examples.md`: make the bug believable first, show the narrow change second, provide reproducible evidence third, then trace the call chain and non-affected paths.
-   - When useful, include a short investigation note that explains why the old behavior is likely accidental, especially for copy/paste slips or confusing nearby abstractions.
-   - State "what this does not change" for narrow fixes so maintainers can quickly judge blast radius.
-
-11. Treat this step as complete when the draft is reviewable.
-   - Output the intended title, PR body, changed files, evidence, validation commands, limitations, and remaining risks.
+10. Treat Step3 as complete when the draft is reviewable.
+   - Output intended title, PR body, changed files, evidence, validation commands, limitations, and remaining risks.
    - Ask for explicit confirmation before creating or updating a GitHub PR.
 
-12. Submit only after explicit instruction.
-   - On an explicit request to submit a draft PR, commit, push, and create a draft PR.
-   - On an explicit request to submit a ready PR, mark ready for review or create a non-draft PR.
+## Step4 Submit/Update
+
+Use this phase only when the user explicitly asks to submit, create, open, mark ready, or update a PR.
+
+1. Start multi-agent final review.
+   - Assign one agent to re-check branch state, diff scope, staged files, and validation claims.
+   - Assign one agent to re-check the PR template, current PR body if updating, contribution rules, and required disclosures.
+
+2. Re-check state.
+   - Run `git status -sb`, `git diff --stat`, and `git diff --cached --stat` when staging has begun.
+   - Re-read the repository PR template.
+   - If updating an existing PR, read the current title/body and current diff before editing.
+   - Verify the body still matches latest diff and validation output.
+
+3. Commit, push, and submit intentionally.
    - Stage only intended files.
+   - Use a clear commit message matching repository style.
+   - Create a draft PR by default unless the user explicitly asks for a ready PR.
    - Use GitHub connector tools for PR metadata when `gh` lacks permission.
 
-## Step 4 / Phase 4: Submit Or Update The PR
+4. Update existing PRs carefully.
+   - Remove references to deleted tests, deleted files, or outdated validation.
+   - Preserve required AI disclosure, issue-link language, warning callouts, and checklist items.
+   - Mark ready for review only when explicitly requested.
 
-When the user explicitly asks to submit, create, or update a PR:
-
-1. Re-check the branch, diff, and template.
-   - Run `git status -sb`, `git diff --stat`, and `git diff --cached --stat` when staging has begun.
-   - Re-read the repository PR template and current PR body if updating an existing PR.
-   - Verify the body still matches the latest diff and validation output.
-
-2. Commit, push, and submit intentionally.
-   - Stage only intended files.
-   - Use a clear commit message matching the repository style.
-   - Create a draft PR by default unless the user explicitly asks for a ready PR.
-   - Include the final PR URL and branch in the response.
-
-3. After submission, report the exact state.
-   - Include PR URL, branch, commit, changed files, validation commands, and CI/review risks.
-   - If the PR body had to deviate from this skill's default body shape because of a project template, mention that briefly.
-
-## PR Body Guidance
-
-Keep evidence honest.
-
-- Distinguish "real product/runtime reproduction" from "isolated unit/function reproduction".
-- Do not imply UI reproduction when only a CLI, module import, or installed package reproduced the bug.
-- Remove outdated claims after the diff changes, especially test coverage statements.
-
-Update existing PRs carefully.
-
-- Re-read current title/body and current diff before editing.
-- If tests or files are removed, remove all PR-body references to them.
-- Preserve required AI-assistance disclosure if the project asks for it.
-- Use GitHub connector tools for PR metadata when `gh pr edit` lacks permission.
+5. Report exact final state.
+   - Include PR URL, branch, commit, changed files, validation commands and outcomes, CI status if known, and remaining review risks.
+   - If the body deviated from this skill's default shape because of the project template, mention that briefly.
 
 ## Default Body Shape
 
-Use this as the default concise bug-fix PR body. Do not add a separate project checklist section by default.
+Use this only when the target repository has no PR template. If a project template exists, it is the outer shell.
 
 ```markdown
 <one-sentence summary>
@@ -247,9 +237,9 @@ Use this as the default concise bug-fix PR body. Do not add a separate project c
 <Steps to reproduce the bug.>
 <Expected behavior.>
 <Actual behavior or failure output.>
-<Provide backend logs for backend issues when available; docker-compose logs are especially useful.>
+<Provide backend logs for backend issues when available.>
 <Provide screenshots or videos when applicable.>
-<Prefer before / after when possible.>
+<Prefer before/after when possible.>
 <For security/path/error-handling bugs, include the payload or exception.>
 
 ## Possible call chain / impact
@@ -264,18 +254,16 @@ Use this as the default concise bug-fix PR body. Do not add a separate project c
 - `<unit or focused test command>`
 ```
 
-Omit or rename sections only when the repository template requires a different structure.
-
-## References
-
-- Read `references/pr-examples.md` when the user asks to derive PR templates from examples or wants a model for small bug-fix PR wording.
-
 ## Quality Checklist
 
+- Multi-agent work was started for the skill run and for the active phase.
+- Step2 returns a set of concrete, fixable bug candidates before editing.
+- Step2 candidates default to production-code fixes of 0-20 changed lines.
+- Step3 uses the target repository PR template as the outer shell.
+- Step3 includes problem solved, what changed, evidence, and call chain/impact.
+- `references/pr-examples.md` was read before drafting or major body revision.
 - The title matches the actual diff.
-- The body follows the target project's contribution and PR submission rules.
-- The body does not mention removed tests or removed files.
-- Evidence is reproducible or clearly labeled as observed locally.
-- Validation includes failures and gaps, not just successes.
-- The PR is scoped to the requested change and avoids unrelated refactors.
-- The final summary to the user includes PR URL, branch, commit, changed files, and remaining CI or review risks.
+- The body follows target contribution and PR submission rules.
+- Evidence is reproducible or clearly labeled with limitations.
+- Validation includes failures and gaps, not only successes.
+- The PR is scoped to the requested change and avoids unrelated churn.
