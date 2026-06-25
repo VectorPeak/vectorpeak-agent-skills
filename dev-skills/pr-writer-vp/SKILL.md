@@ -49,31 +49,77 @@ When the user gives a project name or GitHub URL:
    - Summarize the local path, active branch, upstream URL, fork URL, and any bootstrap blockers.
    - Treat this step as complete only when the user can continue from a clean, explainable repository state.
 
-## Step 2 / Phase 2: Make A Draft
+## Step 2 / Phase 2: Find PR Chances
 
-When the user asks to find a PR opportunity, prepare a PR candidate, or draft a PR:
+When the user asks to find PR opportunities, inspect a project for small fixes, or launch multi-agent bug hunting:
 
 1. Launch multi-agent review when available.
    - Ask agents to independently search for simple bug candidates in different areas.
-   - Give the first direction by default: "Find likely bugs with fixes under 20 changed code lines."
+   - Give the first direction by default: "Find likely real bugs with fixes under 20 changed code lines, especially compatibility regressions, API contract mismatches, parser edge cases, tool/function calling schema issues, serialization/deserialization bugs, path/URL handling, validation bypasses, and small runtime failures with reproducible impact."
    - Keep each candidate grounded in files, call chains, and a plausible user impact.
+   - Assign agents different search templates so they do not all inspect the same surface.
+   - Do not edit code in this step unless the user explicitly asks to choose and implement one candidate immediately.
 
-2. Filter candidates.
+2. Use these preferred PR chance templates.
+   - Real bug fix: deterministic runtime errors, broken branches, bad exception handling, null/undefined access, incorrect state transitions, or code paths that fail under realistic input.
+   - Compatibility fix: Windows/Linux path differences, Python/Node/browser version drift, encoding differences, dependency API changes, case sensitivity, newline/path separator behavior, or backwards-compatible fallback handling.
+   - API contract fix: returned fields, parameter names, default values, status codes, optional/required semantics, or type expectations that differ from documented or existing caller behavior.
+   - Parser edge-case fix: empty input, escaping, nested structures, partial parsing, invalid-but-common input, whitespace/newline handling, or malformed structured data.
+   - Tool/function calling fix: JSON schema mismatch, required/optional field mistakes, tool result parsing failures, streaming/tool-call ordering bugs, or provider-specific tool-call quirks.
+   - Serialization/deserialization fix: JSON, YAML, TOML, env/config parsing, encoding, date/time conversion, numeric conversion, or round-trip loss.
+   - API / parser / tool calling fix: malformed request/response handling, schema mismatch, argument parsing, URL/path encoding, JSON/YAML/TOML parsing, function/tool-call validation, streaming/SSE edge cases, or provider-specific API quirks.
+   - Security-adjacent small fix: path traversal, unsafe filename handling, URL validation bypass, escaping, header/cookie parsing, or input validation holes when the evidence is concrete and disclosure is appropriate.
+   - Diagnostics fix: error paths that mask the original exception, misleading messages, swallowed failures, or logs that make a real bug hard to diagnose.
+
+3. Filter candidates.
    - Prefer deterministic bugs, cross-platform edge cases, validation mistakes, null/undefined handling, path/URL encoding, casing, escaping, or simple boundary errors.
    - Avoid speculative style changes, broad refactors, large migrations, and issues requiring credentials or production services.
    - Estimate fix size, test size, risk, and evidence difficulty.
+   - Default to candidates whose production code fix is likely 0-20 changed lines.
+   - Treat production-code fixes over 20 changed lines as exceptions that require explicit justification.
+   - Tests, reproduction scripts, and PR body evidence can exceed 20 lines when they materially improve maintainer confidence.
+   - Prefer candidates that can be reproduced with a focused script, unit test, console snippet, or small payload.
+   - Prefer candidates with observable wrong behavior over cleanup, typing-only improvements, naming fixes, or theoretical robustness changes.
 
-3. Present shortlist before editing.
-   - Include file path, bug summary, why it matters, likely fix size, and validation approach.
+4. Present a shortlist before editing.
+   - Include file path, candidate type, bug summary, why it matters, likely production-code fix size, evidence plan, validation approach, and risk.
+   - Use candidate types such as runtime bug, compatibility, API contract, parser, tool calling, serialization, validation, path handling, diagnostics, or security-adjacent.
+   - Rank candidates by maintainer value, confidence, smallness, and reproducibility.
    - Wait for the user to choose a candidate unless they explicitly delegated the choice.
+   - Treat this step as complete when the user receives a set of concrete, fixable PR chances.
 
-4. Reproduce before fixing when feasible.
+5. Stop at the phase boundary by default.
+   - Do not modify files, commit, push, or draft a PR body in Step 2 unless the user explicitly asks to continue.
+   - If one candidate is clearly best, recommend it, but still distinguish recommendation from action.
+   - If no good candidate is found, report the search areas covered and why the options were rejected.
+
+## Step 3 / Phase 3: Make A Draft
+
+When the user chooses a PR candidate or asks to prepare a draft PR:
+
+1. Reconfirm the chosen candidate.
+   - Restate the bug, affected files, expected fix size, reproduction plan, and validation plan.
+   - If the candidate no longer looks valid after deeper inspection, stop and explain the mismatch before editing.
+
+2. Read the target project's PR template before drafting prose.
+   - Before writing any PR body, read `.github/PULL_REQUEST_TEMPLATE*`, `CONTRIBUTING.md`, relevant docs, and linked contribution guidance when available.
+   - Treat the target repository's PR template as the only outer shell for the PR body.
+   - Fit this skill's required facts into the closest matching project sections instead of drafting in the default shape first and repairing later.
+   - If the project template uses `Testing`, use `Testing`; if it uses `Validation`, use `Validation`; otherwise default to `Validation`.
+
+3. Reproduce before fixing when feasible.
    - Prefer realistic product/runtime reproduction.
    - If full UI reproduction is not feasible, say why and use the closest honest reproduction.
    - Keep logs, commands, screenshots, or output snippets for PR Evidence.
    - For one-line or small frontend/backend fixes, create the smallest script, unit test, console snippet, or focused test that demonstrates the old behavior first.
    - For path, URL, upload, validation, escaping, or security-adjacent bugs, include concrete payloads and before/after behavior when safe.
    - When there is a nearby correct implementation in the same file, compare against it as evidence that the fix follows local intent.
+   - For bug, security, path, parser, validation, API, or tool-calling PRs, if there is no script, test, command, payload, or log reproduction, the PR body must explicitly state why direct reproduction was not possible and what alternative evidence supports the claim.
+
+4. Implement narrowly.
+   - Keep the production-code fix close to the 0-20 line target unless the chosen candidate genuinely requires more.
+   - Prefer local helpers and existing patterns over new abstractions.
+   - Do not include unrelated refactors, formatting churn, generated files, or broad cleanup.
 
 5. Draft first, do not submit by default.
    - Prepare the proposed title, body, evidence, validation plan, and expected diff.
@@ -95,7 +141,7 @@ When the user asks to find a PR opportunity, prepare a PR candidate, or draft a 
    - Identify whether tests, docs, generated files, or unrelated files are included.
    - Never claim a file, test, screenshot, or log is included unless it is present in the diff or verified output.
 
-8. Read project contribution rules when available.
+8. Re-check project contribution rules before finalizing the body.
    - Prefer repository files such as `CONTRIBUTING.md`, `AGENTS.md`, PR templates, and `.github/`.
    - If the user links contribution guidance, read the linked page before drafting.
    - Preserve project-specific required sections and disclosure requirements.
@@ -125,6 +171,8 @@ When the user asks to find a PR opportunity, prepare a PR candidate, or draft a 
      - What changed: exact implementation behavior, affected files, and intentionally unchanged behavior.
      - Evidence: reproduction script, focused test, command output, failing payload, log, screenshot, or a clearly labeled reason why direct reproduction was not possible.
      - Call chain / impact: entry point, affected function or module path, who can trigger it, and the practical impact.
+   - Use this call-chain shape when possible: `User action/API/CLI -> route/component -> handler/helper -> faulty expression/branch -> observed impact`.
+   - Also state which nearby or normal paths are not affected when the diff supports that claim.
    - Prefer creating a small local reproduction script for bugs, vulnerabilities, parser issues, path handling, URL handling, validation bypasses, and boundary cases.
    - For vulnerabilities, include a minimal payload and before/after behavior when safe to disclose under the project's norms.
    - Do not inflate the body with generic claims; every claim should be backed by a diff line, command, test, or observed output.
@@ -132,13 +180,17 @@ When the user asks to find a PR opportunity, prepare a PR candidate, or draft a 
    - When useful, include a short investigation note that explains why the old behavior is likely accidental, especially for copy/paste slips or confusing nearby abstractions.
    - State "what this does not change" for narrow fixes so maintainers can quickly judge blast radius.
 
-11. Submit only after explicit instruction.
+11. Treat this step as complete when the draft is reviewable.
+   - Output the intended title, PR body, changed files, evidence, validation commands, limitations, and remaining risks.
+   - Ask for explicit confirmation before creating or updating a GitHub PR.
+
+12. Submit only after explicit instruction.
    - On an explicit request to submit a draft PR, commit, push, and create a draft PR.
    - On an explicit request to submit a ready PR, mark ready for review or create a non-draft PR.
    - Stage only intended files.
    - Use GitHub connector tools for PR metadata when `gh` lacks permission.
 
-## Step 3 / Phase 3: Submit Or Update The PR
+## Step 4 / Phase 4: Submit Or Update The PR
 
 When the user explicitly asks to submit, create, or update a PR:
 

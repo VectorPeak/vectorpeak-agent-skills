@@ -78,6 +78,17 @@ Use `AstrBotDevs/AstrBot#8971` as the model for a narrow security/path-handling 
 - Explain before/after path resolution without overstating exploitation.
 - State that parsing, indexing, permissions, and normal upload behavior are unchanged when the diff supports that claim.
 
+## Anti-Patterns
+
+- Do not discard the target repository's PR template, warning callouts, required checklist, issue-link language, CLA notes, documentation checkboxes, or AI-assistance disclosure.
+- Do not write only "tested locally"; include exact commands and outcomes.
+- Do not claim a script, test, screenshot, or log exists unless it was actually produced or is included in the diff.
+- Do not present a theoretical robustness concern as a confirmed bug.
+- Do not label behavior as a vulnerability unless the payload, control point, and impact support that claim.
+- Do not omit before/after behavior for parser, path, URL, validation, API, or tool-calling bugs when it can be reproduced.
+- Do not let evidence screenshots replace text reproduction steps; screenshots should support, not substitute for, a reproducible explanation.
+- Do not append a second generic PR template below the project's own template; fit the required facts into the project's sections.
+
 ## Writing Rule
 
 Small PRs should convince maintainers of three things: the bug is real, the change is narrow, and validation is reproducible.
