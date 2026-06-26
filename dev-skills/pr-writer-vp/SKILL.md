@@ -17,7 +17,7 @@ Use this skill for external open-source PR work. The workflow has four phases:
 - Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2 and Step3 when the repository is large or the task is ambiguous.
 - Treat submission as dry-run by default. Do not commit, push, create, mark ready, or update a PR unless the user explicitly asks for that action.
 - Do not modify `references/` files as part of ordinary PR workflow.
-- Default clone path is `E:\Github\<repo-name>` on Windows unless the user gives another path.
+- Default clone path is `D:\ZXY\Github\<repo-name>` on this Windows machine unless the user gives another path.
 - Prefer small, reviewable bug fixes. The default target is a production-code fix of 0-20 changed lines.
 - Do not include unrelated refactors, generated churn, broad formatting, or `CHANGELOG.md` unless the project explicitly requires it.
 - Keep evidence honest. Distinguish runtime reproduction, UI reproduction, package reproduction, focused unit reproduction, inferred risk, and unavailable validation.
@@ -61,7 +61,7 @@ Use this phase when the user gives a project name, GitHub URL, or asks to prepar
 
 3. Fork and clone.
    - Fork to the user's GitHub account when no suitable fork exists.
-   - Clone the fork into `E:\Github\<repo-name>` unless another path is requested.
+   - Clone the fork into `D:\ZXY\Github\<repo-name>` on this machine unless another path is requested.
    - Add `upstream` pointing to the original repository.
 
 4. Synchronize `main`.
@@ -78,6 +78,39 @@ Use this phase when the user gives a project name, GitHub URL, or asks to prepar
    - Read README, CONTRIBUTING, AGENTS, package manager files, and project-specific instructions.
    - Install dependencies only when needed for targeted validation.
    - If install/build fails, capture exact commands and errors.
+
+### Local Environment Bootstrap On This Machine
+
+After cloning into `D:\ZXY\Github\<repo-name>`, inspect project files before installing dependencies. Configure only the minimum environment needed for reproduction and targeted validation.
+
+Check these files first when present: `README*`, `CONTRIBUTING*`, `AGENTS.md`, `pyproject.toml`, `setup.py`, `setup.cfg`, `requirements*.txt`, `environment.yml`, `conda-lock.yml`, `.python-version`, `package.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`, `Dockerfile`, `docker-compose.yml`, `compose.yaml`, `.devcontainer/`, and CI workflow files.
+
+Python projects:
+- Use this machine's Miniforge first: `D:\ZXY\Dev\Miniforge3\condabin\mamba.bat`; fall back to `D:\ZXY\Dev\Miniforge3\condabin\conda.bat`.
+- Create one isolated conda environment per repository, named `prw-<repo-name>-py<version>`.
+- Infer the Python version from project files or CI config. Default to Python 3.12 only when the project does not specify a version.
+- Prefer `mamba env create -n <env> -f environment.yml` when an environment file exists.
+- Otherwise create a minimal environment with `mamba create -y -n <env> python=<version>`, then install dependencies with the project's declared tooling.
+- Prefer `conda run -n <env> ...` or `mamba run -n <env> ...` for non-interactive commands instead of relying on shell activation.
+- Keep the environment isolated to the PR candidate; do not reuse a shared base environment.
+
+Node.js projects:
+- Use this machine's Node.js installation at `D:\ZXY\Dev\nodejs`.
+- Select the package manager from `packageManager` or lockfiles:
+  - `pnpm-lock.yaml` -> `pnpm install`
+  - `yarn.lock` -> `yarn install`
+  - `package-lock.json` -> `npm ci`
+  - no lockfile -> `npm install`
+- If the selected package manager is missing, use Corepack when appropriate or report the missing tool and exact next command needed.
+- Run only focused validation scripts needed for the PR candidate, such as targeted tests, lint, typecheck, or the narrow package build.
+
+Docker and WSL projects:
+- Use Docker only when the project requires service dependencies or its README, compose files, Dockerfile, or devcontainer requires it.
+- This machine uses WSL2 with Ubuntu-22.04. Windows path `D:\ZXY\Github` maps to `/mnt/d/ZXY/Github` in WSL.
+- If Docker CLI exists but the daemon is unavailable, report that Docker Desktop is not running and start Docker Desktop before running compose commands when feasible.
+- Prefer Docker Desktop with the WSL2 backend. Do not install a second Docker Engine inside WSL unless the project explicitly requires it.
+- Use WSL for Linux-only shell scripts, Makefile/bash-heavy workflows, Docker workflows, or projects that depend on Linux path semantics. Otherwise stay in the Windows project directory.
+- Capture exact compose commands, service names, ports, and startup errors when Docker validation is required.
 
 7. Finish with repository state.
    - Report local path, active branch, upstream remote, fork remote, whether `main` is synchronized, and bootstrap blockers.

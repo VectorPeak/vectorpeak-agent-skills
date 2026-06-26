@@ -32,10 +32,15 @@ PR Writer VP 把这套流程沉淀成可复用的 agent 工作流。它会帮助
 1. **拉取项目并配置环境**
    - 解析 upstream GitHub 仓库。
    - fork 到用户自己的 GitHub 账号。
-   - clone 到 `E:\Github\<repo-name>`。
+   - 在这台电脑上 clone 到 `D:\ZXY\Github\<repo-name>`。
    - 添加 `upstream` remote。
    - 保持 fork 的 `main` 与 upstream `main` 同步。
    - 创建 `fix` 分支，或在命名冲突时创建不冲突的修复分支。
+   - 克隆后先读取 README、贡献规范、包管理文件和项目级 agent 指令，再按需配置最小可运行环境。
+   - Python 项目优先使用本机 Miniforge/Mamba：`D:\ZXY\Dev\Miniforge3\condabin\mamba.bat`，并为每个仓库创建独立 conda 环境，例如 `prw-<repo-name>-py312`。
+   - Node.js 项目使用本机 `D:\ZXY\Dev\nodejs`，并按 `packageManager` 或 lockfile 选择 `pnpm`、`yarn`、`npm ci` 或 `npm install`。
+   - Docker 项目仅在确实需要服务依赖、compose、Dockerfile 或 devcontainer 时使用；本机按 Docker Desktop + WSL2 路线处理，WSL 中 `D:\ZXY\Github` 对应 `/mnt/d/ZXY/Github`。
+   - WSL 主要用于 Linux-only 脚本、Makefile/bash-heavy 工作流、Docker 工作流或依赖 Linux 路径语义的项目。
 
 2. **寻找 PR 候选**
    - 可用时启动多 agent 审查。
