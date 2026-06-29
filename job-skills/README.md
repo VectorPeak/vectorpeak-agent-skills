@@ -44,6 +44,7 @@ job document  ->  extract terms  ->  compare risks  ->  action checklist
 job-skills/
 ├── job-contract-review-vp/ # 工作合同审查与风险提示
 ├── feishu-interview-minutes-vp/ # 飞书面试妙记与智能纪要问题链条整理
+├── xiaohei-daily-query/ # 小黑日报助手本地数据查询
 └── README.md            # 工作与职场类技能目录说明
 ```
 
@@ -56,6 +57,10 @@ job-skills/
 ### [`feishu-interview-minutes-vp/`](feishu-interview-minutes-vp/)
 
 用于把飞书妙记、智能纪要 Docx、文字记录或粘贴的中文面试转写整理成面试问题链条：优先读取文字记录，其次读取妙记原生逐字稿，最后才使用智能纪要正文，并输出 UTF-8 Markdown 复盘文件
+
+### [`xiaohei-daily-query/`](xiaohei-daily-query/)
+
+用于接入本地小黑日报助手 HTTP 服务，在每次查询前先拉取实时 API Markdown 文档，再查询工作时间线、工作报告、时段热力图和应用使用时长统计
 
 ## 适合沉淀的技能
 

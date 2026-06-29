@@ -1,0 +1,7 @@
+interface:
+  display_name: "小黑日报助手数据查询"
+  short_description: "查询本地小黑日报时间线、报告、热力图与应用使用统计"
+  default_prompt: "Use $xiaohei-daily-query to query today's work timeline and app usage summary."
+
+policy:
+  allow_implicit_invocation: true
