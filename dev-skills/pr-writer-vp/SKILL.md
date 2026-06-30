@@ -47,6 +47,30 @@ Recommended agent roles:
 - Evidence agent: reproduction path, failing payload, focused test, command output, before/after proof.
 - Diff/body agent: actual diff review, PR-body claim audit, validation gap check.
 
+### Mandatory Patch-Generation Review Lenses
+
+Whenever agents are asked to generate, review, or integrate PR patch code, their prompts and final findings must explicitly consider these five lenses. The main agent must reconcile the answers before accepting a patch as reviewable:
+
+- Correctness: Is the code logic right? Does the patch actually fix the bug, and can it introduce a new bug?
+- Ownership boundary: Is the change placed in the correct module/file/package? Does it cross a boundary that should be owned by another layer?
+- Completeness: Did the review cover the whole decision surface, not just the changed diff lines? Include callers, callees, sibling modules, fallback paths, and adjacent feature variants.
+- Best-fix judgment: Is this the best fix, not merely a workable fix? Prefer the smallest durable fix that removes the real failure mode, follows established local patterns, and avoids whack-a-mole patches.
+- Risk awareness: Does the patch touch compatibility-sensitive behavior such as configuration, authentication, routing, rollback, persistence, parsing, platform paths, or provider behavior? If yes, include a concrete risk assessment and targeted validation plan.
+
+Patch-producing agents must report their conclusion for each lens using the labels `Correctness`, `Ownership`, `Completeness`, `Best fix`, and `Risk`. If a lens is not applicable, they must say why. A patch is not ready for commit, PR body drafting, or submission until the main agent has checked these five lenses against the actual diff.
+
+### Mandatory PR Evidence Review Lenses
+
+When drafting a PR, updating a PR body, or addressing reviewer-requested changes, agents must also consider these evidence lenses. These lenses answer whether the PR proves the change, not just whether the patch looks plausible:
+
+- Behavior proof: Is there a screenshot, screen recording, log, terminal output, before/after trace, or live/API result showing that the change actually works? Use the smallest proof that demonstrates the user-visible or runtime behavior.
+- Media proof bonus: If the change is visual, UI, interactive, terminal/TUI, browser, desktop, or workflow-facing, prefer video or screen recording evidence when feasible. Treat media proof as extra reviewer confidence, not a substitute for tests.
+- Test/CI proof: Are relevant tests added or updated? Is CI green, or are any failing/skipped checks explained? If the change cannot be covered by tests, explain why and provide the closest focused validation.
+- Dependency contract proof: If the patch changes or relies on an external dependency, provider, SDK, API, protocol, CLI, or documented behavior, read the upstream documentation, source, schema, changelog, or captured response and cite the exact contract being relied on.
+- Sibling surface proof: If one path/channel/surface was changed, check sibling paths and explain whether they are affected. Examples: changed route A, check B/C routes; changed CLI path, check TUI/ACP/desktop equivalents; changed one provider, check similar providers.
+
+Evidence agents and diff/body agents must report these labels as `Behavior proof`, `Media proof`, `Test/CI proof`, `Dependency contract`, and `Sibling surfaces`. If a lens is not applicable, they must say why. The main agent must include the relevant evidence in the PR body or reviewer reply, and must not claim evidence that was not actually gathered.
+
 ## Step1 Fork & Clone
 
 Use this phase when the user gives a project name, GitHub URL, or asks to prepare a local PR workspace.
@@ -96,6 +120,9 @@ Python projects:
 
 Node.js projects:
 - Use this machine's Node.js installation at `D:\ZXY\Dev\nodejs`.
+  - Node executable: `D:\ZXY\Dev\nodejs\node.exe` (currently observed as Node.js `v24.15.0`).
+  - npm executable: `D:\ZXY\Dev\nodejs\npm.cmd` (currently observed as npm `11.12.1`).
+  - When a repository's CI requires a different major version (for example Node 22.x), report the mismatch before treating local build results as CI-equivalent evidence.
 - Select the package manager from `packageManager` or lockfiles:
   - `pnpm-lock.yaml` -> `pnpm install`
   - `yarn.lock` -> `yarn install`
@@ -192,24 +219,28 @@ Use this phase when the user chooses a candidate or asks to prepare/update PR wo
    - For small frontend/backend fixes, create the smallest script, unit test, console snippet, or focused test that demonstrates old behavior first.
    - For path, URL, upload, validation, escaping, parser, tool-calling, or security-adjacent bugs, include concrete payloads and before/after behavior when safe.
    - If direct reproduction is not possible, state why and identify the alternative evidence used.
+   - Apply the Mandatory PR Evidence Review Lenses while deciding what proof is needed for the PR and for any reviewer-requested change.
 
 6. Implement narrowly.
    - Keep the production-code fix near the 0-20 line target unless the chosen candidate genuinely requires more.
    - Use local helpers and existing project patterns.
    - Avoid unrelated refactors, broad cleanup, formatting churn, generated files, and undocumented behavior changes.
+   - Before finalizing the implementation, apply the Mandatory Patch-Generation Review Lenses to the actual patch and revise the code if the lenses reveal a correctness, boundary, completeness, best-fix, or risk gap.
 
 7. Inspect the actual diff before writing final body.
    - Run `git status -sb`, `git diff --stat`, and the narrow relevant `git diff`.
    - Identify included tests, docs, generated files, and unrelated files.
    - Never claim a file, test, screenshot, log, or command exists unless it is present in the diff or verified output.
+   - Include the five-lens patch review result in the internal diff audit before drafting final PR wording; do not paste it verbatim into the PR unless it improves reviewer confidence.
 
 8. Draft using the project template as the shell.
    - Fill the repository's template sections with the required facts instead of replacing the template.
    - Always account for these facts somewhere in the target template:
-     - Problem solved: concrete bug, vulnerability, failure mode, missing guard, or bad behavior.
-     - What changed: exact implementation behavior, affected files, and intentionally unchanged behavior.
-     - Evidence: reproduction script, focused test, command output, failing payload, log, screenshot, or clearly labeled reason direct reproduction was not possible.
-     - Call chain / impact: entry point, affected function or module path, who can trigger it, practical impact, and non-affected paths when known.
+   - Problem solved: concrete bug, vulnerability, failure mode, missing guard, or bad behavior.
+   - What changed: exact implementation behavior, affected files, and intentionally unchanged behavior.
+   - Evidence: reproduction script, focused test, command output, failing payload, log, screenshot, or clearly labeled reason direct reproduction was not possible.
+   - Call chain / impact: entry point, affected function or module path, who can trigger it, practical impact, and non-affected paths when known.
+   - Evidence lenses: include behavior proof, media proof when useful, test/CI proof, dependency contract proof when relevant, and sibling-surface reasoning when the change could affect adjacent paths.
    - Use this call-chain shape when possible: `User action/API/CLI -> route/component -> handler/helper -> faulty expression/branch -> observed impact`.
    - If the template has no matching headings, weave the facts into the closest sections rather than adding a bulky second structure.
    - If the project has no template, use the default body shape below.
@@ -248,6 +279,7 @@ Use this phase only when the user explicitly asks to submit, create, open, mark 
    - Remove references to deleted tests, deleted files, or outdated validation.
    - Preserve required AI disclosure, issue-link language, warning callouts, and checklist items.
    - Mark ready for review only when explicitly requested.
+   - When addressing reviewer comments, explicitly re-run the Mandatory Patch-Generation Review Lenses and Mandatory PR Evidence Review Lenses against the updated diff and reviewer concern.
 
 5. Report exact final state.
    - Include PR URL, branch, commit, changed files, validation commands and outcomes, CI status if known, and remaining review risks.
@@ -306,3 +338,5 @@ Use this only when the target repository has no PR template. If a project templa
 - Evidence is reproducible or clearly labeled with limitations.
 - Validation includes failures and gaps, not only successes.
 - The PR is scoped to the requested change and avoids unrelated churn.
+- Patch-producing agents explicitly covered correctness, ownership boundary, completeness, best-fix judgment, and risk awareness before the patch was accepted.
+- Drafting and reviewer-response work explicitly covered behavior proof, media proof where useful, test/CI proof, dependency contract proof, and sibling-surface proof before the PR body or reviewer reply was finalized.
