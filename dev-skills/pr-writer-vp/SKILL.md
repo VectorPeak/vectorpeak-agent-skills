@@ -5,16 +5,17 @@ description: Manage the user's external GitHub PR workflow from project name to 
 
 # PR Writer
 
-Use this skill for external open-source PR work. The workflow has four phases:
+Use this skill for external open-source PR work. The workflow has five phases:
 
 1. Step1 Fork & Clone
 2. Step2 Find PR Chances
 3. Step3 Make A Draft
 4. Step4 Submit/Update
+5. Step5 Address Reviewer Feedback
 
 ## Non-Negotiables
 
-- Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2 and Step3 when the repository is large or the task is ambiguous.
+- Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2, Step3, and Step5 when the repository is large, the task is ambiguous, or reviewer feedback touches behavior-sensitive code.
 - Treat submission as dry-run by default. Do not commit, push, create, mark ready, or update a PR unless the user explicitly asks for that action.
 - Do not modify `references/` files as part of ordinary PR workflow.
 - Default clone path is `D:\ZXY\Github\<repo-name>` on this Windows machine unless the user gives another path.
@@ -35,8 +36,8 @@ At the start of every skill run:
 
 Mechanical gate:
 
-- Before taking phase-specific actions in Step1, Step2, Step3, or Step4, at least two independent agents must have been successfully started for that phase or for the overall skill run.
-- Before completing Step2, Step3, or Step4, collect outputs from at least two agents and reconcile them in the main thread.
+- Before taking phase-specific actions in Step1, Step2, Step3, Step4, or Step5, at least two independent agents must have been successfully started for that phase or for the overall skill run.
+- Before completing Step2, Step3, Step4, or Step5, collect outputs from at least two agents and reconcile them in the main thread.
 - If two agents cannot be started or cannot return useful output, pause the phase, tell the user the exact blocker, and ask whether to continue with a degraded single-agent pass.
 - Do not describe ordinary sequential self-review as "multi-agent" work.
 
@@ -46,6 +47,8 @@ Recommended agent roles:
 - Bug-hunt agents: independent source review by area, language, package, or feature surface.
 - Evidence agent: reproduction path, failing payload, focused test, command output, before/after proof.
 - Diff/body agent: actual diff review, PR-body claim audit, validation gap check.
+- Reviewer-feedback agent: all review threads, requested changes, maintainer intent, comment-to-diff traceability, and reply wording.
+- CI agent: repository CI workflow discovery, local full-CI command selection, remote check monitoring, and failure triage.
 
 ### Mandatory Patch-Generation Review Lenses
 
@@ -285,6 +288,68 @@ Use this phase only when the user explicitly asks to submit, create, open, mark 
    - Include PR URL, branch, commit, changed files, validation commands and outcomes, CI status if known, and remaining review risks.
    - If the body deviated from this skill's default shape because of the project template, mention that briefly.
 
+## Step5 Address Reviewer Feedback
+
+Use this phase when the user gives an existing PR link and asks to address reviewer feedback, fix requested changes, respond to review comments, or request re-review. A PR link alone is not enough; the user must ask to act on the review feedback. When the user asks for this phase, treat it as permission to make the minimal necessary code/test/doc changes, commit, push to the PR branch, update PR prose when needed, and reply to review comments for that PR, unless the user explicitly limits the scope.
+
+1. Start multi-agent reviewer-response work. This phase must use multiple agents.
+   - Assign one agent to collect and classify all reviewer feedback: inline comments, review summaries, unresolved conversations, bot comments, maintainer comments, and CI failures.
+   - Assign one agent to inspect the code ownership boundary and propose the smallest correct fix for each actionable reviewer concern.
+   - Assign one agent to inspect tests, full CI commands, GitHub Actions workflow requirements, and project contribution rules.
+   - When UI, TUI, browser, desktop, provider/API, platform, or workflow behavior is involved, add an evidence agent to identify the right before/after proof.
+   - Require every patch-producing agent to apply the Mandatory Patch-Generation Review Lenses.
+   - Require every reviewer-reply or PR-body agent to apply the Mandatory PR Evidence Review Lenses.
+   - Merge findings into one action plan before editing. Do not paste raw agent output unless the user asks.
+
+2. Read the PR and reviewer context before editing.
+   - Use `gh pr view <number> --repo <owner>/<repo> --comments --json ...` and the pull request review-comments API/CLI to collect inline comments, review summaries, requested-change state, commit IDs, file paths, and conversation URLs.
+   - Read the current PR title/body, current diff, branch/head repo, base branch, status checks, and latest commit.
+   - Read contribution rules, PR template, AGENTS files, CI workflows, and package/test scripts if not already loaded in the current run.
+   - Build a short reviewer-feedback map: comment URL, reviewer, severity/request, affected file/line, required change, planned response, and whether code, test, docs, or explanation is needed.
+
+3. Decide actionability and scope.
+   - Separate actionable reviewer requests from questions, suggestions, nits, stale comments, bot noise, and already-fixed feedback.
+   - If a reviewer suggestion is wrong or conflicts with project behavior, verify with code/tests and plan a polite evidence-backed reply instead of blindly changing code.
+   - If feedback reveals a larger design issue, prefer the smallest durable fix that satisfies the reviewer intent; ask the user before broad refactors, force-push rewrites, or scope expansion beyond the PR's original purpose.
+   - Do not add unrelated cleanup while addressing review. Every changed file must map to reviewer feedback, failing CI, or required evidence.
+
+4. Implement reviewer-requested changes narrowly.
+   - Edit only the files needed to resolve the review concerns.
+   - Add or update tests for every behavior change when feasible; if not feasible, explain why and provide the closest focused validation.
+   - Apply the Mandatory Patch-Generation Review Lenses against the actual diff before committing.
+   - Re-read the changed diff after edits and verify every reviewer concern has either a code/test/doc change or a planned written reply.
+
+5. Run complete local CI before pushing.
+   - Infer the repository's full local CI from `package.json`, lockfiles, `pyproject.toml`, `tox.ini`, `noxfile.py`, `Makefile`, `.github/workflows/*`, `CONTRIBUTING*`, and prior PR validation.
+   - Prefer the closest local equivalent of required GitHub Actions: format check, lint, typecheck, unit tests, integration tests, build, bundle/package, and `git diff --check`.
+   - If the repository defines a single preflight/ci command, run it unless it requires unavailable credentials or production services.
+   - If full CI is too expensive, unavailable, platform-incompatible, or requires secrets, run the maximum feasible local subset, record exact blockers, and do not describe it as full CI.
+   - Capture exact commands and outcomes, including warnings, skipped tests, flaky retries, and environmental differences such as Node/Python/OS version mismatches.
+
+6. Commit, push, and monitor remote CI.
+   - Run `git status -sb`, `git diff --stat`, and relevant diffs before staging.
+   - Stage only intended files and commit with a clear message matching project style.
+   - Push to the PR head branch, not a different branch.
+   - After pushing, monitor GitHub status checks until they pass, fail, skip, or require external authorization. Use `gh pr checks --watch` or equivalent when available.
+   - If CI fails because of the new changes, inspect logs, fix, rerun the relevant local validation, commit, push, and monitor again.
+   - If CI failure is unrelated, flaky, skipped, or blocked by missing permissions/secrets, record evidence and explain it honestly in the reviewer reply and final report.
+
+7. Update PR prose when the reviewer-facing facts changed.
+   - Update the PR body only when the change altered scope, tests, evidence, limitations, screenshots, risk, or CI status.
+   - Preserve the project PR template, required checklists, issue-link language, CLA notes, screenshots requirements, and AI-assistance disclosures.
+   - Remove stale validation claims or outdated limitations.
+
+8. Reply to reviewers and request re-review.
+   - Reply directly on each relevant inline thread when possible, linking the fix commit or naming the exact change and validation.
+   - Post one concise top-level PR comment summarizing the reviewer feedback addressed, changed files/behavior, full local CI results, remote CI status, and any remaining limitations.
+   - Politely at-mention the human reviewer(s) who requested changes or asked for follow-up, and ask them to re-review only after local validation is complete and remote CI has reached a clear state.
+   - Do not at-mention bots unless the project explicitly uses bot mentions to trigger review.
+   - Never include API keys, secrets, private logs, or local credential paths in reviewer replies. Use placeholders or describe private live-validation credentials without disclosing them.
+
+9. Report exact final state.
+   - Include PR URL, branch, latest commit, review threads replied to, PR body changes, local CI commands and outcomes, remote CI status, reviewer(s) mentioned, and remaining review risks.
+   - If the phase was degraded because subagents, credentials, full CI, or remote checks were unavailable, state that clearly and explain the best next action.
+
 ## Default Body Shape
 
 Use this only when the target repository has no PR template. If a project template exists, it is the outer shell.
@@ -332,6 +397,10 @@ Use this only when the target repository has no PR template. If a project templa
 - Step2 candidates default to production-code fixes of 0-20 changed lines.
 - Step3 uses the target repository PR template as the outer shell.
 - Step3 includes problem solved, what changed, evidence, and call chain/impact.
+- Step5 collects reviewer comments, review summaries, unresolved threads, current diff, and CI status before editing.
+- Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
+- Step5 runs full local CI when feasible, then monitors remote CI after push.
+- Step5 replies to reviewer threads and politely at-mentions human reviewers only after validation reaches a clear state.
 - `references/pr-examples.md` was read before drafting or major body revision.
 - The title matches the actual diff.
 - The body follows target contribution and PR submission rules.
