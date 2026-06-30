@@ -162,6 +162,7 @@ Use this phase when the user chooses a candidate or asks to prepare/update PR wo
    - Assign one agent to inspect contribution rules, PR templates, `.github/`, docs, issue-link requirements, CLA, AI disclosure, and submission norms.
    - Assign one agent to inspect the actual diff, changed files, evidence, tests, and claim accuracy.
    - Add an evidence/reproduction agent for parser, path, URL, validation, tool-calling, security-adjacent, and boundary bugs.
+   - Require every agent responsible for PR body wording, evidence wording, or final PR text review to read the mandatory few-shot PRs in step 4 before making wording recommendations.
    - Merge findings into one draft. Do not paste raw agent output unless asked.
 
 2. Reconfirm the selected bug before editing.
@@ -175,11 +176,16 @@ Use this phase when the user chooses a candidate or asks to prepare/update PR wo
    - Do not replace the repository template headings with this skill's default headings when a project template exists.
    - Keep required warning callouts, issue-link language, checklists, CLA notes, docs checkboxes, screenshots requirements, and AI-assistance disclosures.
 
-4. Read the few-shot reference before writing.
-   - Read `references/pr-examples.md` for every new draft and every major PR-body revision.
-   - Follow its persuasion order: make the bug believable first, show the narrow change second, provide reproducible evidence third, then trace the call chain and non-affected paths.
-   - Use the Dify example pattern for one-line frontend/runtime fixes.
-   - Use the AstrBot example pattern for narrow path-handling or security-adjacent fixes.
+4. Read mandatory few-shot PR examples before writing or updating PR text.
+   - The main agent must read these two PRs for every new draft and every major PR-body revision:
+     - `https://github.com/AstrBotDevs/AstrBot/pull/8971`
+     - `https://github.com/HKUDS/LightRAG/pull/3324`
+   - Use `gh pr view 8971 --repo AstrBotDevs/AstrBot --json title,body,url` and
+     `gh pr view 3324 --repo HKUDS/LightRAG --json title,body,url` when `gh` is available; otherwise browse the PR pages.
+   - Treat them as mandatory few-shot structure examples for concise bug-fix PRs: opening summary, concrete problem, exact vulnerable/failing construction, narrow change, evidence, possible call chain / impact, testing, and limitations.
+   - Do not copy repository-specific wording, screenshots, security claims, or validation commands. Adapt the structure to the target repository's PR template and the actual diff/evidence.
+   - Also read `references/pr-examples.md` when local examples are useful or when the user asks for more PR wording models.
+   - Follow the shared persuasion order: make the bug believable first, show the narrow change second, provide reproducible evidence third, then trace the call chain and non-affected paths.
 
 5. Reproduce before fixing when feasible.
    - Prefer realistic product/runtime reproduction.
