@@ -377,6 +377,31 @@ Use this phase when the user gives an existing PR and asks to refine, expand, st
 
 4. Expand the target section using this required inner structure unless the user requests another shape:
 
+   - Keep the user-specified target section as the outer heading. If the user asks to refine `## Why it's needed`, do not replace that heading with Step6's four headings. Instead, preserve `## Why it's needed` and nest the four required Step6 subsections inside it.
+   - The four Step6 subsections must be explicit Markdown headings, not merely concepts woven into prose, unless the user explicitly asks for prose-only output.
+   - If the target repository template or existing PR body already mentions one of these concepts elsewhere, still include the four Step6 subsections inside the requested target section when the user asks to Step6-refine that section.
+   - For a `## Why it's needed` refinement, use this nesting shape:
+
+```markdown
+## Why it's needed
+
+### What Problem This Solves
+
+...
+
+### Changes
+
+...
+
+### Evidence
+
+...
+
+### Possible call chain / impact
+
+...
+```
+
 ```markdown
 ## What Problem This Solves
 
@@ -477,7 +502,7 @@ Use this only when the target repository has no PR template. If a project templa
 - Step5 replies to reviewer threads and politely at-mentions human reviewers only after validation reaches a clear state.
 - Step6 identifies the exact first-comment section boundary before editing.
 - Step6 preserves unrelated PR body/template content while expanding only the requested section.
-- Step6 includes `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact` unless the user requests another structure.
+- Step6 includes `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact` as explicit nested headings inside the requested target section unless the user requests another structure.
 - Step6 verifies that every evidence and impact claim is backed by the current PR diff, validation output, or user-provided current evidence.
 - `references/pr-examples.md` was read before drafting or major body revision.
 - The title matches the actual diff.
