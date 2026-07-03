@@ -1,21 +1,22 @@
 ---
 name: pr-writer-vp
-description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, evidence-driven draft PR writing, and explicit submit/update. Use when the user asks to fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, prepare or update a PR draft, align with project PR templates and contribution rules, or submit a PR after explicit confirmation.
+description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, evidence-driven draft PR writing, detailed PR comment section expansion, and explicit submit/update. Use when the user asks to fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, prepare or update a PR draft, expand a specified section in the first PR comment, align with project PR templates and contribution rules, or submit a PR after explicit confirmation.
 ---
 
 # PR Writer
 
-Use this skill for external open-source PR work. The workflow has five phases:
+Use this skill for external open-source PR work. The workflow has six phases:
 
 1. Step1 Fork & Clone
 2. Step2 Find PR Chances
 3. Step3 Make A Draft
 4. Step4 Submit/Update
 5. Step5 Address Reviewer Feedback
+6. Step6 Refine PR Comment Section
 
 ## Non-Negotiables
 
-- Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2, Step3, and Step5 when the repository is large, the task is ambiguous, or reviewer feedback touches behavior-sensitive code.
+- Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2, Step3, Step5, and Step6 when the repository is large, the task is ambiguous, reviewer feedback touches behavior-sensitive code, or a PR comment section needs stronger evidence.
 - Treat submission as dry-run by default. Do not commit, push, create, mark ready, or update a PR unless the user explicitly asks for that action.
 - Do not modify `references/` files as part of ordinary PR workflow.
 - Default clone path is `D:\ZXY\Github\<repo-name>` on this Windows machine unless the user gives another path.
@@ -36,8 +37,8 @@ At the start of every skill run:
 
 Mechanical gate:
 
-- Before taking phase-specific actions in Step1, Step2, Step3, Step4, or Step5, at least two independent agents must have been successfully started for that phase or for the overall skill run.
-- Before completing Step2, Step3, Step4, or Step5, collect outputs from at least two agents and reconcile them in the main thread.
+- Before taking phase-specific actions in Step1, Step2, Step3, Step4, Step5, or Step6, at least two independent agents must have been successfully started for that phase or for the overall skill run.
+- Before completing Step2, Step3, Step4, Step5, or Step6, collect outputs from at least two agents and reconcile them in the main thread.
 - If two agents cannot be started or cannot return useful output, pause the phase, tell the user the exact blocker, and ask whether to continue with a degraded single-agent pass.
 - Do not describe ordinary sequential self-review as "multi-agent" work.
 
@@ -49,6 +50,7 @@ Recommended agent roles:
 - Diff/body agent: actual diff review, PR-body claim audit, validation gap check.
 - Reviewer-feedback agent: all review threads, requested changes, maintainer intent, comment-to-diff traceability, and reply wording.
 - CI agent: repository CI workflow discovery, local full-CI command selection, remote check monitoring, and failure triage.
+- Comment-section agent: expands a user-specified section of the first PR comment with concrete problem framing, narrow changes, reproducible evidence, and call-chain impact while preserving the surrounding PR body.
 
 ### Mandatory Patch-Generation Review Lenses
 
@@ -350,6 +352,78 @@ Use this phase when the user gives an existing PR link and asks to address revie
    - Include PR URL, branch, latest commit, review threads replied to, PR body changes, local CI commands and outcomes, remote CI status, reviewer(s) mentioned, and remaining review risks.
    - If the phase was degraded because subagents, credentials, full CI, or remote checks were unavailable, state that clearly and explain the best next action.
 
+## Step6 Refine PR Comment Section
+
+Use this phase when the user gives an existing PR and asks to refine, expand, strengthen, polish, or rewrite a specified section of the PR's first/top-level comment. The user may name the section by heading, visible text, screenshot, or description. This phase is for comment prose and evidence packaging; it does not change code unless the user explicitly asks for a patch.
+
+1. Start multi-agent comment-section work. This phase must use multiple agents.
+   - Assign one agent to inspect the current PR first comment/body, repository template, contribution rules, and any required headings or checkboxes.
+   - Assign one agent to inspect the current PR diff, changed files, validation output, screenshots/logs, and claim accuracy.
+   - Add an evidence agent when the requested section concerns path traversal, URL handling, upload handling, validation, parsing, security-adjacent behavior, terminal/TUI output, browser/UI behavior, or any before/after proof.
+   - Require agents to apply the Mandatory PR Evidence Review Lenses before recommending wording.
+   - Merge findings into one replacement section. Do not paste raw agent output unless the user asks.
+
+2. Locate the exact section to refine before writing.
+   - Read the current first PR comment/body with `gh pr view <number> --repo <owner>/<repo> --json body,title,url` or the equivalent available GitHub tooling.
+   - Identify the user-specified section boundaries by heading and neighboring headings.
+   - If the section is ambiguous, ask the user for the exact heading or paste only when no reasonable section boundary can be inferred.
+   - Preserve all unrelated sections, issue-link language, checklist items, screenshots, warning callouts, and required template text.
+
+3. Read the PR context and evidence before editing prose.
+   - Inspect the current PR diff and changed files enough to make every claim traceable.
+   - Read validation commands, CI results, reproduction scripts, screenshots, videos, logs, or uploaded images that the user wants included.
+   - If the user provides screenshots as few-shot examples, use them as style and structure references, not as evidence for the current PR unless they are from the current PR.
+   - Do not invent screenshots, command output, paths, CVEs, CWEs, security labels, affected users, or exploitability claims.
+
+4. Expand the target section using this required inner structure unless the user requests another shape:
+
+```markdown
+## What Problem This Solves
+
+<Explain the concrete bug first. Name the failing function, route, endpoint, parser, helper, or path.>
+<Show the dangerous expression, missing guard, malformed input, bad fallback, or protocol mismatch.>
+<Explain why the input is attacker-controlled, user-controlled, provider-controlled, or realistically triggerable.>
+<For security-adjacent issues, state the control point and practical boundary impact without overstating exploitation.>
+
+## Changes
+
+<Describe the narrow fix in 1-3 short paragraphs or bullets.>
+<Mention intentionally unchanged behavior, nearby flows, auth, parsing, indexing, installation, or validation paths when relevant.>
+
+## Evidence
+
+<Show a concrete payload, reproduction, before/after path, console output, test, screenshot, log, or focused command.>
+<Prefer before/after evidence: old vulnerable/failing construction, fixed construction, and the verdict.>
+<For path/upload issues, include both POSIX-style and Windows-style separator payloads when applicable.>
+<For validation/API/parser issues, include the exact request or malformed value and the resulting status/error behavior.>
+
+## Possible call chain / impact
+
+<Trace from user action/API/CLI to route/component/helper to the faulty branch or expression.>
+<State what this PR changes and what it does not change.>
+<List sibling surfaces checked or explain why sibling surfaces are not affected.>
+```
+
+5. Follow the section style shown by the few-shot examples.
+   - Start with a one-sentence summary when the surrounding PR comment section needs it.
+   - Use crisp headings: `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact`.
+   - Use fenced code blocks for payloads, path constructions, request traces, and call chains.
+   - For path traversal or upload filename issues, explain raw user-controlled filename construction, payloads such as `../../../evil.zip` and `..\\..\\..\\evil.zip`, before/after resolved paths, basename normalization, fallback filename behavior, and unaffected parsing/auth/install behavior.
+   - For screenshots, include them only if they already exist in the PR comment/body or the user supplied current evidence to upload/reference; otherwise describe the console evidence textually.
+   - Keep security language proportionate: "path traversal risk", "can resolve outside the intended directory", or "weakens the path boundary" are usually safer than broad compromise claims unless the evidence proves more.
+
+6. Update or draft the PR first comment carefully.
+   - If the user asked to update the live PR, replace only the specified section in the first comment/body and preserve everything else.
+   - If the user asked for a draft only, output the replacement section and clearly label it as not yet applied.
+   - If the requested section already contains useful evidence, retain it unless it is stale, false, duplicated, or contradicted by the current diff.
+   - Remove stale validation claims, old branch names, deleted files, outdated screenshots, or claims no longer supported by the PR.
+
+7. Validate the comment update.
+   - Re-read the updated first PR comment/body after editing.
+   - Verify the required four inner headings are present in the target section.
+   - Verify every code path, filename, payload, command, screenshot, and validation claim is supported by the current PR diff or provided evidence.
+   - Report the PR URL, updated section heading, whether the live PR comment was changed, evidence included, and any limitations.
+
 ## Default Body Shape
 
 Use this only when the target repository has no PR template. If a project template exists, it is the outer shell.
@@ -401,6 +475,10 @@ Use this only when the target repository has no PR template. If a project templa
 - Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
 - Step5 runs full local CI when feasible, then monitors remote CI after push.
 - Step5 replies to reviewer threads and politely at-mentions human reviewers only after validation reaches a clear state.
+- Step6 identifies the exact first-comment section boundary before editing.
+- Step6 preserves unrelated PR body/template content while expanding only the requested section.
+- Step6 includes `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact` unless the user requests another structure.
+- Step6 verifies that every evidence and impact claim is backed by the current PR diff, validation output, or user-provided current evidence.
 - `references/pr-examples.md` was read before drafting or major body revision.
 - The title matches the actual diff.
 - The body follows target contribution and PR submission rules.
