@@ -110,7 +110,9 @@ def compact_repo_display(full_name: str) -> str:
         "transformers": "Hugging Face Transformers",
         "qwen-code": "Qwen Code",
         "github-mcp-server": "GitHub MCP Server",
-        "microsoft-agent-framework": "Microsoft Agent Framework",
+        "agent-framework": "microsof-agent-framework",
+        "agents": "livekit-agents",
+        "microsoft-agent-framework": "microsof-agent-framework",
         "litellm": "LiteLLM",
     }
     return special.get(name.lower(), name.replace("-", " ").replace("_", " ").title())
