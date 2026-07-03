@@ -1,4 +1,4 @@
-name: profile-readme-github-vp
+﻿name: profile-readme-github-vp
 
 on:
   pull_request:
@@ -68,7 +68,7 @@ jobs:
               "display": "PyTorch",
               "url": "https://github.com/pytorch/pytorch",
               "count": 1,
-              "stars": 93400,
+              "stars": 101294,
           }]
           rows = module.upstream_pr_rows(qualified, stars)
           assert rows[0]["repo_display"] == "PyTorch"
@@ -110,7 +110,7 @@ jobs:
                   "repo_display": "PyTorch",
                   "area": "AI infrastructure / model systems",
                   "repo_url": "https://github.com/pytorch/pytorch",
-                  "repo_stars": 93400,
+                  "repo_stars": 101294,
                   "number": 188830,
                   "title": "Fix test name detection for Git-style paths",
                   "url": "https://github.com/pytorch/pytorch/pull/188830",

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """Collect GitHub profile facts for profile-readme-github-vp.
 
 Requires GitHub CLI (`gh`) authenticated with access to public search.
@@ -23,7 +23,7 @@ LANDED_MERGED_PR_OVERRIDES: list[dict[str, Any]] = [
         "title": "Fix test name detection for Git-style paths",
         "state": "closed",
         "landed_status": "closed_but_landed",
-        "repo_stars": 93400,
+        "repo_stars": 101294,
         "evidence": [
             "PR has PyTorch's Merged label",
             "Associated issue is closed",
