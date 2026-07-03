@@ -11,6 +11,8 @@ Generate VectorPeak's personal GitHub profile `README.md` from GitHub facts plus
 
 Both project tables sort by `Area` alphabetically, then repository stars descending within the same area. Contribution tables still sort by upstream repository stars descending.
 
+For contribution statistics, treat explicitly verified closed-but-landed upstream PRs as merged upstream PRs. The current special case is `pytorch/pytorch#188830`: GitHub's native PR state is closed rather than `merged`, but the patch is accepted into PyTorch `main`, the PR carries PyTorch's `Merged` label, and the associated issue is closed. Count it in both the PyTorch project-level merged PR count and the total merged PR count.
+
 ## Workflow
 
 1. Confirm the target profile repository is `VectorPeak/VectorPeak`.
@@ -46,7 +48,7 @@ Generate content in this order:
    `AI Programmer | BS CS @ Xidian University | 2x CCF-C`
 4. Chinese summary bullets:
    - upstream PR bullet, only when contribution records exist:
-     `- {{N}}+ 个 merged upstream PR，覆盖 {{top repos...}}。`
+     `- {{N}}+ 个 merged upstream PR，覆盖 {{all upstream repos...}}。`
    - public project bullet:
      `- {{N}} 个公开项目，代表项目包括 {{top projects...}}。`
 5. `### 项目`
@@ -58,7 +60,7 @@ Generate content in this order:
 10. Identity line
 11. English summary bullets:
    - upstream PR bullet, only when contribution records exist:
-     `- {{N}}+ merged upstream PRs, including fixes in {{top repos...}}.`
+     `- {{N}}+ merged upstream PRs, including fixes in {{all upstream repos...}}.`
    - public project bullet:
      `- {{N}} public projects, led by {{top projects...}}.`
 12. `### Projects`
@@ -101,6 +103,9 @@ Generate content in this order:
 - Count all contribution rows for the merged upstream PR summary.
 - Only count upstream PRs whose target repository has at least 500 stars by default.
 - If `merged_pr_count` is provided, use it for the summary count instead of the visible table row count.
+- The upstream PR summary must list every upstream project represented by the collected or curated contribution data after filtering, not only the first N projects.
+- Count explicitly verified closed-but-landed overrides as merged upstream PRs. Do not infer this status from arbitrary closed PRs; only use explicit overrides with evidence.
+- `pytorch/pytorch#188830` is an explicit override and must be counted as a merged upstream PR for both total and per-project counts.
 - If `public_project_count` and `public_repos` are provided, use them for the public project summary instead of the curated table row count.
 - If there are no contribution rows, omit the merged upstream PR line and the entire `Open Source Contributions` section.
 - If all upstream PRs are below the minimum star threshold, omit the merged upstream PR line and the entire `Open Source Contributions` section.
@@ -115,6 +120,8 @@ Generate content in this order:
 | Sorting project rows by input order | Sort by stars descending |
 | Mixing projects made by others into `Projects` | Keep only VectorPeak-owned/maintained projects |
 | Mixing non-authored PRs into contributions | Keep only VectorPeak-authored merged upstream PRs |
+| Dropping PyTorch because the PR is closed rather than GitHub-native merged | Count only the explicit `pytorch/pytorch#188830` closed-but-landed override as merged |
+| Showing only a sample of upstream projects in the summary | List every upstream project represented by qualifying contribution data |
 | Mixing contribution and project area labels | Use separate allowed taxonomies |
 | Making the README a long essay | Let tables carry the detail |
 | Putting English first | Keep Chinese first, then English |
@@ -130,4 +137,4 @@ Generate content in this order:
 - Prefer markdown tables first. Switch to HTML tables only if GitHub wrapping becomes too cramped.
 ## Sync Rule
 
-????? skill ???????????? `VectorPeak/vectorpeak-agent-skills`?????????????
+When changing this skill's contribution-counting, upstream-project display, or README-generation rules, update `VectorPeak/vectorpeak-agent-skills` as the source of truth and keep the repository GitHub Actions validation in sync. Do not only patch the installed skill cache.

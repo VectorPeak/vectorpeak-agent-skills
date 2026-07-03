@@ -218,7 +218,7 @@ def contribution_summary_from_data(data: dict[str, Any], contributions: list[dic
                 str(repo.get("display") or repo.get("name") or repo).lower(),
             ),
         )
-        names = [str(repo.get("display") or repo.get("name") or repo) for repo in ordered_repos[:limit]]
+        names = [str(repo.get("display") or repo.get("name") or repo) for repo in ordered_repos]
     else:
         counts = Counter(str(item["project"]) for item in contributions)
         repo_stars: dict[str, int] = defaultdict(int)
@@ -226,13 +226,13 @@ def contribution_summary_from_data(data: dict[str, Any], contributions: list[dic
             project = str(item["project"])
             repo_stars[project] = max(repo_stars[project], number(item.get("stars")))
         ordered = sorted(counts, key=lambda project: (-repo_stars[project], -counts[project], project.lower()))
-        names = ordered[:limit]
+        names = ordered
 
     count = number(merged_count) if merged_count is not None else len(contributions)
     joined = ", ".join(names)
     if lang == "zh":
-        return f"{count}+ 个 merged upstream PR，覆盖 {joined}。"
-    return f"{count}+ merged upstream PRs, including fixes in {joined}."
+        return f"{count}+ 个 merged upstream PR，覆盖 {joined}。" if joined else f"{count}+ 个 merged upstream PR。"
+    return f"{count}+ merged upstream PRs, including fixes in {joined}." if joined else f"{count}+ merged upstream PRs."
 
 
 def project_summary(projects: list[dict[str, Any]], limit: int, data: dict[str, Any], lang: str) -> str:

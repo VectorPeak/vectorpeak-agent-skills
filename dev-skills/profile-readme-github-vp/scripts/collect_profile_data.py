@@ -14,6 +14,24 @@ from pathlib import Path
 from typing import Any
 
 
+LANDED_MERGED_PR_OVERRIDES: list[dict[str, Any]] = [
+    {
+        "author": "VectorPeak",
+        "repository_url": "https://api.github.com/repos/pytorch/pytorch",
+        "html_url": "https://github.com/pytorch/pytorch/pull/188830",
+        "number": 188830,
+        "title": "Fix Windows/Git path normalization in CI test target determination",
+        "state": "closed",
+        "landed_status": "closed_but_landed",
+        "evidence": [
+            "PR has PyTorch's Merged label",
+            "Associated issue is closed",
+            "Patch exists on pytorch/pytorch main",
+        ],
+    },
+]
+
+
 def gh_json(args: list[str]) -> Any:
     output = subprocess.check_output(["gh", *args], encoding="utf-8")
     return json.loads(output)
@@ -82,6 +100,11 @@ def repo_name_from_api_url(url: str) -> str:
 def compact_repo_display(full_name: str) -> str:
     owner, _, name = full_name.partition("/")
     special = {
+        "agentscope": "AgentScope",
+        "astrbot": "AstrBot",
+        "lightrag": "LightRAG",
+        "openclaw": "Openclaw",
+        "pytorch": "PyTorch",
         "vllm": "vLLM",
         "transformers": "Hugging Face Transformers",
         "qwen-code": "Qwen Code",
@@ -100,6 +123,26 @@ def repo_stars(full_name: str) -> int:
         return 0
 
 
+def merged_pr_key(item: dict[str, Any]) -> tuple[str, int]:
+    repo = repo_name_from_api_url(item.get("repository_url", "")).lower()
+    return repo, int(item.get("number", 0))
+
+
+def merge_landed_overrides(owner: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    merged = list(items)
+    seen = {merged_pr_key(item) for item in merged}
+    for override in LANDED_MERGED_PR_OVERRIDES:
+        if str(override.get("author", "")).lower() != owner.lower():
+            continue
+        item = {key: value for key, value in override.items() if key != "author"}
+        key = merged_pr_key(item)
+        if key in seen:
+            continue
+        merged.append(item)
+        seen.add(key)
+    return merged
+
+
 def qualified_pr_items(items: list[dict[str, Any]], min_stars: int) -> tuple[list[dict[str, Any]], dict[str, int]]:
     stars: dict[str, int] = {}
     qualified = []
@@ -112,21 +155,21 @@ def qualified_pr_items(items: list[dict[str, Any]], min_stars: int) -> tuple[lis
     return qualified, stars
 
 
-def upstream_repos_from_prs(items: list[dict[str, Any]], limit: int, stars: dict[str, int]) -> list[dict[str, Any]]:
+def upstream_repos_from_prs(items: list[dict[str, Any]], stars: dict[str, int]) -> list[dict[str, Any]]:
     counts = Counter()
     urls: dict[str, str] = {}
     for item in items:
         repo = repo_name_from_api_url(item.get("repository_url", ""))
         counts[repo] += 1
         urls[repo] = "https://github.com/" + repo
-    ordered = sorted(counts, key=lambda repo: (-stars[repo], -counts[repo], repo.lower()))[:limit]
+    ordered = sorted(counts, key=lambda repo: (-stars.get(repo, 0), -counts[repo], repo.lower()))
     return [
         {
             "name": repo,
             "display": compact_repo_display(repo),
             "url": urls[repo],
             "count": counts[repo],
-            "stars": stars[repo],
+            "stars": stars.get(repo, 0),
         }
         for repo in ordered
     ]
@@ -144,6 +187,7 @@ def main() -> int:
     excluded_names = {args.owner.lower(), *(name.lower() for name in args.exclude_repo)}
     repos = repo_list(args.owner, excluded_names)
     pr_count, pr_items = search_merged_prs(args.owner)
+    pr_items = merge_landed_overrides(args.owner, pr_items)
     qualified_prs, upstream_stars = qualified_pr_items(pr_items, args.min_upstream_stars)
 
     facts = {
@@ -152,7 +196,7 @@ def main() -> int:
         "public_repos": sorted(repos, key=lambda repo: (-int(repo["stars"]), repo["name"].lower())),
         "merged_pr_count": len(qualified_prs),
         "min_upstream_repo_stars": args.min_upstream_stars,
-        "upstream_repos": upstream_repos_from_prs(qualified_prs, args.summary_limit, upstream_stars),
+        "upstream_repos": upstream_repos_from_prs(qualified_prs, upstream_stars),
     }
 
     args.out.write_text(json.dumps(facts, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
