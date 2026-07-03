@@ -68,6 +68,7 @@ daily work  ->  repeatable workflow  ->  SKILL.md  ->  reusable agent capability
 
 - [`daily-notes-vp`](knowledge-skills/daily-notes-vp/)：把个人学习中的短期目标、疑问、代码记录、概念和踩坑经验轻量追加到 `E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes`，10 天一个文件，按 Goal / Question / Code / Concept / Pitfall 组织。
 - [`image-to-md-vp`](knowledge-skills/image-to-md-vp/)：把多轮输入的截图或图片 OCR 成指定路径下的 Markdown 文件，保留标题层级、表格、公式、emoji 和原始结构。
+- [`xquik-research-vp`](knowledge-skills/xquik-research-vp/)：把 Xquik REST API 的 X/Twitter 数据整理成研究笔记、结构化摘要、对比表或仪表盘行。
 
 ### `job-skills/`
 

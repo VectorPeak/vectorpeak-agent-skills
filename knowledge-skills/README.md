@@ -56,6 +56,7 @@ knowledge-skills/
 ├── zhihu-clippings-vp/     # 知乎文章定位、正文补全、公式图片表格保留与 Obsidian Markdown 剪藏
 ├── wechat-clippings-vp/    # 微信公众号文章定位、TikHub 正文抓取、页面噪声清理与 Markdown 剪藏
 ├── tech-article-rewriter-vp/ # URL/截图语料采集、技术文章深度重写、模板化 Markdown 草稿生成与迭代
+├── xquik-research-vp/      # Xquik REST API 的 X/Twitter 数据研究、结构化摘要与表格整理
 └── README.md            # 知识类技能目录说明
 ```
 
@@ -92,6 +93,10 @@ knowledge-skills/
 ### [`tech-article-rewriter-vp/`](tech-article-rewriter-vp/)
 
 用于技术文章深度重写：从 URL、截图、OCR 或现成语料出发，先获取并缓存可信全文，再提取事实、观点、代码和坑点，重建文章逻辑，按 Markdown 模板生成专业标题、轻松正文、逻辑清晰且带参考资料的技术博客草稿
+
+### [`xquik-research-vp/`](xquik-research-vp/)
+
+用于 Xquik REST API 数据研究：围绕推文搜索、资料查询、时间线、趋势、社区或监控输出，规范化 ID、时间戳和捕获时间，把 X/Twitter 数据整理成研究笔记、结构化摘要、对比表或仪表盘行
 
 ## 适合沉淀的技能
 
