@@ -50,7 +50,7 @@ Generate content in this order:
    - upstream PR bullet, only when contribution records exist:
      `- {{N}}+ 个 merged upstream PR，覆盖 {{all upstream repos...}}。`
    - public project bullet:
-     `- {{N}} 个公开项目，代表项目包括 {{top projects...}}。`
+     `- {{N}} 个公开项目，代表项目包括 {{top 5 projects by stars...}}。`
 5. `### 项目`
 6. Chinese section project table uses English headers and English Area labels: `Area | Project | Stars | Notes`
 7. `### 开源贡献`, only when contribution records exist
@@ -62,7 +62,7 @@ Generate content in this order:
    - upstream PR bullet, only when contribution records exist:
      `- {{N}}+ merged upstream PRs, including fixes in {{all upstream repos...}}.`
    - public project bullet:
-     `- {{N}} public projects, led by {{top projects...}}.`
+     `- {{N}} public projects, led by {{top 5 projects by stars...}}.`
 12. `### Projects`
 13. English project table: `Area | Project | Stars | Notes`
 14. `### Open Source Contributions`, only when contribution records exist

@@ -1,7 +1,7 @@
 {
   "identity": "AI Programmer | BS CS @ Xidian University | 2x CCF-C",
   "contribution_summary_limit": 12,
-  "project_summary_limit": 12,
+  "project_summary_limit": 5,
   "min_upstream_repo_stars": 500,
   "auto_include_public_repos": true,
   "excluded_projects": [

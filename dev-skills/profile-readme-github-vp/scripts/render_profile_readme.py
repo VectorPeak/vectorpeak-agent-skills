@@ -365,7 +365,7 @@ def render_section(
 ) -> None:
     identity = data.get("identity", "AI Programmer | BS CS @ Xidian University | 2x CCF-C")
     contribution_limit = int(data.get("contribution_summary_limit", 12))
-    project_limit = int(data.get("project_summary_limit", 12))
+    project_limit = int(data.get("project_summary_limit", 5))
     heading = data.get("zh_heading" if lang == "zh" else "en_heading")
     heading = heading or "## Hey, I'm VectorPeak 👋"
 
