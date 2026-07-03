@@ -117,10 +117,23 @@ def contribution_project_link(item: dict[str, Any]) -> str:
 
 
 def contribution_pr_link(item: dict[str, Any]) -> str:
-    pr = str(item["pr"])
+    pr = str(item.get("pr") or item.get("number"))
     label = pr if pr.startswith("#") else f"#{pr}"
-    url = item.get("pr_url")
+    url = item.get("pr_url") or item.get("url")
     return f"[{label}]({url})" if url else label
+
+
+def normalize_contribution_row(item: dict[str, Any]) -> dict[str, Any]:
+    if "project" in item:
+        return dict(item)
+    row = dict(item)
+    row["project"] = row.get("repo_display") or row.get("repo") or ""
+    row["stars"] = row.get("repo_stars", 0)
+    row["pr"] = row.get("number")
+    row["pr_url"] = row.get("url")
+    row["repo_url"] = row.get("repo_url")
+    row["fixed"] = row.get("title") or ""
+    return row
 
 
 def sorted_projects(projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -260,7 +273,10 @@ def validate_projects(projects: list[dict[str, Any]]) -> None:
 def validate_contributions(contributions: list[dict[str, Any]]) -> None:
     allowed = set(CONTRIBUTION_AREAS)
     for item in contributions:
-        missing = [key for key in ("area", "project", "stars", "pr", "fixed") if key not in item]
+        if "project" in item:
+            missing = [key for key in ("area", "project", "stars", "pr", "fixed") if key not in item]
+        else:
+            missing = [key for key in ("area", "repo_display", "repo_stars", "number", "title", "url") if key not in item]
         if missing:
             raise ValueError(f"Contribution {item!r} missing required fields: {', '.join(missing)}")
         area = str(item["area"])
@@ -322,13 +338,14 @@ def render_contributions(lines: list[str], contributions: list[dict[str, Any]], 
         ])
         for item in sorted_contributions(items):
             fixed = item.get("zh_fixed") if lang == "zh" else item.get("en_fixed")
+            fixed = fixed or item.get("fixed") or item.get("title") or ""
             lines.append(
                 "| "
                 + " | ".join(
                     [
                         contribution_project_link(item),
                         contribution_pr_link(item),
-                        md_escape(fixed or item["fixed"]),
+                        md_escape(fixed),
                     ]
                 )
                 + " |"
@@ -379,9 +396,9 @@ def render(data: dict[str, Any]) -> str:
     projects = enrich_projects(data)
     min_upstream_stars = number(data.get("min_upstream_repo_stars", 500))
     contributions = [
-        contribution
-        for contribution in list(data.get("contributions", []))
-        if number(contribution.get("stars")) >= min_upstream_stars
+        normalize_contribution_row(contribution)
+        for contribution in list(data.get("contributions", [])) + list(data.get("upstream_prs", []))
+        if number(contribution.get("stars") or contribution.get("repo_stars")) >= min_upstream_stars
     ]
     validate_projects(projects)
     validate_contributions(contributions)

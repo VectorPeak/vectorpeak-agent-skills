@@ -20,9 +20,10 @@ LANDED_MERGED_PR_OVERRIDES: list[dict[str, Any]] = [
         "repository_url": "https://api.github.com/repos/pytorch/pytorch",
         "html_url": "https://github.com/pytorch/pytorch/pull/188830",
         "number": 188830,
-        "title": "Fix Windows/Git path normalization in CI test target determination",
+        "title": "Fix test name detection for Git-style paths",
         "state": "closed",
         "landed_status": "closed_but_landed",
+        "repo_stars": 93400,
         "evidence": [
             "PR has PyTorch's Merged label",
             "Associated issue is closed",
@@ -134,7 +135,7 @@ def merge_landed_overrides(owner: str, items: list[dict[str, Any]]) -> list[dict
     for override in LANDED_MERGED_PR_OVERRIDES:
         if str(override.get("author", "")).lower() != owner.lower():
             continue
-        item = {key: value for key, value in override.items() if key != "author"}
+        item = {key: value for key, value in override.items() if key not in {"author", "repo_stars", "evidence"}}
         key = merged_pr_key(item)
         if key in seen:
             continue
@@ -143,13 +144,22 @@ def merge_landed_overrides(owner: str, items: list[dict[str, Any]]) -> list[dict
     return merged
 
 
+def override_repo_stars(item: dict[str, Any]) -> int | None:
+    key = merged_pr_key(item)
+    for override in LANDED_MERGED_PR_OVERRIDES:
+        if key == merged_pr_key(override):
+            stars = override.get("repo_stars")
+            return int(stars) if stars is not None else None
+    return None
+
+
 def qualified_pr_items(items: list[dict[str, Any]], min_stars: int) -> tuple[list[dict[str, Any]], dict[str, int]]:
     stars: dict[str, int] = {}
     qualified = []
     for item in items:
         repo = repo_name_from_api_url(item.get("repository_url", ""))
         if repo not in stars:
-            stars[repo] = repo_stars(repo)
+            stars[repo] = override_repo_stars(item) or repo_stars(repo)
         if stars[repo] >= min_stars:
             qualified.append(item)
     return qualified, stars
@@ -175,6 +185,47 @@ def upstream_repos_from_prs(items: list[dict[str, Any]], stars: dict[str, int]) 
     ]
 
 
+def upstream_pr_rows(items: list[dict[str, Any]], stars: dict[str, int]) -> list[dict[str, Any]]:
+    rows = []
+    for item in items:
+        repo = repo_name_from_api_url(item.get("repository_url", ""))
+        rows.append(
+            {
+                "repo": repo,
+                "repo_display": compact_repo_display(repo),
+                "repo_display_en": compact_repo_display(repo),
+                "repo_display_zh": compact_repo_display(repo),
+                "area": contribution_area(repo),
+                "repo_url": "https://github.com/" + repo,
+                "repo_stars": stars.get(repo, 0),
+                "number": item.get("number"),
+                "title": item.get("title") or "",
+                "url": item.get("html_url"),
+            }
+        )
+    return sorted(
+        rows,
+        key=lambda item: (
+            -int(item.get("repo_stars") or 0),
+            str(item.get("repo") or "").lower(),
+            -int(item.get("number") or 0),
+        ),
+    )
+
+
+def contribution_area(full_name: str) -> str:
+    name = full_name.rsplit("/", 1)[-1].lower()
+    if name in {"pytorch", "vllm", "mooncake", "litellm", "sglang", "transformers"}:
+        return "AI infrastructure / model systems"
+    if name in {"openclaw", "agentscope", "qwen-code", "hivemind", "github-mcp-server", "microsoft-agent-framework"}:
+        return "Agent frameworks / protocols / evals"
+    if name in {"astrbot", "dify", "ragflow", "lightrag", "langchain"}:
+        return "Applied AI / RAG / observability"
+    if "recommender" in name or "recbole" in name:
+        return "Recommender systems"
+    return "Applied AI / RAG / observability"
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Collect GitHub profile README facts.")
     parser.add_argument("--owner", default="VectorPeak", help="GitHub username or organization.")
@@ -197,6 +248,7 @@ def main() -> int:
         "merged_pr_count": len(qualified_prs),
         "min_upstream_repo_stars": args.min_upstream_stars,
         "upstream_repos": upstream_repos_from_prs(qualified_prs, upstream_stars),
+        "upstream_prs": upstream_pr_rows(qualified_prs, upstream_stars),
     }
 
     args.out.write_text(json.dumps(facts, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
