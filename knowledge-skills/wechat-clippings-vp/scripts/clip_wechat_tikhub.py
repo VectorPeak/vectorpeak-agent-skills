@@ -34,11 +34,33 @@ TIKHUB_BASE_URL = "https://api.tikhub.io"
 DEFAULT_ACCOUNT_SEARCH_PATH = "/api/v1/wechat_mp/web/fetch_search_official_account"
 DEFAULT_ARTICLE_SEARCH_PATH = "/api/v1/wechat_mp/web/fetch_search_article"
 DEFAULT_ARTICLE_LIST_PATH = "/api/v1/wechat_mp/web/fetch_mp_article_list"
-DEFAULT_ARTICLE_DETAIL_PATHS = (
-    "/api/v1/wechat_mp/web/fetch_mp_article_detail_html",
-    "/api/v1/wechat_mp/web/fetch_mp_article_detail_json",
-)
+DEFAULT_ARTICLE_DETAIL_PATHS = ("/api/v1/wechat_mp/v2/fetch_article_detail",)
 CHINESE_NUMERALS = "零一二三四五六七八九十"
+
+
+MOJIBAKE_MARKERS = ("Ã", "Â", "å", "æ", "ç", "è", "é", "ä", "ï¼", "ã", "â")
+
+
+def fix_tikhub_mojibake_text(value: str) -> str:
+    if not isinstance(value, str) or not any(marker in value for marker in MOJIBAKE_MARKERS):
+        return value
+    try:
+        fixed = value.encode("latin-1").decode("utf-8")
+    except (UnicodeEncodeError, UnicodeDecodeError):
+        return value
+    fixed_score = sum("\u4e00" <= char <= "\u9fff" for char in fixed)
+    original_score = sum("\u4e00" <= char <= "\u9fff" for char in value)
+    return fixed if fixed_score > original_score else value
+
+
+def fix_tikhub_mojibake(value: Any) -> Any:
+    if isinstance(value, str):
+        return fix_tikhub_mojibake_text(value)
+    if isinstance(value, list):
+        return [fix_tikhub_mojibake(item) for item in value]
+    if isinstance(value, dict):
+        return {key: fix_tikhub_mojibake(item) for key, item in value.items()}
+    return value
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -614,21 +636,26 @@ def detail_params(article: Article) -> dict[str, str]:
 def tikhub_get(args: argparse.Namespace, key: str, path: str, params: dict[str, Any], cache_dir: Path) -> dict[str, Any]:
     url = args.base_url.rstrip("/") + "/" + path.lstrip("/")
     clean_params = {k: v for k, v in params.items() if v not in (None, "")}
-    full_url = url + ("?" + urlencode(clean_params) if clean_params else "")
+    is_v2_article_detail = path.rstrip("/") == "/api/v1/wechat_mp/v2/fetch_article_detail"
+    full_url = url if is_v2_article_detail else url + ("?" + urlencode(clean_params) if clean_params else "")
     headers = {
         "Authorization": f"Bearer {key}",
         "Accept": "application/json",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
         "(KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
     }
+    body: bytes | None = None
+    if is_v2_article_detail:
+        headers["Content-Type"] = "application/json"
+        body = json.dumps({"url": clean_params.get("url") or clean_params.get("article_url"), "raw": False}).encode("utf-8")
     last_error: Exception | None = None
     search_path = path in {args.account_search_path, args.article_search_path}
     for attempt in range(1, args.retry + 1):
         try:
-            request = Request(full_url, headers=headers)
-            with urlopen(request, timeout=90) as response:
+            request = Request(full_url, data=body, headers=headers, method="POST" if body is not None else "GET")
+            with urlopen(request, timeout=180 if is_v2_article_detail else 90) as response:
                 raw = response.read().decode("utf-8", errors="replace")
-            data = json.loads(raw)
+            data = fix_tikhub_mojibake(json.loads(raw))
             cache_response(cache_dir, path, clean_params, data)
             return data
         except HTTPError as exc:
@@ -679,12 +706,18 @@ def extract_articles(data: Any, default_author: str | None, source_api: str) -> 
 
 def extract_detail(data: Any, fallback: Article) -> Article:
     best: dict[str, Any] = {}
-    for item in iter_dicts(data):
-        if any(key in item for key in ("content", "html", "article_content", "content_html", "title")):
-            best = item
-            break
+    payload = data.get("data") if isinstance(data, dict) else None
+    if isinstance(payload, dict) and isinstance(payload.get("content"), dict):
+        best = dict(payload["content"])
+        if payload.get("url") and not best.get("url"):
+            best["url"] = payload.get("url")
+    if not best:
+        for item in iter_dicts(data):
+            if any(key in item for key in ("content", "content_noencode", "html", "article_content", "content_html", "title")):
+                best = item
+                break
     title = clean_inline(first_str(best, ["title", "appmsg_title", "name"]) or fallback.title or "????????")
-    author = clean_inline(first_str(best, ["author", "nickname", "account_name", "username", "source"]) or fallback.author or "?????")
+    author = clean_inline(first_str(best, ["author", "nickname", "nick_name", "account_name", "username", "user_name", "source"]) or fallback.author or "?????")
     url = first_str(best, ["url", "article_url", "link", "content_url", "appmsg_url"]) or fallback.url
     raw_content = select_detail_content(best, fallback.content)
     if looks_like_html(raw_content):
@@ -702,7 +735,7 @@ def extract_detail(data: Any, fallback: Article) -> Article:
         title=title,
         author=author,
         url=url,
-        published=parse_date(first_present(best, ["publish_time", "create_time", "datetime", "date", "time", "send_time"])) or fallback.published,
+        published=parse_date(first_present(best, ["publish_time", "create_time", "ori_create_time", "datetime", "date", "time", "send_time"])) or fallback.published,
         content=content,
         raw=best or fallback.raw,
         source_table_count=count_source_data_tables(raw_content),
@@ -711,7 +744,7 @@ def extract_detail(data: Any, fallback: Article) -> Article:
 
 
 def select_detail_content(item: dict[str, Any], fallback: str = "") -> str:
-    html_keys = ["content_html", "article_content", "html", "source", "Content"]
+    html_keys = ["content_noencode", "content_html", "article_content", "html", "source", "Content"]
     text_keys = ["content", "text", "ori_content"]
     html_candidates = [first_str(item, [key]) for key in html_keys]
     html_candidates = [value for value in html_candidates if looks_like_html(value)]

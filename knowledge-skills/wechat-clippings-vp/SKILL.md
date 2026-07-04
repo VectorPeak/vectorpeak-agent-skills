@@ -20,7 +20,7 @@ Use TikHub-first mode. TikHub is a third-party provider, not an official WeChat 
 3. If no direct URL is present, search the official account with `fetch_search_official_account`, prefer `jumpInfo.userName` values shaped like `gh_...`, then call `fetch_mp_article_list`.
 4. Paginate article lists with `data.offset.Offset` until the requested titles are found, the requested count is satisfied, or `IsEnd == 1`.
 5. For screenshot/OCR batches, prefer account list plus fuzzy title matching. Avoid long-title `fetch_search_article` until account-list discovery fails.
-6. Use article-list records only as candidate metadata. Fetch final full text through article detail; prefer `fetch_mp_article_detail_html`, then fall back to JSON.
+6. Use article-list records only as candidate metadata. Fetch final full text through TikHub v2 article detail: `POST /api/v1/wechat_mp/v2/fetch_article_detail` with JSON `{ "url": "...", "raw": false }`.
 7. Convert the article body from `#js_content` or structured detail fields into Markdown, preserving source URLs, images, tables, formulas, code blocks, and readable text.
 8. Cache raw TikHub responses for QA, but never print or write the API key.
 

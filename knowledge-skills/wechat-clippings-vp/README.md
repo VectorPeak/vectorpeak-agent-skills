@@ -25,7 +25,7 @@
 
 WeChat Clippings 解决的是“把指定公众号文章稳定转成可读、可归档 Markdown”的问题。它不是浏览器抓取，也不是微信官方 API，而是让 Agent 按固定流程完成公众号定位、文章列表匹配、详情正文获取、结构清洗和文件输出
 
-核心策略是 **direct URL first, account-list fallback, HTML-final**：
+核心策略是 **direct URL first, account-list discovery, TikHub v2 detail final**：
 
 - 用户能提供 `mp.weixin.qq.com` 原文链接时，直接走详情接口，最省 TikHub 调用
 - 没有链接时，先定位公众号，优先使用 `jumpInfo.userName` 里的 `gh_...` 作为文章列表 `ghid`
@@ -47,7 +47,7 @@ WeChat Clippings 解决的是“把指定公众号文章稳定转成可读、可
 
 4. **文章列表匹配**：调用 `fetch_mp_article_list`，用 `data.offset.Offset` 翻页，直到找到目标标题或 `data.offset.IsEnd == 1`
 
-5. **正文获取**：对命中的文章 URL 调用 `fetch_mp_article_detail_html`，必要时再尝试 JSON 详情接口
+5. **正文获取**：对命中的文章 URL 调用 `POST /api/v1/wechat_mp/v2/fetch_article_detail`，请求体为 `{ "url": "...", "raw": false }`
 
 6. **Markdown 清洗**：提取 `#js_content` 正文并清理格式噪声
 
@@ -115,7 +115,7 @@ Markdown frontmatter 示例：
 ```yaml
 ---
 title: "微信_AI编程实验室_大模型架构与注意力机制_公众号文章剪藏_2026-05-26_1-4"
-source: "https://api.tikhub.io/api/v1/wechat_mp/web/fetch_mp_article_detail_html"
+source: "https://api.tikhub.io/api/v1/wechat_mp/v2/fetch_article_detail"
 author:
   - "AI编程实验室"
 published: "2026-01-13 - 2026-04-28"

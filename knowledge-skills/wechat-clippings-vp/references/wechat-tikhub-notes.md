@@ -6,14 +6,13 @@ Use this reference only when the main workflow is not enough: API response drift
 
 TikHub is a third-party provider. Do not describe it as an official WeChat API. This skill targets arbitrary public WeChat Official Account articles and differs from WeChat Official Account owner APIs, which are mainly for managing the authenticated account's own materials, drafts, and publishing workflow.
 
-Current default paths use `wechat_mp/web`:
+Current default article-detail path uses TikHub v2; older `wechat_mp/web` detail endpoints returned 404 in July 2026:
 
 - `GET /api/v1/wechat_mp/web/fetch_search_official_account`
 - `GET /api/v1/wechat_mp/web/fetch_official_account_detail`
 - `GET /api/v1/wechat_mp/web/fetch_mp_article_list`
 - `GET /api/v1/wechat_mp/web/fetch_search_article`
-- `GET /api/v1/wechat_mp/web/fetch_mp_article_detail_json`
-- `GET /api/v1/wechat_mp/web/fetch_mp_article_detail_html`
+- `POST /api/v1/wechat_mp/v2/fetch_article_detail` with JSON body `{ "url": "https://mp.weixin.qq.com/s/...", "raw": false }`
 
 Documentation is under:
 
@@ -35,7 +34,7 @@ The 2026-05-26 live run showed this path was most reliable:
 6. The next page token is usually `data.offset.Offset`; stop when `data.offset.IsEnd == 1`.
 7. Match requested articles by exact title or strong OCR/title keywords.
 8. Treat list records as candidate metadata only. Call detail endpoints for final full text.
-9. Prefer HTML detail for normal clipping; JSON detail returned 400 for valid URLs in the live test while HTML returned usable full pages.
+9. Prefer TikHub v2 article detail for normal clipping. It returns parsed `data.content` including `title`, `nick_name`, `author`, `create_time`, `content_noencode`, and `content_text`.
 
 Direct long-title `fetch_search_article` can return 400 even for real articles. Use account-list discovery first for screenshot title batches.
 
