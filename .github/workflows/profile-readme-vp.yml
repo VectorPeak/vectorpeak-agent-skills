@@ -1,0 +1,122 @@
+﻿name: profile-readme-vp
+
+on:
+  pull_request:
+    paths:
+      - "dev-skills/profile-readme-vp/**"
+      - ".github/workflows/profile-readme-vp.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "dev-skills/profile-readme-vp/**"
+      - ".github/workflows/profile-readme-vp.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Compile profile README scripts
+        run: |
+          python -m py_compile \
+            dev-skills/profile-readme-vp/scripts/collect_profile_data.py \
+            dev-skills/profile-readme-vp/scripts/render_profile_readme.py
+
+      - name: Render sample profile README
+        run: |
+          python dev-skills/profile-readme-vp/scripts/render_profile_readme.py \
+            --data dev-skills/profile-readme-vp/examples/profile-data.sample.json \
+            --out "$RUNNER_TEMP/profile-readme.md"
+          test -s "$RUNNER_TEMP/profile-readme.md"
+
+      - name: Validate landed PR override rules
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          path = Path("dev-skills/profile-readme-vp/scripts/collect_profile_data.py")
+          spec = importlib.util.spec_from_file_location("collect_profile_data", path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(module)
+
+          items = module.merge_landed_overrides("VectorPeak", [])
+          assert len(items) == 1
+          assert items[0]["number"] == 188830
+          assert module.repo_name_from_api_url(items[0]["repository_url"]) == "pytorch/pytorch"
+
+          duplicated = module.merge_landed_overrides("VectorPeak", [items[0]])
+          assert len(duplicated) == 1
+
+          qualified, stars = module.qualified_pr_items(items, min_stars=500)
+          upstream = module.upstream_repos_from_prs(qualified, stars)
+          assert upstream == [{
+              "name": "pytorch/pytorch",
+              "display": "PyTorch",
+              "url": "https://github.com/pytorch/pytorch",
+              "count": 1,
+              "stars": 101294,
+          }]
+          rows = module.upstream_pr_rows(qualified, stars)
+          assert rows[0]["repo_display"] == "PyTorch"
+          assert rows[0]["number"] == 188830
+          assert rows[0]["area"] == "AI infrastructure / model systems"
+          PY
+
+      - name: Validate full upstream summary rendering
+        run: |
+          python - <<'PY'
+          import importlib.util
+          from pathlib import Path
+
+          path = Path("dev-skills/profile-readme-vp/scripts/render_profile_readme.py")
+          spec = importlib.util.spec_from_file_location("render_profile_readme", path)
+          module = importlib.util.module_from_spec(spec)
+          assert spec.loader is not None
+          spec.loader.exec_module(module)
+
+          data = {
+              "merged_pr_count": 6,
+              "upstream_repos": [
+                  {"display": "PyTorch", "stars": 1000, "count": 1},
+                  {"display": "vLLM", "stars": 900, "count": 1},
+                  {"display": "LightRAG", "stars": 800, "count": 1},
+              ],
+          }
+          summary = module.contribution_summary_from_data(data, [], limit=1, lang="en")
+          assert "PyTorch" in summary
+          assert "vLLM" in summary
+          assert "LightRAG" in summary
+
+          readme = module.render({
+              "identity": "AI Programmer",
+              "projects": [],
+              "min_upstream_repo_stars": 500,
+              "upstream_prs": [{
+                  "repo": "pytorch/pytorch",
+                  "repo_display": "PyTorch",
+                  "area": "AI infrastructure / model systems",
+                  "repo_url": "https://github.com/pytorch/pytorch",
+                  "repo_stars": 101294,
+                  "number": 188830,
+                  "title": "Fix test name detection for Git-style paths",
+                  "url": "https://github.com/pytorch/pytorch/pull/188830",
+              }],
+          })
+          assert "PyTorch" in readme
+          assert "#188830" in readme
+          assert "Fix test name detection for Git-style paths" in readme
+          PY

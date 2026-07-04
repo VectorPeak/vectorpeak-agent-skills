@@ -1,0 +1,7 @@
+﻿interface:
+  display_name: "灏忛粦鏃ユ姤鍔╂墜鏁版嵁鏌ヨ"
+  short_description: "鏌ヨ鏈湴灏忛粦鏃ユ姤鏃堕棿绾裤€佹姤鍛娿€佺儹鍔涘浘涓庡簲鐢ㄤ娇鐢ㄧ粺璁?
+  default_prompt: "Use $xiaohei-daily-query-vp to query today's work timeline and app usage summary."
+
+policy:
+  allow_implicit_invocation: true

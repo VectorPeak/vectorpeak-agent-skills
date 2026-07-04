@@ -1,0 +1,3 @@
+﻿display_name: Profile README GitHub VP
+short_description: Generate GitHub profile README.
+default_prompt: Update the GitHub profile README from structured project and open-source contribution data.

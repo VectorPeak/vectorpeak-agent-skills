@@ -1,29 +1,27 @@
-<h1 align="center">
-  Knowledge Skills | 知识沉淀技能
+﻿<h1 align="center">
+  Knowledge Skills | 鐭ヨ瘑娌夋穩鎶€鑳?
 </h1>
 
 <p align="center">
   Reusable agent skills for learning, research, notes, and writing workflows
   <br>
-  用于学习、研究、笔记整理与写作流程的 Agent / Codex Skills
+  鐢ㄤ簬瀛︿範銆佺爺绌躲€佺瑪璁版暣鐞嗕笌鍐欎綔娴佺▼鐨?Agent / Codex Skills
 </p>
 
 <p align="center">
   <a href="../README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
   <a href="./"><img src="https://img.shields.io/badge/category-knowledge--skills-purple" alt="knowledge skills"></a>
   <a href="daily-notes-vp/"><img src="https://img.shields.io/badge/daily--notes--vp-notes-green" alt="daily notes vp"></a>
-  <a href="image-to-md-vp/"><img src="https://img.shields.io/badge/image--to--md--vp-ocr-blue" alt="image to md vp"></a>
-  <a href="project-concept-explainer-vp/"><img src="https://img.shields.io/badge/project--concept--explainer--vp-study-blueviolet" alt="project concept explainer vp"></a>
+  <a href="image-to-markdown-vp/"><img src="https://img.shields.io/badge/image--to--md--vp-ocr-blue" alt="image to md vp"></a>
   <a href="gif-showcase-maker-vp/"><img src="https://img.shields.io/badge/gif--showcase--maker--vp-media-orange" alt="gif showcase maker vp"></a>
   <a href="paper-fetcher-vp/"><img src="https://img.shields.io/badge/paper--fetcher--vp-research-orange" alt="paper fetcher vp"></a>
   <a href="zhihu-clippings-vp/"><img src="https://img.shields.io/badge/zhihu--clippings--vp-notes-green" alt="zhihu clippings vp"></a>
   <a href="wechat-clippings-vp/"><img src="https://img.shields.io/badge/wechat--clippings--vp-notes-green" alt="wechat clippings vp"></a>
-  <a href="tech-article-rewriter-vp/"><img src="https://img.shields.io/badge/tech--article--rewriter--vp-writing-blue" alt="tech article rewriter vp"></a>
   <a href="../LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
 </p>
 
 <p align="center">
-  简体中文 | English later
+  绠€浣撲腑鏂?| English later
 </p>
 
 ```text
@@ -32,87 +30,83 @@ raw input  ->  structured thinking  ->  reusable skill  ->  durable knowledge wo
 
 ---
 
-## 简介
+## 绠€浠?
 
-`knowledge-skills/` 用来存放知识工作相关的 Agent 技能，覆盖学习、研究、阅读、笔记整理、概念解释、知识地图抽取和写作流程
+`knowledge-skills/` 鐢ㄦ潵瀛樻斁鐭ヨ瘑宸ヤ綔鐩稿叧鐨?Agent 鎶€鑳斤紝瑕嗙洊瀛︿範銆佺爺绌躲€侀槄璇汇€佺瑪璁版暣鐞嗐€佹蹇佃В閲娿€佺煡璇嗗湴鍥炬娊鍙栧拰鍐欎綔娴佺▼
 
-这里的重点不是保存一段好用的 prompt，而是保存可复用的思考结构：输入是什么、如何判断、如何组织材料、如何校验结果、最后输出成什么形态
+杩欓噷鐨勯噸鐐逛笉鏄繚瀛樹竴娈靛ソ鐢ㄧ殑 prompt锛岃€屾槸淇濆瓨鍙鐢ㄧ殑鎬濊€冪粨鏋勶細杈撳叆鏄粈涔堛€佸浣曞垽鏂€佸浣曠粍缁囨潗鏂欍€佸浣曟牎楠岀粨鏋溿€佹渶鍚庤緭鍑烘垚浠€涔堝舰鎬?
 
-## 为什么存在
+## 涓轰粈涔堝瓨鍦?
 
-知识工作最容易丢失的不是资料本身，而是处理资料时形成的判断路径：如何读一篇论文、如何解释一个概念、如何把零散笔记整理成结构、如何把文章变成可复用知识
+鐭ヨ瘑宸ヤ綔鏈€瀹规槗涓㈠け鐨勪笉鏄祫鏂欐湰韬紝鑰屾槸澶勭悊璧勬枡鏃跺舰鎴愮殑鍒ゆ柇璺緞锛氬浣曡涓€绡囪鏂囥€佸浣曡В閲婁竴涓蹇点€佸浣曟妸闆舵暎绗旇鏁寸悊鎴愮粨鏋勩€佸浣曟妸鏂囩珷鍙樻垚鍙鐢ㄧ煡璇?
 
-这个目录的目标是把这些判断路径沉淀成可反复调用的 skill，让 Agent 在面对相似知识任务时有稳定流程，而不是每次重新临场发挥
+杩欎釜鐩綍鐨勭洰鏍囨槸鎶婅繖浜涘垽鏂矾寰勬矇娣€鎴愬彲鍙嶅璋冪敤鐨?skill锛岃 Agent 鍦ㄩ潰瀵圭浉浼肩煡璇嗕换鍔℃椂鏈夌ǔ瀹氭祦绋嬶紝鑰屼笉鏄瘡娆￠噸鏂颁复鍦哄彂鎸?
 
-## 核心结构
+## 鏍稿績缁撴瀯
 
 ```text
 knowledge-skills/
-├── daily-notes-vp/              # 原始学习日记：10 天一个文件，按 Goal / Question / Code / Concept / Pitfall 轻量记录
-├── image-to-md-vp/              # 图片/截图 OCR 为指定 Markdown，保留结构、公式、表格和 emoji
-├── project-concept-explainer-vp/  # 项目伴读、概念讲解、知识地图与术语表生成
-├── gif-showcase-maker-vp/         # 多张图片按顺序生成轮播 GIF，支持停留帧和淡入转场
-├── paper-fetcher-vp/       # 论文识别、官方 PDF 下载、重命名与 Zotero identifier 辅助
-├── zhihu-clippings-vp/     # 知乎文章定位、正文补全、公式图片表格保留与 Obsidian Markdown 剪藏
-├── wechat-clippings-vp/    # 微信公众号文章定位、TikHub 正文抓取、页面噪声清理与 Markdown 剪藏
-├── tech-article-rewriter-vp/ # URL/截图语料采集、技术文章深度重写、模板化 Markdown 草稿生成与迭代
-└── README.md            # 知识类技能目录说明
+鈹溾攢鈹€ daily-notes-vp/              # 鍘熷瀛︿範鏃ヨ锛?0 澶╀竴涓枃浠讹紝鎸?Goal / Question / Code / Concept / Pitfall 杞婚噺璁板綍
+鈹溾攢鈹€ image-to-markdown-vp/              # 鍥剧墖/鎴浘 OCR 涓烘寚瀹?Markdown锛屼繚鐣欑粨鏋勩€佸叕寮忋€佽〃鏍煎拰 emoji
+鈹溾攢鈹€ gif-showcase-maker-vp/         # 澶氬紶鍥剧墖鎸夐『搴忕敓鎴愯疆鎾?GIF锛屾敮鎸佸仠鐣欏抚鍜屾贰鍏ヨ浆鍦?
+鈹溾攢鈹€ paper-fetcher-vp/       # 璁烘枃璇嗗埆銆佸畼鏂?PDF 涓嬭浇銆侀噸鍛藉悕涓?Zotero identifier 杈呭姪
+鈹溾攢鈹€ zhihu-clippings-vp/     # 鐭ヤ箮鏂囩珷瀹氫綅銆佹鏂囪ˉ鍏ㄣ€佸叕寮忓浘鐗囪〃鏍间繚鐣欎笌 Obsidian Markdown 鍓棌
+鈹溾攢鈹€ wechat-clippings-vp/    # 寰俊鍏紬鍙锋枃绔犲畾浣嶃€乀ikHub 姝ｆ枃鎶撳彇銆侀〉闈㈠櫔澹版竻鐞嗕笌 Markdown 鍓棌
+鈹斺攢鈹€ README.md            # 鐭ヨ瘑绫绘妧鑳界洰褰曡鏄?
 ```
 
-## 已有技能
+## 宸叉湁鎶€鑳?
 
 ### [`daily-notes-vp/`](daily-notes-vp/)
 
-用于记录个人日常学习原始材料：当用户说“记一下这个问题”“今天的目标是”“这个代码点先放到 daily notes”“这个概念先记一下”时，将短期目标、疑问、代码记录、概念和踩坑经验轻量追加到 `E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\YYYY-MM-DD_YYYY-MM-DD.md`，10 天一个文件，每天按 `Goal-目标 -> Question-疑问 -> Code-代码 -> Concept-概念 -> Pitfall-踩坑` 排列
+鐢ㄤ簬璁板綍涓汉鏃ュ父瀛︿範鍘熷鏉愭枡锛氬綋鐢ㄦ埛璇粹€滆涓€涓嬭繖涓棶棰樷€濃€滀粖澶╃殑鐩爣鏄€濃€滆繖涓唬鐮佺偣鍏堟斁鍒?daily notes鈥濃€滆繖涓蹇靛厛璁颁竴涓嬧€濇椂锛屽皢鐭湡鐩爣銆佺枒闂€佷唬鐮佽褰曘€佹蹇靛拰韪╁潙缁忛獙杞婚噺杩藉姞鍒?`E:\LLM_wiki\LLM_wiki\01.raw\02.DailyNotes\YYYY-MM-DD_YYYY-MM-DD.md`锛?0 澶╀竴涓枃浠讹紝姣忓ぉ鎸?`Goal-鐩爣 -> Question-鐤戦棶 -> Code-浠ｇ爜 -> Concept-姒傚康 -> Pitfall-韪╁潙` 鎺掑垪
 
-### [`image-to-md-vp/`](image-to-md-vp/)
+### [`image-to-markdown-vp/`](image-to-markdown-vp/)
 
-用于把截图或图片 OCR 成指定 Markdown 文件：当用户提供一批或多批图片，并显式指定输出目录、输出文件名和生成信号时，按图片顺序还原标题层级、列表、表格、公式、emoji 与可读结构，适合课程截图、技术笔记、RAG 学习材料和原始语料整理
+鐢ㄤ簬鎶婃埅鍥炬垨鍥剧墖 OCR 鎴愭寚瀹?Markdown 鏂囦欢锛氬綋鐢ㄦ埛鎻愪緵涓€鎵规垨澶氭壒鍥剧墖锛屽苟鏄惧紡鎸囧畾杈撳嚭鐩綍銆佽緭鍑烘枃浠跺悕鍜岀敓鎴愪俊鍙锋椂锛屾寜鍥剧墖椤哄簭杩樺師鏍囬灞傜骇銆佸垪琛ㄣ€佽〃鏍笺€佸叕寮忋€乪moji 涓庡彲璇荤粨鏋勶紝閫傚悎璇剧▼鎴浘銆佹妧鏈瑪璁般€丷AG 瀛︿範鏉愭枡鍜屽師濮嬭鏂欐暣鐞?
 
-### [`project-concept-explainer-vp/`](project-concept-explainer-vp/)
 
-用于项目伴读和技术概念讲解：读取当前仓库上下文，解释项目里的关键术语、模型、算法、数据字段和架构决策，也可以生成项目知识地图、术语表、学习笔记和研究笔记
+鐢ㄤ簬椤圭洰浼磋鍜屾妧鏈蹇佃瑙ｏ細璇诲彇褰撳墠浠撳簱涓婁笅鏂囷紝瑙ｉ噴椤圭洰閲岀殑鍏抽敭鏈銆佹ā鍨嬨€佺畻娉曘€佹暟鎹瓧娈靛拰鏋舵瀯鍐崇瓥锛屼篃鍙互鐢熸垚椤圭洰鐭ヨ瘑鍦板浘銆佹湳璇〃銆佸涔犵瑪璁板拰鐮旂┒绗旇
 
 ### [`gif-showcase-maker-vp/`](gif-showcase-maker-vp/)
 
-用于把多张图片按顺序合成一个 GIF 展示图：默认按输入顺序播放，每张图停留一段时间，相邻图片之间使用淡入淡出转场，适合 GitHub README、项目报告、学习笔记和功能介绍素材
+鐢ㄤ簬鎶婂寮犲浘鐗囨寜椤哄簭鍚堟垚涓€涓?GIF 灞曠ず鍥撅細榛樿鎸夎緭鍏ラ『搴忔挱鏀撅紝姣忓紶鍥惧仠鐣欎竴娈垫椂闂达紝鐩搁偦鍥剧墖涔嬮棿浣跨敤娣″叆娣″嚭杞満锛岄€傚悎 GitHub README銆侀」鐩姤鍛娿€佸涔犵瑪璁板拰鍔熻兘浠嬬粛绱犳潗
 
 ### [`paper-fetcher-vp/`](paper-fetcher-vp/)
 
-用于研究论文入库：从标题、截图文字、URL 或摘录识别论文，优先核验官方来源，下载并验证 PDF，按研究领域前缀重命名，并输出 arXiv ID 或 DOI 供 Zotero Add Item by Identifier 使用
+鐢ㄤ簬鐮旂┒璁烘枃鍏ュ簱锛氫粠鏍囬銆佹埅鍥炬枃瀛椼€乁RL 鎴栨憳褰曡瘑鍒鏂囷紝浼樺厛鏍搁獙瀹樻柟鏉ユ簮锛屼笅杞藉苟楠岃瘉 PDF锛屾寜鐮旂┒棰嗗煙鍓嶇紑閲嶅懡鍚嶏紝骞惰緭鍑?arXiv ID 鎴?DOI 渚?Zotero Add Item by Identifier 浣跨敤
 
 ### [`zhihu-clippings-vp/`](zhihu-clippings-vp/)
 
-用于知乎文章剪藏：先用知乎开放平台做作者、标题和 article_id 定位，再用 TikHub 补全完整正文，保留公式、图片、表格和代码块，按自定义范围输出 Obsidian 友好的 Markdown 文件
+鐢ㄤ簬鐭ヤ箮鏂囩珷鍓棌锛氬厛鐢ㄧ煡涔庡紑鏀惧钩鍙板仛浣滆€呫€佹爣棰樺拰 article_id 瀹氫綅锛屽啀鐢?TikHub 琛ュ叏瀹屾暣姝ｆ枃锛屼繚鐣欏叕寮忋€佸浘鐗囥€佽〃鏍煎拰浠ｇ爜鍧楋紝鎸夎嚜瀹氫箟鑼冨洿杈撳嚭 Obsidian 鍙嬪ソ鐨?Markdown 鏂囦欢
 
 ### [`wechat-clippings-vp/`](wechat-clippings-vp/)
 
-用于微信公众号文章剪藏：从公众号名、文章链接、标题或截图 OCR 定位文章，通过 TikHub 获取正文，清理微信页面尾巴、二维码引流、空列表项和格式噪声，输出 Obsidian 友好的 Markdown 文件
+鐢ㄤ簬寰俊鍏紬鍙锋枃绔犲壀钘忥細浠庡叕浼楀彿鍚嶃€佹枃绔犻摼鎺ャ€佹爣棰樻垨鎴浘 OCR 瀹氫綅鏂囩珷锛岄€氳繃 TikHub 鑾峰彇姝ｆ枃锛屾竻鐞嗗井淇￠〉闈㈠熬宸淬€佷簩缁寸爜寮曟祦銆佺┖鍒楄〃椤瑰拰鏍煎紡鍣０锛岃緭鍑?Obsidian 鍙嬪ソ鐨?Markdown 鏂囦欢
 
-### [`tech-article-rewriter-vp/`](tech-article-rewriter-vp/)
 
-用于技术文章深度重写：从 URL、截图、OCR 或现成语料出发，先获取并缓存可信全文，再提取事实、观点、代码和坑点，重建文章逻辑，按 Markdown 模板生成专业标题、轻松正文、逻辑清晰且带参考资料的技术博客草稿
+鐢ㄤ簬鎶€鏈枃绔犳繁搴﹂噸鍐欙細浠?URL銆佹埅鍥俱€丱CR 鎴栫幇鎴愯鏂欏嚭鍙戯紝鍏堣幏鍙栧苟缂撳瓨鍙俊鍏ㄦ枃锛屽啀鎻愬彇浜嬪疄銆佽鐐广€佷唬鐮佸拰鍧戠偣锛岄噸寤烘枃绔犻€昏緫锛屾寜 Markdown 妯℃澘鐢熸垚涓撲笟鏍囬銆佽交鏉炬鏂囥€侀€昏緫娓呮櫚涓斿甫鍙傝€冭祫鏂欑殑鎶€鏈崥瀹㈣崏绋?
 
-## 适合沉淀的技能
+## 閫傚悎娌夋穩鐨勬妧鑳?
 
-- 自顶向下学习流程
-- 概念解释与对比模板
-- 研究论文处理
-- 文章摘要与重写
-- 知识地图抽取
-- 笔记清理与结构化
-- 学习检查与反问
-- 写作与翻译流程
+- 鑷《鍚戜笅瀛︿範娴佺▼
+- 姒傚康瑙ｉ噴涓庡姣旀ā鏉?
+- 鐮旂┒璁烘枃澶勭悊
+- 鏂囩珷鎽樿涓庨噸鍐?
+- 鐭ヨ瘑鍦板浘鎶藉彇
+- 绗旇娓呯悊涓庣粨鏋勫寲
+- 瀛︿範妫€鏌ヤ笌鍙嶉棶
+- 鍐欎綔涓庣炕璇戞祦绋?
 
-## 编写原则
+## 缂栧啓鍘熷垯
 
-每个 skill 都应该保留有用的思考结构，而不只是 prompt 风格。遇到依赖判断的任务时，优先提供明确的输入要求、决策规则、输出格式和示例
+姣忎釜 skill 閮藉簲璇ヤ繚鐣欐湁鐢ㄧ殑鎬濊€冪粨鏋勶紝鑰屼笉鍙槸 prompt 椋庢牸銆傞亣鍒颁緷璧栧垽鏂殑浠诲姟鏃讹紝浼樺厛鎻愪緵鏄庣‘鐨勮緭鍏ヨ姹傘€佸喅绛栬鍒欍€佽緭鍑烘牸寮忓拰绀轰緥
 
-一个知识类 skill 至少应该回答：
+涓€涓煡璇嗙被 skill 鑷冲皯搴旇鍥炵瓟锛?
 
-- 这个 skill 解决哪类知识工作问题
-- 输入材料可以是什么形式
-- Agent 应该如何拆解、判断和组织信息
-- 结果应该输出成什么结构
-- 哪些结论需要来源、证据或不确定性标注
-- 哪些内容不能猜测或过度补全
+- 杩欎釜 skill 瑙ｅ喅鍝被鐭ヨ瘑宸ヤ綔闂
+- 杈撳叆鏉愭枡鍙互鏄粈涔堝舰寮?
+- Agent 搴旇濡備綍鎷嗚В銆佸垽鏂拰缁勭粐淇℃伅
+- 缁撴灉搴旇杈撳嚭鎴愪粈涔堢粨鏋?
+- 鍝簺缁撹闇€瑕佹潵婧愩€佽瘉鎹垨涓嶇‘瀹氭€ф爣娉?
+- 鍝簺鍐呭涓嶈兘鐚滄祴鎴栬繃搴﹁ˉ鍏?

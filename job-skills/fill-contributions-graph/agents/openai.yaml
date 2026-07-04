@@ -1,6 +1,0 @@
-interface:
-  display_name: "Github 绿墙刷漆计划"
-  short_description: "生成可审核的 GitHub 贡献计划。"
-  default_prompt: "Use $fill-contributions-graph to generate an Excel-reviewed GitHub contribution plan and cleanup PR workflow."
-policy:
-  allow_implicit_invocation: false
