@@ -1,9 +1,9 @@
 ---
-name: pr-writer-vp
-description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, evidence-driven draft PR writing, detailed PR comment section expansion, and explicit submit/update. Use when the user asks to fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, prepare or update a PR draft, expand a specified section in the first PR comment, align with project PR templates and contribution rules, or submit a PR after explicit confirmation.
+name: pr-workflow-vp
+description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, evidence-driven draft PR writing, detailed PR comment section expansion, reviewer-feedback handling, and explicit submit/update. Use when the user asks for pr-workflow-vp, PR workflow, fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, prepare or update a PR draft, expand a specified section in the first PR comment, align with project PR templates and contribution rules, address reviewer feedback, submit a PR after explicit confirmation, or uses shorthand 1, 2, 3, 4, 5, 6 to mean Step1, Step2, Step3, Step4, Step5, Step6 respectively.
 ---
 
-# PR Writer
+# PR Workflow
 
 Use this skill for external open-source PR work. The workflow has six phases:
 
@@ -13,6 +13,22 @@ Use this skill for external open-source PR work. The workflow has six phases:
 4. Step4 Submit/Update
 5. Step5 Address Reviewer Feedback
 6. Step6 Refine PR Comment Section
+
+
+## Step Shortcut Routing
+
+When the user invokes this skill with a bare numeric shorthand, route it as follows:
+
+| Shorthand | Meaning |
+|---|---|
+| `1` | Step1 Fork & Clone |
+| `2` | Step2 Find PR Chances |
+| `3` | Step3 Make A Draft |
+| `4` | Step4 Submit/Update |
+| `5` | Step5 Address Reviewer Feedback |
+| `6` | Step6 Refine PR Comment Section |
+
+Interpret compact forms such as `step1`, `Step 1`, `s1`, `阶段1`, and `第1步` the same way. If the user writes only `1`, `2`, `3`, `4`, `5`, or `6` while discussing a PR workflow, do not ask what the number means; run the corresponding phase.
 
 ## Non-Negotiables
 

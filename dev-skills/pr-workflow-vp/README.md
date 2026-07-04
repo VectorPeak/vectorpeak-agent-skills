@@ -1,5 +1,5 @@
 <h1 align="center">
-  PR Writer VP | 开源 PR 工作流技能
+  PR Workflow VP | 开源 PR 工作流技能
 </h1>
 
 <p align="center">
@@ -9,7 +9,7 @@
 <p align="center">
   <a href="../../README.md"><img src="https://img.shields.io/badge/agent-skills-blue" alt="agent skills"></a>
   <a href="../"><img src="https://img.shields.io/badge/category-dev--skills-brightgreen" alt="dev skills"></a>
-  <a href="./"><img src="https://img.shields.io/badge/pr--writer--vp-github-black" alt="pr writer vp"></a>
+  <a href="./"><img src="https://img.shields.io/badge/pr--writer--vp-github-black" alt="PR Workflow vp"></a>
   <a href="../../LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-lightgrey" alt="license Apache-2.0"></a>
 </p>
 
@@ -19,11 +19,11 @@
 
 ---
 
-## 为什么需要 PR Writer?
+## 为什么需要 PR Workflow?
 
 小型开源 PR 最容易被维护者 review 的前提是：改动范围窄、问题可复现、正文符合目标项目的提交习惯。真正困难的地方不只是改代码，而是证明 bug 真实存在，准确说明影响范围，并且不夸大证据。
 
-PR Writer VP 把这套流程沉淀成可复用的 agent 工作流。它会帮助 agent fork 和 clone 仓库，保持 fork 的 `main` 与 upstream 同步，创建修复分支，寻找小型 bug-fix 机会，收集复现证据，并拟出维护者容易判断的 PR 正文。
+PR Workflow VP 把这套流程沉淀成可复用的 agent 工作流。它会帮助 agent fork 和 clone 仓库，保持 fork 的 `main` 与 upstream 同步，创建修复分支，寻找小型 bug-fix 机会，收集复现证据，并拟出维护者容易判断的 PR 正文。
 
 默认策略是保守的：先拟草稿，只有在用户明确确认后才提交。
 
@@ -106,7 +106,7 @@ PR Writer VP 把这套流程沉淀成可复用的 agent 工作流。它会帮助
 ## 目录结构
 
 ```text
-pr-writer-vp/
+pr-workflow-vp/
 |-- SKILL.md
 |-- README.md
 |-- agents/
