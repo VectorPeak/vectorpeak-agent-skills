@@ -1,0 +1,4 @@
+interface:
+  display_name: "GitHub Clippings VP"
+  short_description: "Turn one or many GitHub URLs into structured LLM_wiki source cards."
+  default_prompt: "Use $github-clippings-vp with these GitHub URL(s) and save them into the LLM_wiki GitHub raw corpus."
