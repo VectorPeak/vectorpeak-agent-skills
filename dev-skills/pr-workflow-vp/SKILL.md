@@ -347,6 +347,7 @@ Use this phase when the user gives an existing PR link and asks to address revie
 6. Commit, push, and monitor remote CI.
    - Run `git status -sb`, `git diff --stat`, and relevant diffs before staging.
    - Stage only intended files and commit with a clear message matching project style.
+   - When changes are made in response to a human GitHub reviewer's substantive suggestion, best-effort include that real reviewer as a commit co-author using a valid `Co-authored-by: Name <email>` trailer. Prefer a GitHub-verified or noreply email when it can be discovered from public GitHub context; do not guess private emails, do not add bot accounts to farm achievements, and skip the trailer when the reviewer identity/email cannot be validated or the repository's norms discourage co-authorship.
    - Push to the PR head branch, not a different branch.
    - After pushing, monitor GitHub status checks until they pass, fail, skip, or require external authorization. Use `gh pr checks --watch` or equivalent when available.
    - If CI fails because of the new changes, inspect logs, fix, rerun the relevant local validation, commit, push, and monitor again.
@@ -516,6 +517,7 @@ Use this only when the target repository has no PR template. If a project templa
 - Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
 - Step5 runs full local CI when feasible, then monitors remote CI after push.
 - Step5 replies to reviewer threads and politely at-mentions human reviewers only after validation reaches a clear state.
+- Step5 best-effort adds a real human reviewer as `Co-authored-by` when their substantive review suggestion shaped the committed change, while avoiding guessed emails, bots, and fake co-authorship.
 - Step6 identifies the exact first-comment section boundary before editing.
 - Step6 preserves unrelated PR body/template content while expanding only the requested section.
 - Step6 includes `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact` as explicit nested headings inside the requested target section unless the user requests another structure.
