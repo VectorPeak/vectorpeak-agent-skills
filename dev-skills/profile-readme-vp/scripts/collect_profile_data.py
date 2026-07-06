@@ -108,6 +108,7 @@ def compact_repo_display(full_name: str) -> str:
         "pytorch": "PyTorch",
         "vllm": "vLLM",
         "transformers": "Hugging Face Transformers",
+        "pydantic-ai": "Pydantic AI",
         "qwen-code": "Qwen Code",
         "github-mcp-server": "GitHub MCP Server",
         "agent-framework": "Microsoft Agent Framework",
