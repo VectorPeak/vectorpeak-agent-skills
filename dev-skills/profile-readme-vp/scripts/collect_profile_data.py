@@ -217,7 +217,7 @@ def upstream_pr_rows(items: list[dict[str, Any]], stars: dict[str, int]) -> list
 
 def contribution_area(full_name: str) -> str:
     name = full_name.rsplit("/", 1)[-1].lower()
-    if name in {"pytorch", "vllm", "mooncake", "litellm", "sglang", "transformers"}:
+    if name in {"pytorch", "vllm", "mooncake", "litellm", "sglang", "transformers", "ktransformers"}:
         return "AI infrastructure / model systems"
     if name in {"openclaw", "agentscope", "qwen-code", "hivemind", "github-mcp-server", "microsoft-agent-framework"}:
         return "Agent frameworks / protocols / evals"

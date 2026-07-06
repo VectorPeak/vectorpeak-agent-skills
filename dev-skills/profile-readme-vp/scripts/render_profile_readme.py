@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
@@ -90,6 +91,17 @@ def badge(label: str, color: str, logo: str, logo_color: str) -> str:
 
 def md_escape(text: Any) -> str:
     return str(text).replace("|", "\\|").replace("\n", " ").strip()
+
+
+def strip_markdown_links(text: Any) -> str:
+    def replace(match: re.Match[str]) -> str:
+        label = match.group(1)
+        target = match.group(2)
+        if "://" not in target and not target.startswith("#"):
+            return f"{label}({target})"
+        return label
+
+    return re.sub(r"\[([^\]]+)\]\(([^)]+)\)", replace, str(text))
 
 
 def md_nowrap(text: Any) -> str:
@@ -338,7 +350,7 @@ def render_contributions(lines: list[str], contributions: list[dict[str, Any]], 
         ])
         for item in sorted_contributions(items):
             fixed = item.get("zh_fixed") if lang == "zh" else item.get("en_fixed")
-            fixed = fixed or item.get("fixed") or item.get("title") or ""
+            fixed = strip_markdown_links(fixed or item.get("fixed") or item.get("title") or "")
             lines.append(
                 "| "
                 + " | ".join(
