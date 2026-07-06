@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Query Xiaohei Daily Assistant after refreshing its live API docs."""
 
 from __future__ import annotations
@@ -15,10 +15,10 @@ from typing import Any
 BASE_URL = "http://192.168.11.212:8088"
 
 INTENT_HINTS = {
-    "timeline": ["timeline", "鏃堕棿绾?, "宸ヤ綔璁板綍", "宸ヤ綔鏃堕棿绾?],
-    "report": ["report", "鎶ュ憡", "鏃ユ姤", "鍛ㄦ姤", "鏈堟姤", "宸ヤ綔鎶ュ憡"],
-    "heat-map": ["heat", "heat-map", "鐑姏", "鐑姏鍥?, "鏃舵"],
-    "app-usage": ["app", "usage", "搴旂敤", "杞欢", "浣跨敤鏃堕暱", "app usage"],
+    "timeline": ["timeline", "时间线", "工作记录", "工作时间线"],
+    "report": ["report", "报告", "日报", "周报", "月报", "工作报告"],
+    "heat-map": ["heat", "heat-map", "热力", "热力图", "时段"],
+    "app-usage": ["app", "usage", "应用", "软件", "使用时长", "app usage"],
 }
 
 

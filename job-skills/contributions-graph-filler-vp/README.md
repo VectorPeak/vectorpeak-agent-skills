@@ -1,9 +1,9 @@
-﻿<h1 align="center">
-  contributions-graph-filler-vp | 缁垮鍒锋紗璁″垝
+<h1 align="center">
+  contributions-graph-filler-vp | 绿墙刷漆计划
 </h1>
 
 <p align="center">
-  GitHub Contribution Graph 鑽掓紶缁垮寲娌荤悊宸ョ▼
+  GitHub Contribution Graph 荒漠绿化治理工程
 </p>
 
 <p align="center">
@@ -14,74 +14,74 @@
 </p>
 
 <p align="center">
-  绠€浣撲腑鏂?
+  简体中文
 </p>
 
 ---
 
-## 涓轰粈涔堣鍋?
+## 为什么要做
 
-GitHub Contribution Graph 绌鸿崱鑽★紵鐢ㄥ畠灏卞浜嗭紝璧涘崥妞嶆爲閫犳灄璁″垝銆?
+GitHub Contribution Graph 空荡荡？用它就对了，赛博植树造林计划。
 
 <p align="center">
-  <img src="assets/contribution-graph-showcase.gif" alt="GitHub Contribution Graph 璧涘崥妞嶆爲閫犳灄璁″垝" width="931">
+  <img src="assets/contribution-graph-showcase.gif" alt="GitHub Contribution Graph 赛博植树造林计划" width="931">
 </p>
 
-GitHub contribution graph 鍙細缁熻宸茬粡杩涘叆 GitHub 浠撳簱銆佷綅浜庨粯璁ゅ垎鏀垨 `gh-pages` 鍒嗘敮銆佸苟涓斾綔鑰呴偖绠辫兘褰掑睘鍒拌处鍙风殑鎻愪氦銆傚彧鍦ㄦ湰鍦?`git commit` 涓嶄細鏀瑰彉璐＄尞鍥撅紱鎻愪氦鍚庝笉 `push`锛屼篃涓嶄細琚?GitHub 缁熻銆?
+GitHub contribution graph 只会统计已经进入 GitHub 仓库、位于默认分支或 `gh-pages` 分支、并且作者邮箱能归属到账号的提交。只在本地 `git commit` 不会改变贡献图；提交后不 `push`，也不会被 GitHub 统计。
 
-`contributions-graph-filler-vp` 鎶婅法浠撳簱缁存姢鎿嶄綔鎷嗘垚鍙鏍搞€佸彲鎵ц銆佸彲杩借釜鐨勬祦绋嬨€傚畠涓嶄細闅愬紡瑙﹀彂锛屼篃涓嶄細鐩存帴璺冲埌鎻愪氦锛岃€屾槸鍏堢敓鎴?Excel 瀹℃牳琛紝璁╃敤鎴风‘璁ゆ棩鏈熴€佹彁浜ゆ暟銆佷粨搴撳垎甯冨拰 commit 缁嗗垯銆?
+`contributions-graph-filler-vp` 把跨仓库维护操作拆成可审核、可执行、可追踪的流程。它不会隐式触发，也不会直接跳到提交，而是先生成 Excel 审核表，让用户确认日期、提交数、仓库分布和 commit 细则。
 
-鏍稿績绛栫暐锛?
+核心策略：
 
-- **Excel-first**锛氫换浣曟墽琛屽墠蹇呴』鍏堢敓鎴?Excel 瀹℃牳琛紝骞剁瓑寰呯敤鎴锋槑纭‘璁ゃ€?
-- **existing-commit-aware**锛氬厛鏌ヨ GitHub 涓婂悓涓€澶╁凡鏈夌殑浣滆€呮彁浜ゆ暟锛屽啀鎵ｅ噺璁″垝鏂板鏁般€?
-- **push-then-cleanup**锛氭墽琛岄樁娈靛繀椤诲厛 `push` 鍒?GitHub 榛樿鍒嗘敮骞堕獙璇佽繙绔彲杈撅紝鐒跺悗涓烘瘡涓粨搴撳崟鐙垱寤?cleanup PR 鍒犻櫎鐢熸垚鐨?`docs/` 鏂囦欢銆?
+- **Excel-first**：任何执行前必须先生成 Excel 审核表，并等待用户明确确认。
+- **existing-commit-aware**：先查询 GitHub 上同一天已有的作者提交数，再扣减计划新增数。
+- **push-then-cleanup**：执行阶段必须先 `push` 到 GitHub 默认分支并验证远端可达，然后为每个仓库单独创建 cleanup PR 删除生成的 `docs/` 文件。
 
-## 宸ヤ綔鍘熺悊
+## 工作原理
 
-1. 鏄惧紡璋冪敤 `contributions-graph-filler-vp` 鎴?`$contributions-graph-filler-vp`銆?
-2. 妫€鏌?`gh`銆丟itHub 鐧诲綍鐘舵€佸拰 API 杩為€氭€с€?
-3. 鎵弿璐﹀彿浠撳簱锛岄粯璁ゆ帓闄?fork 鍜?archived 浠撳簱銆?
-4. 瑕佹眰 eligible repositories `> 10`銆?
-5. 浣跨敤 activity profile 鐢熸垚娲昏穬鏃ュ拰姣忔棩鐩爣鎻愪氦鏁般€?
-6. 鏌ヨ褰撳ぉ宸叉湁浣滆€呮彁浜ゆ暟骞舵墸鍑忥細
+1. 显式调用 `contributions-graph-filler-vp` 或 `$contributions-graph-filler-vp`。
+2. 检查 `gh`、GitHub 登录状态和 API 连通性。
+3. 扫描账号仓库，默认排除 fork 和 archived 仓库。
+4. 要求 eligible repositories `> 10`。
+5. 使用 activity profile 生成活跃日和每日目标提交数。
+6. 查询当天已有作者提交数并扣减：
 
 ```python
 planned_new_commit_count = max(0, target_commit_count - existing_author_commit_count)
 ```
 
-7. 杈撳嚭 Excel 瀹℃牳琛ㄣ€?
-8. 鐢ㄦ埛纭鍚庢墠鍏佽鎵ц銆?
-9. 鍒涘缓璁″垝鍐呮彁浜わ紝`push` 鍒伴粯璁ゅ垎鏀苟楠岃瘉杩滅鍖呭惈鎻愪氦銆?
-10. 姣忎釜鍙楀奖鍝嶄粨搴撳崟鐙垱寤?cleanup PR锛屽垹闄ゆ湰娆＄敓鎴愮殑 `docs/` 鏂囦欢銆?
+7. 输出 Excel 审核表。
+8. 用户确认后才允许执行。
+9. 创建计划内提交，`push` 到默认分支并验证远端包含提交。
+10. 每个受影响仓库单独创建 cleanup PR，删除本次生成的 `docs/` 文件。
 
-## 鎵ц娴佺▼
+## 执行流程
 
 ```mermaid
 flowchart LR
-    A["鎵弿 GitHub 浠撳簱"] --> B["绛涢€?eligible repositories"]
-    B --> C["鐢熸垚 Excel 瀹℃牳琛?]
-    C --> D{"鐢ㄦ埛纭?"}
-    D -- "鍚? --> E["鍋滄锛屼笉淇敼浠撳簱"]
-    D -- "鏄? --> F["鍒涘缓璁″垝鍐呮彁浜?]
-    F --> G["push 鍒伴粯璁ゅ垎鏀?]
-    G --> H["楠岃瘉杩滅鍙揪"]
-    H --> I["鎸変粨搴撳垱寤?cleanup 鍒嗘敮"]
-    I --> J["鍒犻櫎 manifest 璁板綍鐨?docs 鏂囦欢"]
-    J --> K["鎵撳紑 cleanup PR"]
+    A["扫描 GitHub 仓库"] --> B["筛选 eligible repositories"]
+    B --> C["生成 Excel 审核表"]
+    C --> D{"用户确认?"}
+    D -- "否" --> E["停止，不修改仓库"]
+    D -- "是" --> F["创建计划内提交"]
+    F --> G["push 到默认分支"]
+    G --> H["验证远端可达"]
+    H --> I["按仓库创建 cleanup 分支"]
+    I --> J["删除 manifest 记录的 docs 文件"]
+    J --> K["打开 cleanup PR"]
 ```
 
-## 鎵ц妯″紡
+## 执行模式
 
-| 妯″紡 | 鐢ㄩ€?| 淇敼浠撳簱鏂囦欢 | push 鍒?GitHub | 鍏稿瀷杈撳嚭 |
+| 模式 | 用途 | 修改仓库文件 | push 到 GitHub | 典型输出 |
 | --- | --- | --- | --- | --- |
-| `plan-only` | 鍙敓鎴?Excel 瀹℃牳璁″垝 | 鍚?| 鍚?| Excel / TSV 瀹℃牳琛?|
-| `push-and-cleanup-pr` | 鐢ㄦ埛纭鍚庢墽琛屽畬鏁存祦绋?| 鏄?| 鏄?| pushed commits銆乧leanup PR銆乵anifest |
-| `cleanup-pr` | 鍩轰簬宸叉湁 manifest 鍙垱寤烘竻鐞?PR | 鏄紝鍙敼 cleanup 鍒嗘敮 | 鏄紝鍙?push cleanup 鍒嗘敮 | cleanup PR URL銆佸垹闄ゆ枃浠剁粺璁?|
+| `plan-only` | 只生成 Excel 审核计划 | 否 | 否 | Excel / TSV 审核表 |
+| `push-and-cleanup-pr` | 用户确认后执行完整流程 | 是 | 是 | pushed commits、cleanup PR、manifest |
+| `cleanup-pr` | 基于已有 manifest 只创建清理 PR | 是，只改 cleanup 分支 | 是，只 push cleanup 分支 | cleanup PR URL、删除文件统计 |
 
-## 蹇€熶笂鎵?
+## 快速上手
 
-鐢熸垚姣忔棩鑱氬悎瀹℃牳琛細
+生成每日聚合审核表：
 
 ```powershell
 python .\scripts\generate_plan.py `
@@ -92,7 +92,7 @@ python .\scripts\generate_plan.py `
   --excel-out plan.xls
 ```
 
-瀵煎嚭閫?commit 鏄庣粏锛?
+导出逐 commit 明细：
 
 ```powershell
 python .\scripts\generate_plan.py `
@@ -104,45 +104,45 @@ python .\scripts\generate_plan.py `
   --out commit-detail.tsv
 ```
 
-`--end` 浣跨敤宸﹂棴鍙冲紑璇箟銆傚鏋滆鍖呭惈 `2026-03-31`锛屽簲浼犲叆 `--end 2026-04-01`銆?
+`--end` 使用左闭右开语义。如果要包含 `2026-03-31`，应传入 `--end 2026-04-01`。
 
-## 杈撳嚭鏍煎紡
+## 输出格式
 
-榛樿 Excel 瀹℃牳琛ㄥ瓧娈碉細
+默认 Excel 审核表字段：
 
 ```text
-鏃ユ湡 | 鐩爣鎻愪氦鏁?| 宸叉湁浣滆€呮彁浜ゆ暟 | 鏈璁″垝鏂板鏁?| commit 缁嗗垯
+日期 | 目标提交数 | 已有作者提交数 | 本次计划新增数 | commit 细则
 ```
 
-閫?commit 鏄庣粏瀛楁锛?
+逐 commit 明细字段：
 
 ```text
 date | time | repo | kind | task_type | message | path | summary | target_commit_count | existing_commit_count | planned_new_commit_count
 ```
 
-璁″垝鑴氭湰鍙礋璐ｇ敓鎴愬鏍告潗鏂欙紝涓嶄細 `commit`銆乣push` 鎴栧垱寤?cleanup PR銆?
+计划脚本只负责生成审核材料，不会 `commit`、`push` 或创建 cleanup PR。
 
-Excel 瀹℃牳琛ㄧず渚嬶細
+Excel 审核表示例：
 
-| 鏃ユ湡 | 鐩爣鎻愪氦鏁?| 宸叉湁浣滆€呮彁浜ゆ暟 | 鏈璁″垝鏂板鏁?| commit 缁嗗垯 |
+| 日期 | 目标提交数 | 已有作者提交数 | 本次计划新增数 | commit 细则 |
 | --- | ---: | ---: | ---: | --- |
 | 2026-03-05 | 4 | 1 | 3 | `21:10 KnowFoundry-RAG-Console docs: add retrieval notes`; `22:35 LLM-Wiki analysis: record validation split`; `23:18 OpenSense tests: document smoke test plan` |
 | 2026-03-08 | 3 | 0 | 3 | `10:24 carbon-tower-predictor model: add lag feature notes`; `16:40 vectorpeak-blogs docs: add topic notes`; `20:05 kaggle-tabular-forge eval: add baseline checklist` |
 
 ## Cleanup PR
 
-鎵ц妯″紡閲囩敤 `push-and-cleanup-pr`锛?
+执行模式采用 `push-and-cleanup-pr`：
 
-- 鍏堝皢璁″垝鍐呮彁浜ゆ帹閫佸埌鍚勪粨搴撻粯璁ゅ垎鏀€?
-- 楠岃瘉姣忔潯鎻愪氦閮借兘浠庤繙绔粯璁ゅ垎鏀闂€?
-- 涓烘瘡涓彈褰卞搷浠撳簱鍒涘缓涓€涓?cleanup 鍒嗘敮銆?
-- 鍒犻櫎 manifest 璁板綍鐨勭敓鎴愭枃浠躲€?
-- 鎻愪氦骞舵帹閫?cleanup 鍒嗘敮銆?
-- 涓烘瘡涓粨搴撴墦寮€涓€涓?draft PR銆?
+- 先将计划内提交推送到各仓库默认分支。
+- 验证每条提交都能从远端默认分支访问。
+- 为每个受影响仓库创建一个 cleanup 分支。
+- 删除 manifest 记录的生成文件。
+- 提交并推送 cleanup 分支。
+- 为每个仓库打开一个 draft PR。
 
-GitHub PR 鍙兘灞炰簬鍗曚釜浠撳簱锛屽洜姝よ法浠撳簱娓呯悊蹇呴』鏄竴浠撳簱涓€涓?PR銆?
+GitHub PR 只能属于单个仓库，因此跨仓库清理必须是一仓库一个 PR。
 
-甯歌鐢熸垚鐩綍锛?
+常见生成目录：
 
 ```text
 docs/notes/
@@ -155,7 +155,7 @@ docs/experiments/
 docs/review/
 ```
 
-## 鐩綍缁撴瀯
+## 目录结构
 
 ```text
 contributions-graph-filler-vp/
@@ -170,29 +170,29 @@ contributions-graph-filler-vp/
     `-- generate_plan.py
 ```
 
-## 娉ㄦ剰浜嬮」
+## 注意事项
 
-- 鍙厑璁告樉寮忚Е鍙戯紝涓嶄粠鏅€?GitHub銆乧ommit銆佽础鐚浘鎴栫豢澧欒璁轰腑闅愬紡鍚姩銆?
-- 鐢熸垚 Excel 鍚庡繀椤荤瓑寰呯敤鎴风‘璁わ紝涓嶈兘鐩存帴杩涘叆鎵ц銆?
-- 榛樿娴佺▼涓嶄娇鐢?`git revert` 鍋氭挙鍥烇紝涔熶笉浣跨敤 `reset --hard + force push`銆?
-- 鍘嗗彶閲嶅啓鍙綔涓轰簨鏁呮仮澶嶇粡楠岋紝涓嶄綔涓哄父瑙勬墽琛岃矾寰勩€?
-- 涓嶅垱寤虹┖ commit銆佷笉鍐欎复鏃跺崰浣嶄唬鐮併€佷笉鐢熸垚鎻愪氦鍚庡啀鍒犻櫎鐨勫亣鍐呭銆?
-- 濡傛灉鏈湴宸叉湁鍚屼粨搴?dirty worktree锛屽繀椤诲厛璇㈤棶鐢ㄦ埛鏄惁浣跨敤闅旂 clone銆?
+- 只允许显式触发，不从普通 GitHub、commit、贡献图或绿墙讨论中隐式启动。
+- 生成 Excel 后必须等待用户确认，不能直接进入执行。
+- 默认流程不使用 `git revert` 做撤回，也不使用 `reset --hard + force push`。
+- 历史重写只作为事故恢复经验，不作为常规执行路径。
+- 不创建空 commit、不写临时占位代码、不生成提交后再删除的假内容。
+- 如果本地已有同仓库 dirty worktree，必须先询问用户是否使用隔离 clone。
 
 ## FAQ
 
-### 涓轰粈涔堟湰鍦?commit 涓嶇畻璐＄尞锛?
+### 为什么本地 commit 不算贡献？
 
-GitHub 璐＄尞鍥剧粺璁＄殑鏄?GitHub 鏈嶅姟鍣ㄤ笂鍙綊灞炲埌璐﹀彿鐨勮础鐚簨浠躲€傚彧鍦ㄦ湰鍦版墽琛?`git commit`锛孏itHub 涓嶇煡閬撹繖鏉℃彁浜ゅ瓨鍦紝鎵€浠ヤ笉浼氳鍏ヨ础鐚浘銆?
+GitHub 贡献图统计的是 GitHub 服务器上可归属到账号的贡献事件。只在本地执行 `git commit`，GitHub 不知道这条提交存在，所以不会计入贡献图。
 
-### 涓轰粈涔堝繀椤?push锛?
+### 为什么必须 push？
 
-commit 闇€瑕佽繘鍏?GitHub 浠撳簱锛屽苟涓旈€氬父闇€瑕佷綅浜庨粯璁ゅ垎鏀垨 `gh-pages` 鍒嗘敮锛屾墠鍙兘琚?contribution graph 缁熻銆傚彧 commit 涓?push锛屼笉浼氳 GitHub 缁熻銆?
+commit 需要进入 GitHub 仓库，并且通常需要位于默认分支或 `gh-pages` 分支，才可能被 contribution graph 统计。只 commit 不 push，不会被 GitHub 统计。
 
-### 涓轰粈涔?cleanup PR 鏄竴浠撳簱涓€涓紵
+### 为什么 cleanup PR 是一仓库一个？
 
-GitHub PR 鍙兘灞炰簬涓€涓粨搴擄紝涓嶈兘璺ㄥ涓粨搴撴彁浜ゅ悓涓€涓?PR銆傝法浠撳簱鎵ц鏃讹紝姣忎釜鍙楀奖鍝嶄粨搴撻兘闇€瑕佸崟鐙殑 cleanup 鍒嗘敮鍜?cleanup PR銆?
+GitHub PR 只能属于一个仓库，不能跨多个仓库提交同一个 PR。跨仓库执行时，每个受影响仓库都需要单独的 cleanup 分支和 cleanup PR。
 
-### GitHub 璐＄尞鍥句负浠€涔堝彲鑳藉欢杩熷埛鏂帮紵
+### GitHub 贡献图为什么可能延迟刷新？
 
-璐＄尞鍥句笉鏄瘡娆?push 鍚庨兘绔嬪嵆鍚屾閲嶇畻銆侴itHub 浼氬紓姝ュ鐞嗘彁浜ゅ綊灞炪€佸垎鏀彲杈炬€с€侀偖绠卞尮閰嶃€丳R/issue 绛夎础鐚簨浠讹紝鍥犳椤甸潰鏄剧ず鍙兘瀛樺湪缂撳瓨鎴栧欢杩熴€?
+贡献图不是每次 push 后都立即同步重算。GitHub 会异步处理提交归属、分支可达性、邮箱匹配、PR/issue 等贡献事件，因此页面显示可能存在缓存或延迟。

@@ -1,6 +1,6 @@
-﻿---
+---
 name: xiaohei-daily-query-vp
-description: Query the local Xiaohei Daily Assistant HTTP service for work timelines, Markdown work reports, 24-hour heat maps, and app usage duration statistics. Use when the user asks about 灏忛粦鏃ユ姤鍔╂墜, 鏃ユ姤, 宸ヤ綔鏃堕棿绾? 宸ヤ綔鎶ュ憡, 鏃舵鐑姏鍥? 搴旂敤浣跨敤鏃堕暱, app usage, or productivity records from the local service at 192.168.11.212:8088.
+description: Query the local Xiaohei Daily Assistant HTTP service for work timelines, Markdown work reports, 24-hour heat maps, and app usage duration statistics. Use when the user asks about 小黑日报助手, 日报, 工作时间线, 工作报告, 时段热力图, 应用使用时长, app usage, or productivity records from the local service at 192.168.11.212:8088.
 ---
 
 # Xiaohei Daily Query
@@ -50,7 +50,7 @@ Intent values:
 The script also accepts `--query` for lightweight natural-language intent detection:
 
 ```powershell
-& "<python>" "<skill>\scripts\query_xiaohei.py" --query "鏌ヤ竴涓嬩粖澶╁簲鐢ㄤ娇鐢ㄦ椂闀?
+& "<python>" "<skill>\scripts\query_xiaohei.py" --query "查一下今天应用使用时长"
 ```
 
 ## Response Style

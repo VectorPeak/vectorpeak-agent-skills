@@ -1,9 +1,9 @@
-﻿---
+---
 name: contributions-graph-filler-vp
 description: Explicit-only skill for planning and optionally applying retrospective maintenance commits across the user's own GitHub repositories. Use only when the user directly names `contributions-graph-filler-vp` or `$contributions-graph-filler-vp`. Do not trigger implicitly from generic mentions of GitHub, commits, contribution graphs, or green walls.
 ---
 
-# Github 缁垮鍒锋紗璁″垝
+# Github 绿墙刷漆计划
 
 Use this skill only after the user explicitly invokes it by name.
 

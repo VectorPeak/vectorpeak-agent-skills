@@ -1,6 +1,6 @@
-﻿interface:
-  display_name: "Github 缁垮鍒锋紗璁″垝"
-  short_description: "鐢熸垚鍙鏍哥殑 GitHub 璐＄尞璁″垝銆?
+interface:
+  display_name: "Github 绿墙刷漆计划"
+  short_description: "生成可审核的 GitHub 贡献计划。"
   default_prompt: "Use $contributions-graph-filler-vp to generate an Excel-reviewed GitHub contribution plan and cleanup PR workflow."
 policy:
   allow_implicit_invocation: false

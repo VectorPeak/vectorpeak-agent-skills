@@ -1,9 +1,9 @@
-﻿---
+---
 name: profile-readme-vp
 description: Use when creating or updating VectorPeak's personal GitHub profile README with Chinese-first/English-second bilingual sections, badges, identity line, own public project summary, own merged upstream PR summary, stars-sorted personal Projects table, stars-sorted Open Source Contributions tables, and LinkedIn link.
 ---
 
-# Profile README GitHub VP
+# Profile README VP
 
 ## Overview
 
@@ -41,22 +41,22 @@ python <skill-dir>/scripts/render_profile_readme.py --data profile-data.json --f
 Generate content in this order:
 
 1. Heading:
-   `## Hey, I'm VectorPeak 馃憢`
+   `## Hey, I'm VectorPeak 👋`
 2. Technology badges line, with LinkedIn badge placed before Python when provided:
    `Python Go TypeScript React Node.js FastAPI RAG Hugging Face LangChain GitHub`
 3. Identity line:
    `AI Programmer | BS CS @ Xidian University | 2x CCF-C`
 4. Chinese summary bullets:
    - upstream PR bullet, only when contribution records exist:
-     `- {{N}}+ 涓?merged upstream PR锛岃鐩?{{all upstream repos...}}銆俙
+     `- {{N}}+ 个 merged upstream PR，覆盖 {{all upstream repos...}}。`
    - public project bullet:
-     `- {{N}} 涓叕寮€椤圭洰锛屼唬琛ㄩ」鐩寘鎷?{{top 5 projects by stars...}}銆俙
-5. `### 椤圭洰`
+     `- {{N}} 个公开项目，代表项目包括 {{top 5 projects by stars...}}。`
+5. `### 项目`
 6. Chinese section project table uses English headers and English Area labels: `Area | Project | Stars | Notes`
-7. `### 寮€婧愯础鐚甡, only when contribution records exist
+7. `### 开源贡献`, only when contribution records exist
 8. Separator `---`
 9. English heading:
-   `## Hey, I'm VectorPeak 馃憢`
+   `## Hey, I'm VectorPeak 👋`
 10. Identity line
 11. English summary bullets:
    - upstream PR bullet, only when contribution records exist:
@@ -98,7 +98,7 @@ Generate content in this order:
 - Preserve the configured contribution area order.
 - Within each contribution group, sort by upstream repository stars descending, then PR number descending.
 - Table columns are `Project | PR | What I Fixed`.
-- Render project as `[Name (81.8k鈽?](repo_url)` when `repo_url` exists.
+- Render project as `[Name (81.8k★)](repo_url)` when `repo_url` exists.
 - Render PR as `[#40789](pr_url)` when `pr_url` exists.
 - Count all contribution rows for the merged upstream PR summary.
 - Only count upstream PRs whose target repository has at least 500 stars by default.

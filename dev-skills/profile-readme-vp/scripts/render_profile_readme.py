@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Render VectorPeak's bilingual GitHub profile README."""
 
 from __future__ import annotations
@@ -171,7 +171,7 @@ def infer_area(repo: dict[str, Any]) -> str:
 def generated_notes(repo: dict[str, Any]) -> str:
     description = str(repo.get("description") or "").strip()
     if description:
-        return description.rstrip(".銆?) + "."
+        return description.rstrip(".。") + "."
     return f"Public repository for {repo.get('name', 'this project')}."
 
 
@@ -244,7 +244,7 @@ def contribution_summary_from_data(data: dict[str, Any], contributions: list[dic
     count = number(merged_count) if merged_count is not None else len(contributions)
     joined = ", ".join(names)
     if lang == "zh":
-        return f"{count}+ 涓?merged upstream PR锛岃鐩?{joined}銆? if joined else f"{count}+ 涓?merged upstream PR銆?
+        return f"{count}+ 个 merged upstream PR，覆盖 {joined}。" if joined else f"{count}+ 个 merged upstream PR。"
     return f"{count}+ merged upstream PRs, including fixes in {joined}." if joined else f"{count}+ merged upstream PRs."
 
 
@@ -254,7 +254,7 @@ def project_summary(projects: list[dict[str, Any]], limit: int, data: dict[str, 
     count = number(data.get("public_project_count")) if data.get("public_project_count") is not None else len(projects)
     joined = ", ".join(names)
     if lang == "zh":
-        return f"{count} 涓叕寮€椤圭洰锛屼唬琛ㄩ」鐩寘鎷?{joined}銆?
+        return f"{count} 个公开项目，代表项目包括 {joined}。"
     return f"{count} public projects, led by {joined}."
 
 
@@ -287,7 +287,7 @@ def validate_contributions(contributions: list[dict[str, Any]]) -> None:
 def render_projects(lines: list[str], projects: list[dict[str, Any]], lang: str) -> None:
     if lang == "zh":
         lines.extend([
-            "### 椤圭洰",
+            "### 项目",
             "",
             "| Area&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | Project | Stars | Notes |",
             "| --- | --- | --- | --- |",
@@ -319,8 +319,8 @@ def render_contributions(lines: list[str], contributions: list[dict[str, Any]], 
     if not contributions:
         return
 
-    title = "### 寮€婧愯础鐚? if lang == "zh" else "### Open Source Contributions"
-    fixed_header = "淇鍐呭" if lang == "zh" else "What I Fixed"
+    title = "### 开源贡献" if lang == "zh" else "### Open Source Contributions"
+    fixed_header = "修复内容" if lang == "zh" else "What I Fixed"
     lines.extend(["", title, ""])
     by_area: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for item in contributions:
@@ -367,7 +367,7 @@ def render_section(
     contribution_limit = int(data.get("contribution_summary_limit", 12))
     project_limit = int(data.get("project_summary_limit", 5))
     heading = data.get("zh_heading" if lang == "zh" else "en_heading")
-    heading = heading or "## Hey, I'm VectorPeak 馃憢"
+    heading = heading or "## Hey, I'm VectorPeak 👋"
 
     lines.extend([str(heading), ""])
     if include_badges:

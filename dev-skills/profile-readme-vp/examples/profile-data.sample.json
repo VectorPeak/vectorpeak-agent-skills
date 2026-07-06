@@ -1,4 +1,4 @@
-﻿{
+{
   "identity": "AI Programmer | BS CS @ Xidian University | 2x CCF-C",
   "contribution_summary_limit": 12,
   "project_summary_limit": 5,
@@ -15,7 +15,7 @@
       "stars": 2,
       "url": "https://github.com/VectorPeak/LLM-Wiki",
       "notes": "A structured knowledge base for large language model technologies, covering LLMs, Agents, RAG, model training, evaluation methods, and AI engineering practices.",
-      "zh_notes": "澶ц瑷€妯″瀷鐭ヨ瘑搴擄紝瑕嗙洊 LLM銆丄gent銆丷AG銆佽缁冦€佽瘎娴嬫柟娉曞拰 AI 宸ョ▼瀹炶返銆?
+      "zh_notes": "大语言模型知识库，覆盖 LLM、Agent、RAG、训练、评测方法和 AI 工程实践。"
     },
     {
       "area": "Research",
@@ -23,7 +23,7 @@
       "stars": 1,
       "url": "https://github.com/VectorPeak/carbon-tower-predictor",
       "notes": "Time-series modeling for industrial carbonization tower outlet temperature prediction and predictive maintenance.",
-      "zh_notes": "闈㈠悜宸ヤ笟纰冲寲濉斿彇鍑烘恫娓╁害棰勬祴涓庨娴嬫€х淮鎶ょ殑鏃跺簭寤烘ā鏂规銆?
+      "zh_notes": "面向工业碳化塔取出液温度预测与预测性维护的时序建模方案。"
     },
     {
       "area": "Coding agents",
@@ -31,7 +31,7 @@
       "stars": 0,
       "url": "https://github.com/VectorPeak/OpenSense",
       "notes": "Daily PR opportunity finder for known open-source repositories.",
-      "zh_notes": "闈㈠悜宸茬煡寮€婧愰」鐩殑姣忔棩 PR 鏈轰細鍙戠幇宸ュ叿銆?
+      "zh_notes": "面向已知开源项目的每日 PR 机会发现工具。"
     }
   ],
   "contributions": []

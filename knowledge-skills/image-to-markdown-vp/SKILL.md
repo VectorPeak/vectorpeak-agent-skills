@@ -1,4 +1,4 @@
-﻿---
+---
 name: image-to-markdown-vp
 description: Use when the user provides screenshots or images and wants them OCRed, converted, continued, or written into a specified Markdown file, especially for notes with headings, tables, formulas, diagrams, charts, and multi-batch image input.
 ---
@@ -29,7 +29,7 @@ Before writing a file, the user must explicitly provide:
 - Output directory path
 - Output Markdown filename, or an unambiguous Markdown basename. If the basename is clear but `.md` is missing, append `.md` automatically.
 - One or more screenshots or images
-- A generation signal such as 鈥滅敓鎴愨€? 鈥滅户缁ˉ鍏呪€? 鈥滆緭鍑哄埌鏂囦欢鈥? or equivalent
+- A generation signal such as “生成”, “继续补充”, “输出到文件”, or equivalent
 
 If the path or filename is missing, stop and ask. Do not invent the destination.
 
@@ -65,7 +65,7 @@ These are mandatory.
 - MUST treat "the user can see the whole Mermaid at a glance on a normal desktop note view" as the default success bar. Do not stop at merely valid Mermaid if the result still requires obvious horizontal dragging to understand the full graph.
 - MUST NOT replace a required Mermaid diagram with only a screenshot.
 - MUST NOT omit a required cropped visual reference when the screenshot is the primary proof or when layout, color, legend, annotation, or spatial grouping carries meaning that Markdown cannot preserve well.
-- MUST NOT insert whole-page continuation screenshots with generic labels such as `screenshot page 4`, `缁〉鎴浘`, or `鍘熷鎴浘`.
+- MUST NOT insert whole-page continuation screenshots with generic labels such as `screenshot page 4`, `续页截图`, or `原始截图`.
 - MUST NOT keep screenshots that are mostly prose or code after the content has been transcribed.
 - MUST use remote image URLs for Obsidian or PicList output. Local `assets/`, temp paths, and absolute local image paths are forbidden unless the user explicitly asks for an offline copy.
 - MUST validate uploaded URLs before writing them. Default approved host is `https://img.vectorpeak.cn/...`; any other CDN needs explicit user approval.
@@ -165,7 +165,7 @@ For every image, record:
 
 1. Write only after the gates above are satisfied.
 2. For non-tiny tasks, do not write until the manifest has a terminal state for every region and every `must_insert_visual = yes` item is either inserted or explicitly blocked.
-3. For continuation updates, remove obsolete 鈥減artial document鈥?notices only when the new content completes that continuation.
+3. For continuation updates, remove obsolete “partial document” notices only when the new content completes that continuation.
 
 ### 6. Mandatory Validation Gate
 
@@ -190,7 +190,7 @@ Run validation before the final response.
 Recommended searches when practical:
 
 ```text
-rg -n "缁〉鎴浘|鍘熷鎴浘|Original Screenshot|screenshot page" <file.md>
+rg -n "续页截图|原始截图|Original Screenshot|screenshot page" <file.md>
 rg -n "assets/|AppData|Temp|file://|[A-Za-z]:\\\\" <file.md>
 rg -n "Authorization: Bearer|Cookie:|Set-Cookie:|eyJhbGciOi|api[_-]?key|secret[_-]?key|access[_-]?key|token\\s*[=:]|password\\s*[=:]|AKIA|ghp_|github_pat_|sk-" <file.md>
 rg -n "piclist|picgo|tcyun|secretId|secretKey|bucket|endpoint|customUrl" <file.md>
@@ -228,25 +228,25 @@ When the screenshot is proof of a UI state, keep a tight remote crop beside the 
 Preferred pattern:
 
 ````markdown
-### CPT 鏁版嵁閲忚绠?
+### CPT 数据量计算
 
-鍏堟妸鏍稿績鏁板€兼暣鐞嗘垚 Markdown 琛ㄦ牸锛?
+先把核心数值整理成 Markdown 表格：
 
-| 椤圭洰 | 鏁板€?|
+| 项目 | 数值 |
 | --- | --- |
-| 鍘熷鏁版嵁鏉℃暟 | 绾?6 浜挎潯 |
-| Stage 1 | 200B tokens, 32K 涓婁笅鏂?|
-| Stage 2 | 100B tokens, 128K 涓婁笅鏂?|
+| 原始数据条数 | 约 6 亿条 |
+| Stage 1 | 200B tokens, 32K 上下文 |
+| Stage 2 | 100B tokens, 128K 上下文 |
 
-鍐嶄繚鐣欑揣鍑戣鍓悗鐨勫師濮嬭瑙夊浘锛?
+再保留紧凑裁剪后的原始视觉图：
 
-![CPT 鏁版嵁閲忚绠楀師鍥綸(https://img.vectorpeak.cn/obsidian/2026/06/cpt-token-estimate-board.png)
+![CPT 数据量计算原图](https://img.vectorpeak.cn/obsidian/2026/06/cpt-token-estimate-board.png)
 ````
 
 Do not:
 
 ```markdown
-鍙啓 OCR 鏂囨湰锛屼笉淇濈暀鍘熷浘
+只写 OCR 文本，不保留原图
 ```
 
 If the visual grouping itself explains the concept, the cropped remote image is mandatory.

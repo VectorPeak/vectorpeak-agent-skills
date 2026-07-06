@@ -20,12 +20,12 @@ REQUIRED_FRONTMATTER = {
 }
 ALLOWED_SOURCE_TYPES = {"feishu-docx-ai-minutes", "feishu-minutes", "transcript-doc", "pasted"}
 MOJIBAKE_PATTERNS = [
-    "濡欒",
-    "闈㈣",
-    "涓婚棶",
-    "杩介棶",
-    "鐩稿叧",
-    "鏂囧瓧",
+    "\u6fe1\u6b12",
+    "\u95c8\u5809",
+    "\u6d93\u64b3",
+    "\u6769\u2564",
+    "\u95bb\u2563",
+    "\u95fa\u50a4",
 ]
 
 

@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import argparse
 import csv
@@ -356,18 +356,18 @@ def write_tsv(rows: list[dict[str, str]], fieldnames: list[str], output: Path | 
 def write_excel_xml(rows: list[dict[str, str]], fieldnames: list[str], output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
     labels = {
-        "date": "鏃ユ湡",
-        "target_commit_count": "鐩爣鎻愪氦鏁?,
-        "existing_commit_count": "宸叉湁浣滆€呮彁浜ゆ暟",
-        "planned_new_commit_count": "鏈璁″垝鏂板鏁?,
-        "commit_details": "commit缁嗗垯",
-        "time": "鏃堕棿",
-        "repo": "浠撳簱",
-        "kind": "绫诲瀷",
-        "task_type": "浠诲姟绫诲瀷",
+        "date": "日期",
+        "target_commit_count": "目标提交数",
+        "existing_commit_count": "已有作者提交数",
+        "planned_new_commit_count": "本次计划新增数",
+        "commit_details": "commit细则",
+        "time": "时间",
+        "repo": "仓库",
+        "kind": "类型",
+        "task_type": "任务类型",
         "message": "commit message",
-        "path": "鏂囦欢璺緞",
-        "summary": "鎽樿",
+        "path": "文件路径",
+        "summary": "摘要",
     }
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
