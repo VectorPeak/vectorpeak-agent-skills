@@ -30,6 +30,21 @@ LANDED_MERGED_PR_OVERRIDES: list[dict[str, Any]] = [
             "Patch exists on pytorch/pytorch main",
         ],
     },
+    {
+        "author": "VectorPeak",
+        "repository_url": "https://api.github.com/repos/pytorch/pytorch",
+        "html_url": "https://github.com/pytorch/pytorch/pull/188961",
+        "number": 188961,
+        "title": "Fix Windows target determination for POSIX changed-file paths",
+        "state": "closed",
+        "landed_status": "closed_but_landed",
+        "repo_stars": 101294,
+        "evidence": [
+            "PR has PyTorch's closed landed workflow status",
+            "Patch updates test target determination for POSIX-style changed-file paths on Windows",
+            "Touched PyTorch test determination and modulefinder determination code",
+        ],
+    },
 ]
 
 
