@@ -219,7 +219,19 @@ def contribution_area(full_name: str) -> str:
     name = full_name.rsplit("/", 1)[-1].lower()
     if name in {"pytorch", "vllm", "mooncake", "litellm", "sglang", "transformers", "ktransformers"}:
         return "AI infrastructure / model systems"
-    if name in {"openclaw", "agentscope", "qwen-code", "astrbot", "pydantic-ai", "hivemind", "github-mcp-server", "microsoft-agent-framework"}:
+    if name in {
+        "openclaw",
+        "agentscope",
+        "qwen-code",
+        "astrbot",
+        "pydantic-ai",
+        "qwenpaw",
+        "hivemind",
+        "github-mcp-server",
+        "agent-framework",
+        "agents",
+        "microsoft-agent-framework",
+    }:
         return "Agent frameworks / protocols / evals"
     if name in {"dify", "ragflow", "lightrag", "langchain"}:
         return "Applied AI / RAG / observability"
