@@ -39,6 +39,7 @@ Interpret compact forms such as `step1`, `Step 1`, `s1`, `阶段1`, and `第1步
 - Prefer small, reviewable bug fixes. The default target is a production-code fix of 0-20 changed lines.
 - Do not include unrelated refactors, generated churn, broad formatting, or `CHANGELOG.md` unless the project explicitly requires it.
 - Keep evidence honest. Distinguish runtime reproduction, UI reproduction, package reproduction, focused unit reproduction, inferred risk, and unavailable validation.
+- For every commit created while using this skill, explicitly include the relevant Codex/GitHub bot as a `Co-authored-by` trailer when a valid bot noreply identity can be verified. Prefer the active reviewer bot identity when responding to bot review feedback, for example `Co-authored-by: chatgpt-codex-connector[bot] <199175422+chatgpt-codex-connector[bot]@users.noreply.github.com>`. Do not guess bot IDs or emails; verify them with GitHub user metadata such as `gh api users/<bot-login>` before committing.
 - Read `references/pr-examples.md` before drafting or revising PR prose. Treat it as the few-shot style guide for concise, evidence-driven bug-fix PRs.
 
 ## Multi-Agent Baseline
@@ -293,6 +294,7 @@ Use this phase only when the user explicitly asks to submit, create, open, mark 
 3. Commit, push, and submit intentionally.
    - Stage only intended files.
    - Use a clear commit message matching repository style.
+   - Include the verified Codex/GitHub bot `Co-authored-by` trailer in the commit message, following the Non-Negotiables co-author rule.
    - Create a draft PR by default unless the user explicitly asks for a ready PR.
    - Use GitHub connector tools for PR metadata when `gh` lacks permission.
 
@@ -347,7 +349,8 @@ Use this phase when the user gives an existing PR link and asks to address revie
 6. Commit, push, and monitor remote CI.
    - Run `git status -sb`, `git diff --stat`, and relevant diffs before staging.
    - Stage only intended files and commit with a clear message matching project style.
-   - When changes are made in response to a human GitHub reviewer's substantive suggestion, best-effort include that real reviewer as a commit co-author using a valid `Co-authored-by: Name <email>` trailer. Prefer a GitHub-verified or noreply email when it can be discovered from public GitHub context; do not guess private emails, do not add bot accounts to farm achievements, and skip the trailer when the reviewer identity/email cannot be validated or the repository's norms discourage co-authorship.
+   - Always include the verified Codex/GitHub bot `Co-authored-by` trailer for commits produced while addressing review feedback, following the Non-Negotiables co-author rule. When the actionable feedback came from a bot review, use that bot identity if it can be verified.
+   - When changes are made in response to a human GitHub reviewer's substantive suggestion, best-effort also include that real reviewer as a commit co-author using a valid `Co-authored-by: Name <email>` trailer. Prefer a GitHub-verified or noreply email when it can be discovered from public GitHub context; do not guess private emails, and skip the human trailer when the reviewer identity/email cannot be validated or the repository's norms discourage co-authorship.
    - Push to the PR head branch, not a different branch.
    - After pushing, monitor GitHub status checks until they pass, fail, skip, or require external authorization. Use `gh pr checks --watch` or equivalent when available.
    - If CI fails because of the new changes, inspect logs, fix, rerun the relevant local validation, commit, push, and monitor again.
@@ -517,7 +520,8 @@ Use this only when the target repository has no PR template. If a project templa
 - Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
 - Step5 runs full local CI when feasible, then monitors remote CI after push.
 - Step5 replies to reviewer threads and politely at-mentions human reviewers only after validation reaches a clear state.
-- Step5 best-effort adds a real human reviewer as `Co-authored-by` when their substantive review suggestion shaped the committed change, while avoiding guessed emails, bots, and fake co-authorship.
+- Commits produced by this skill include a verified Codex/GitHub bot `Co-authored-by` trailer when a valid bot noreply identity is available.
+- Step5 best-effort adds a real human reviewer as an additional `Co-authored-by` when their substantive review suggestion shaped the committed change, while avoiding guessed emails and fake co-authorship.
 - Step6 identifies the exact first-comment section boundary before editing.
 - Step6 preserves unrelated PR body/template content while expanding only the requested section.
 - Step6 includes `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact` as explicit nested headings inside the requested target section unless the user requests another structure.
