@@ -446,6 +446,7 @@ Use this phase when the user gives an existing PR and asks to refine, expand, st
    - Start with a one-sentence summary when the surrounding PR comment section needs it.
    - Use crisp headings: `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact`.
    - Use fenced code blocks for payloads, path constructions, request traces, and call chains.
+   - In the `Changes` subsection, when the main production-code diff is under 20 changed lines excluding tests, prefer showing a compact fenced `diff` block with the core production change first, then follow it with one short paragraph explaining what changed and what intentionally stayed unchanged. Do not include long test diffs or unrelated context in this mini-diff.
    - For path traversal or upload filename issues, explain raw user-controlled filename construction, payloads such as `../../../evil.zip` and `..\\..\\..\\evil.zip`, before/after resolved paths, basename normalization, fallback filename behavior, and unaffected parsing/auth/install behavior.
    - For screenshots, include them only if they already exist in the PR comment/body or the user supplied current evidence to upload/reference; otherwise describe the console evidence textually.
    - Keep security language proportionate: "path traversal risk", "can resolve outside the intended directory", or "weakens the path boundary" are usually safer than broad compromise claims unless the evidence proves more.
