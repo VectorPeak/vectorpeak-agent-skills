@@ -197,9 +197,12 @@ Treat Step3 as the PR candidate diligence gate, not as an automatic prelude to i
 1. Start multi-agent candidate validation. This phase must use multiple agents.
    - Assign one agent to inspect code semantics, call chains, construction sites, ownership boundaries, sibling surfaces, and whether the suspected failure is actually reachable.
    - Assign one agent to inspect duplicate PRs/issues, maintainer comments, project history, docs, API contracts, and whether maintainers have already rejected the same idea.
+   - Assign one dedicated skeptic/counterargument agent to argue against the current candidate. This agent must test whether the behavior could be intentional, an accepted abstraction boundary, diagnostic-only polish, already occupied by a better PR, too broad for a small fix, or unlikely to meet the maintainer review bar.
    - Add an evidence/reproduction agent for parser, path, URL, validation, HTTP status, serialization, security-adjacent, platform, or compatibility candidates.
    - Require each agent to answer the same decision questions: Is it real? Is it PR-worthy? Is it the right abstraction? Is there a narrower or better fix? What is the risk? What should we do next?
+   - Require the skeptic agent to provide the strongest no-go case, the best alternative interpretation of the observed behavior, an intentional-abstraction risk score, and a recommendation to proceed, downgrade, or reject.
    - Treat Step3 as incomplete until at least two independent agents return useful findings that the main agent reconciles.
+   - Treat Step3 as incomplete until the skeptic/counterargument findings have been explicitly reconciled against the supporting findings and executable evidence.
    - If the two agents disagree, do not average their conclusions. Resolve the disagreement by checking the underlying code path, maintainer history, or executable evidence.
 
 2. Reconfirm the candidate before any editing.
@@ -216,7 +219,7 @@ Treat Step3 as the PR candidate diligence gate, not as an automatic prelude to i
 
 4. Produce a recommendation before editing.
    - Output a clear decision: proceed to Step4, reject as not PR-worthy, redesign into a larger issue, or keep as a lower-priority candidate.
-   - Include a compact decision matrix with these fields: `Reality`, `PR value`, `Abstraction fit`, `Duplicate risk`, `Fix size`, `Evidence strength`, `Maintainer risk`, and `Recommendation`.
+   - Include a compact decision matrix with these fields: `Reality`, `PR value`, `Abstraction fit`, `Skeptic view`, `Intentional-abstraction risk`, `Duplicate risk`, `Fix size`, `Evidence strength`, `Maintainer risk`, and `Recommendation`.
    - Include file paths, call chain, concrete evidence, duplicate/history findings, likely production-code fix size, test plan, and risks.
    - If the recommendation is `proceed to Step4`, explain why the candidate clears the diligence gate and what exact implementation path should be used.
    - If the recommendation is not to proceed, explain the strongest blocking reason, such as weak reality proof, poor abstraction fit, duplicate maintainer rejection, oversized fix scope, or unacceptable review risk.
@@ -509,6 +512,8 @@ Use this only when the target repository has no PR template. If a project templa
 - Step2 returns a set of concrete, fixable bug candidates before editing.
 - Step2 candidates default to production-code fixes of 0-20 changed lines.
 - Step3 validates whether a candidate is real, PR-worthy, and based on the right abstraction before editing.
+- Step3 includes at least one dedicated skeptic/counterargument agent that argues against the current candidate and tests whether the behavior may be intentional, diagnostic-only, already occupied, too broad, or below the maintainer review bar.
+- Step3 explicitly reconciles the skeptic view before recommending Step4, downgrading, or rejecting the candidate.
 - Step3 includes multi-agent evidence on call chains, duplicate/history risk, likely fix size, test plan, and recommendation.
 - Step4 uses the target repository PR template as the outer shell.
 - Step4 includes problem solved, what changed, evidence, and call chain/impact.
