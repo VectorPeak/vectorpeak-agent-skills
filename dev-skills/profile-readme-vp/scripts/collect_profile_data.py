@@ -45,6 +45,21 @@ LANDED_MERGED_PR_OVERRIDES: list[dict[str, Any]] = [
             "Touched PyTorch test determination and modulefinder determination code",
         ],
     },
+    {
+        "author": "VectorPeak",
+        "repository_url": "https://api.github.com/repos/google/adk-python",
+        "html_url": "https://github.com/google/adk-python/pull/6314",
+        "number": 6314,
+        "title": "fix(events): avoid mutating event validation input",
+        "state": "closed",
+        "landed_status": "closed_but_landed",
+        "repo_stars": 20501,
+        "evidence": [
+            "adk-bot says the changes were imported and merged via Copybara in commit 6b385e4",
+            "PR has Google ADK's merged label",
+            "PR was closed after Copybara import to the main branch",
+        ],
+    },
 ]
 
 
@@ -123,6 +138,7 @@ def compact_repo_display(full_name: str) -> str:
         "pytorch": "PyTorch",
         "vllm": "vLLM",
         "transformers": "Hugging Face Transformers",
+        "adk-python": "Google ADK",
         "pydantic-ai": "Pydantic AI",
         "qwen-code": "Qwen Code",
         "github-mcp-server": "GitHub MCP Server",
@@ -241,6 +257,7 @@ def contribution_area(full_name: str) -> str:
         "qwen-code",
         "astrbot",
         "pydantic-ai",
+        "adk-python",
         "qwenpaw",
         "hivemind",
         "github-mcp-server",

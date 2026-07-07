@@ -55,25 +55,40 @@ jobs:
 
           items = module.merge_landed_overrides("VectorPeak", [])
           numbers = {item["number"] for item in items}
-          assert numbers == {188830, 188961}
-          assert all(module.repo_name_from_api_url(item["repository_url"]) == "pytorch/pytorch" for item in items)
+          assert numbers == {188830, 188961, 6314}
+          repos = {module.repo_name_from_api_url(item["repository_url"]) for item in items}
+          assert repos == {"pytorch/pytorch", "google/adk-python"}
 
           duplicated = module.merge_landed_overrides("VectorPeak", [items[0]])
-          assert len(duplicated) == 2
+          assert len(duplicated) == 3
 
           qualified, stars = module.qualified_pr_items(items, min_stars=500)
           upstream = module.upstream_repos_from_prs(qualified, stars)
-          assert upstream == [{
-              "name": "pytorch/pytorch",
-              "display": "PyTorch",
-              "url": "https://github.com/pytorch/pytorch",
-              "count": 2,
-              "stars": 101294,
-          }]
+          assert upstream == [
+              {
+                  "name": "pytorch/pytorch",
+                  "display": "PyTorch",
+                  "url": "https://github.com/pytorch/pytorch",
+                  "count": 2,
+                  "stars": 101294,
+              },
+              {
+                  "name": "google/adk-python",
+                  "display": "Google ADK",
+                  "url": "https://github.com/google/adk-python",
+                  "count": 1,
+                  "stars": 20501,
+              },
+          ]
           rows = module.upstream_pr_rows(qualified, stars)
-          assert {row["number"] for row in rows} == {188830, 188961}
-          assert all(row["repo_display"] == "PyTorch" for row in rows)
-          assert all(row["area"] == "AI infrastructure / model systems" for row in rows)
+          assert {row["number"] for row in rows} == {188830, 188961, 6314}
+          by_number = {row["number"]: row for row in rows}
+          assert by_number[188830]["repo_display"] == "PyTorch"
+          assert by_number[188961]["repo_display"] == "PyTorch"
+          assert by_number[6314]["repo_display"] == "Google ADK"
+          assert by_number[188830]["area"] == "AI infrastructure / model systems"
+          assert by_number[188961]["area"] == "AI infrastructure / model systems"
+          assert by_number[6314]["area"] == "Agent frameworks / protocols / evals"
           PY
 
       - name: Validate full upstream summary rendering
