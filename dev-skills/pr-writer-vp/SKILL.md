@@ -24,6 +24,7 @@ Use this skill for external open-source PR work. The workflow has six phases:
 - Do not include unrelated refactors, generated churn, broad formatting, or `CHANGELOG.md` unless the project explicitly requires it.
 - Keep evidence honest. Distinguish runtime reproduction, UI reproduction, package reproduction, focused unit reproduction, inferred risk, and unavailable validation.
 - For every commit created while using this skill, explicitly include the relevant Codex/GitHub bot as a `Co-authored-by` trailer when a valid bot noreply identity can be verified. Prefer the active reviewer bot identity when responding to bot review feedback, for example `Co-authored-by: chatgpt-codex-connector[bot] <199175422+chatgpt-codex-connector[bot]@users.noreply.github.com>`. Do not guess bot IDs or emails; verify them with GitHub user metadata such as `gh api users/<bot-login>` before committing.
+- When a commit implements a substantive human reviewer's requested change, best-effort include that reviewer as an additional `Co-authored-by` trailer using a valid GitHub noreply or otherwise verified public email. Never guess private emails; skip the human trailer if the identity cannot be verified or if the repository's norms discourage human co-authorship.
 - Read `references/pr-examples.md` before drafting or revising PR prose. Treat it as the few-shot style guide for concise, evidence-driven bug-fix PRs.
 
 ## Multi-Agent Baseline
