@@ -168,9 +168,11 @@ def displayed_projects(projects: list[dict[str, Any]], limit: int) -> list[dict[
 
 
 def sorted_contributions(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    counts = Counter(str(item.get("project", "")).lower() for item in items)
     return sorted(
         items,
         key=lambda item: (
+            -counts[str(item.get("project", "")).lower()],
             -number(item.get("stars")),
             str(item.get("project", "")).lower(),
             -number(item.get("pr")),
@@ -249,8 +251,8 @@ def contribution_summary_from_data(data: dict[str, Any], contributions: list[dic
         ordered_repos = sorted(
             summary_repos,
             key=lambda repo: (
-                -number(repo.get("stars")),
                 -number(repo.get("count")),
+                -number(repo.get("stars")),
                 str(repo.get("display") or repo.get("name") or repo).lower(),
             ),
         )
@@ -261,7 +263,7 @@ def contribution_summary_from_data(data: dict[str, Any], contributions: list[dic
         for item in contributions:
             project = str(item["project"])
             repo_stars[project] = max(repo_stars[project], number(item.get("stars")))
-        ordered = sorted(counts, key=lambda project: (-repo_stars[project], -counts[project], project.lower()))
+        ordered = sorted(counts, key=lambda project: (-counts[project], -repo_stars[project], project.lower()))
         names = ordered
 
     count = number(merged_count) if merged_count is not None else len(contributions)
@@ -346,20 +348,22 @@ def render_contributions(lines: list[str], contributions: list[dict[str, Any]], 
     fixed_header = "修复内容" if lang == "zh" else "What I Fixed"
     lines.extend(["", title, ""])
     by_area: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    repo_counts = Counter(str(item.get("project", "")).lower() for item in contributions)
     for item in contributions:
         by_area[str(item["area"])].append(item)
 
-    def area_sort_key(area: str) -> tuple[int, str, int]:
+    def area_sort_key(area: str) -> tuple[int, int, str, int]:
         first = sorted(
             by_area[area],
             key=lambda item: (
+                -repo_counts[str(item.get("project", "")).lower()],
                 -number(item.get("stars")),
                 str(item.get("project", "")).lower(),
                 -number(item.get("pr")),
             ),
         )[0]
         project = str(first.get("project", "")).lower()
-        return (-number(first.get("stars")), project, -number(first.get("pr")))
+        return (-repo_counts[project], -number(first.get("stars")), project, -number(first.get("pr")))
 
     ordered_areas = sorted((area for area in CONTRIBUTION_AREAS if by_area.get(area)), key=area_sort_key)
     for area in ordered_areas:
