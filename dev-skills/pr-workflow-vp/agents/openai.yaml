@@ -1,4 +1,4 @@
 interface:
   display_name: "PR Workflow"
-  short_description: "Run numbered GitHub PR workflow phases"
-  default_prompt: "Use pr-workflow-vp. Treat 1/2/3/4/5/6 as Step1/Step2/Step3/Step4/Step5/Step6, from fork and clone through PR refinement; submit or update only after explicit confirmation."
+  short_description: "Find and draft small GitHub PRs"
+  default_prompt: "Fork and clone a GitHub project, find a small bug-fix PR candidate, inspect project contribution rules with multiple agents, draft the PR by default, and only submit it after I explicitly confirm."

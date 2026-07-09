@@ -1,45 +1,30 @@
 ---
-name: pr-workflow-vp
-description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, evidence-driven draft PR writing, detailed PR comment section expansion, reviewer-feedback handling, and explicit submit/update. Use when the user asks for pr-workflow-vp, PR workflow, fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, prepare or update a PR draft, expand a specified section in the first PR comment, align with project PR templates and contribution rules, address reviewer feedback, submit a PR after explicit confirmation, or uses shorthand 1, 2, 3, 4, 5, 6 to mean Step1, Step2, Step3, Step4, Step5, Step6 respectively.
+name: pr-writer-vp
+description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, PR-value validation, formal PR creation, reviewer feedback, and detailed PR comment section expansion. Use when the user asks to fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, evaluate whether a candidate is real and PR-worthy, create or update a formal PR, expand a specified section in the first PR comment, or align with project PR templates and contribution rules.
 ---
 
-# PR Workflow
+# PR Writer
 
 Use this skill for external open-source PR work. The workflow has six phases:
 
 1. Step1 Fork & Clone
 2. Step2 Find PR Chances
-3. Step3 Make A Draft
-4. Step4 Submit/Update
+3. Step3 Validate PR Value
+4. Step4 Implement & Create Formal PR
 5. Step5 Address Reviewer Feedback
 6. Step6 Refine PR Comment Section
 
-
-## Step Shortcut Routing
-
-When the user invokes this skill with a bare numeric shorthand, route it as follows:
-
-| Shorthand | Meaning |
-|---|---|
-| `1` | Step1 Fork & Clone |
-| `2` | Step2 Find PR Chances |
-| `3` | Step3 Make A Draft |
-| `4` | Step4 Submit/Update |
-| `5` | Step5 Address Reviewer Feedback |
-| `6` | Step6 Refine PR Comment Section |
-
-Interpret compact forms such as `step1`, `Step 1`, `s1`, `阶段1`, and `第1步` the same way. If the user writes only `1`, `2`, `3`, `4`, `5`, or `6` while discussing a PR workflow, do not ask what the number means; run the corresponding phase.
-
 ## Non-Negotiables
 
-- Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2, Step3, Step5, and Step6 when the repository is large, the task is ambiguous, reviewer feedback touches behavior-sensitive code, or a PR comment section needs stronger evidence.
-- Treat submission as dry-run by default. Do not commit, push, create, mark ready, or update a PR unless the user explicitly asks for that action.
+- Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2, Step3, Step4, Step5, and Step6 when the repository is large, the task is ambiguous, reviewer feedback touches behavior-sensitive code, or a PR comment section needs stronger evidence.
+- Treat submission as dry-run by default outside Step4 and Step5. Do not commit, push, create, mark ready, or update a PR unless the user explicitly asks for that action. When the user invokes Step4 by asking to create or submit a PR, treat that as permission to commit, push, and create a formal ready-for-review PR by default, unless the user explicitly asks for a draft PR.
 - Do not modify `references/` files as part of ordinary PR workflow.
 - Default clone path is `D:\ZXY\Github\<repo-name>` on this Windows machine unless the user gives another path.
 - Prefer small, reviewable bug fixes. The default target is a production-code fix of 0-20 changed lines.
 - Do not include unrelated refactors, generated churn, broad formatting, or `CHANGELOG.md` unless the project explicitly requires it.
 - Keep evidence honest. Distinguish runtime reproduction, UI reproduction, package reproduction, focused unit reproduction, inferred risk, and unavailable validation.
 - For every commit created while using this skill, explicitly include the relevant Codex/GitHub bot as a `Co-authored-by` trailer when a valid bot noreply identity can be verified. Prefer the active reviewer bot identity when responding to bot review feedback, for example `Co-authored-by: chatgpt-codex-connector[bot] <199175422+chatgpt-codex-connector[bot]@users.noreply.github.com>`. Do not guess bot IDs or emails; verify them with GitHub user metadata such as `gh api users/<bot-login>` before committing.
+- When a commit implements a substantive human reviewer's requested change, best-effort include that reviewer as an additional `Co-authored-by` trailer using a valid GitHub noreply or otherwise verified public email. Never guess private emails; skip the human trailer if the identity cannot be verified or if the repository's norms discourage human co-authorship.
 - Read `references/pr-examples.md` before drafting or revising PR prose. Treat it as the few-shot style guide for concise, evidence-driven bug-fix PRs.
 
 ## Multi-Agent Baseline
@@ -203,59 +188,92 @@ Use this phase when the user asks to find PR opportunities, inspect a project fo
    - Do not modify files, commit, push, or draft a PR body in Step2 unless explicitly asked to continue.
    - If no good candidates are found, report search areas covered, rejected options, and why they failed the fixable-bug bar.
 
-## Step3 Make A Draft
+## Step3 Validate PR Value
 
-Use this phase when the user chooses a candidate or asks to prepare/update PR wording.
+Use this phase when the user points to a specific candidate and asks whether it has PR value, whether the bug is real, whether the current fix idea uses the right abstraction, or what the best next move is.
 
-1. Start multi-agent draft work. This phase must use multiple agents.
-   - Assign one agent to inspect contribution rules, PR templates, `.github/`, docs, issue-link requirements, CLA, AI disclosure, and submission norms.
-   - Assign one agent to inspect the actual diff, changed files, evidence, tests, and claim accuracy.
-   - Add an evidence/reproduction agent for parser, path, URL, validation, tool-calling, security-adjacent, and boundary bugs.
-   - Require every agent responsible for PR body wording, evidence wording, or final PR text review to read the mandatory few-shot PRs in step 4 before making wording recommendations.
-   - Merge findings into one draft. Do not paste raw agent output unless asked.
+Treat Step3 as the PR candidate diligence gate, not as an automatic prelude to implementation. Its job is to decide whether the candidate deserves Step4 at all: confirm the bug is real, the proposed fix matches the right abstraction, the evidence is strong enough for maintainers, and the review risk is acceptable.
 
-2. Reconfirm the selected bug before editing.
-   - Restate the bug, affected files, expected fix size, reproduction plan, validation plan, and risk.
+1. Start multi-agent candidate validation. This phase must use multiple agents.
+   - Assign one agent to inspect code semantics, call chains, construction sites, ownership boundaries, sibling surfaces, and whether the suspected failure is actually reachable.
+   - Assign one agent to inspect duplicate PRs/issues, maintainer comments, project history, docs, API contracts, and whether maintainers have already rejected the same idea.
+   - Assign one dedicated skeptic/counterargument agent to argue against the current candidate. This agent must test whether the behavior could be intentional, an accepted abstraction boundary, diagnostic-only polish, already occupied by a better PR, too broad for a small fix, or unlikely to meet the maintainer review bar.
+   - Add an evidence/reproduction agent for parser, path, URL, validation, HTTP status, serialization, security-adjacent, platform, or compatibility candidates.
+   - Require each agent to answer the same decision questions: Is it real? Is it PR-worthy? Is it the right abstraction? Is there a narrower or better fix? What is the risk? What should we do next?
+   - Require the skeptic agent to provide the strongest no-go case, the best alternative interpretation of the observed behavior, an intentional-abstraction risk score, and a recommendation to proceed, downgrade, or reject.
+   - Treat Step3 as incomplete until at least two independent agents return useful findings that the main agent reconciles.
+   - Treat Step3 as incomplete until the skeptic/counterargument findings have been explicitly reconciled against the supporting findings and executable evidence.
+   - If the two agents disagree, do not average their conclusions. Resolve the disagreement by checking the underlying code path, maintainer history, or executable evidence.
+
+2. Reconfirm the candidate before any editing.
+   - Restate the suspected bug, affected files, proposed production-code fix size, reproduction plan, validation plan, and risk.
+   - Search for duplicate issues and PRs before recommending implementation.
+   - Inspect the actual production construction points and caller behavior instead of relying on enum names, function names, or surface-level status-code symmetry.
    - If deeper inspection invalidates the candidate, stop and explain the mismatch before changing code.
 
-3. Read the project PR template and rules before drafting prose.
+3. Evaluate abstraction quality explicitly.
+   - Identify whether the proposed fix addresses the real failure mode or only the visible symptom.
+   - Check for overloaded enum variants, shared helper behavior, retry semantics, provider/API contracts, state-machine signals, and cross-surface mappings.
+   - Compare at least two options when relevant: minimal patch, narrower patch, split abstraction, metadata/classification change, documentation-only clarification, or no PR.
+   - Prefer the smallest durable fix that matches maintainers' existing model; reject one-line fixes when the bug is actually an abstraction boundary problem.
+
+4. Produce a recommendation before editing.
+   - Output a clear decision: proceed to Step4, reject as not PR-worthy, redesign into a larger issue, or keep as a lower-priority candidate.
+   - Include a compact decision matrix with these fields: `Reality`, `PR value`, `Abstraction fit`, `Skeptic view`, `Intentional-abstraction risk`, `Duplicate risk`, `Fix size`, `Evidence strength`, `Maintainer risk`, and `Recommendation`.
+   - Include file paths, call chain, concrete evidence, duplicate/history findings, likely production-code fix size, test plan, and risks.
+   - If the recommendation is `proceed to Step4`, explain why the candidate clears the diligence gate and what exact implementation path should be used.
+   - If the recommendation is not to proceed, explain the strongest blocking reason, such as weak reality proof, poor abstraction fit, duplicate maintainer rejection, oversized fix scope, or unacceptable review risk.
+   - Do not modify files, commit, push, or draft a PR body in Step3 unless the user explicitly asks to continue into Step4.
+
+## Step4 Implement & Create Formal PR
+
+Use this phase only when the user explicitly asks to implement, create, submit, open, or update a PR for a chosen candidate. This phase combines the old draft and submit phases: implement the narrow fix, validate it, write the PR body, commit, push, and create a formal ready-for-review PR by default. Create a draft PR only when the user explicitly asks for a draft.
+
+1. Start multi-agent implementation and final review. This phase must use multiple agents.
+   - Assign one agent to inspect contribution rules, PR templates, `.github/`, docs, issue-link requirements, CLA, AI disclosure, and submission norms.
+   - Assign one agent to inspect the actual diff, changed files, evidence, tests, validation claims, and whether the patch still matches the selected candidate.
+   - Add an evidence/reproduction agent for parser, path, URL, validation, HTTP status, tool-calling, security-adjacent, platform, or boundary bugs.
+   - Require every patch-producing or diff-reviewing agent to apply the Mandatory Patch-Generation Review Lenses.
+   - Require every PR-body or evidence-reviewing agent to apply the Mandatory PR Evidence Review Lenses.
+
+2. Reconfirm the selected bug before editing.
+   - Restate the bug, affected files, expected fix size, reproduction plan, validation plan, risk, and why Step3/Step2 evidence supports creating a PR.
+   - Confirm the chosen abstraction is still correct after reading callers, callees, sibling surfaces, fallback paths, and project history.
+   - If deeper inspection invalidates the candidate, stop and explain the mismatch before changing code or creating a PR.
+
+3. Read the project PR template, rules, and examples.
    - Read `.github/PULL_REQUEST_TEMPLATE*`, `CONTRIBUTING.md`, AGENTS files, relevant docs, and linked contribution guidance when available.
    - Use the target project's original PR template text and heading structure as the outer shell for the PR body.
    - Do not append a second generic template below the project template.
    - Do not replace the repository template headings with this skill's default headings when a project template exists.
    - Keep required warning callouts, issue-link language, checklists, CLA notes, docs checkboxes, screenshots requirements, and AI-assistance disclosures.
-
-4. Read mandatory few-shot PR examples before writing or updating PR text.
-   - The main agent must read these two PRs for every new draft and every major PR-body revision:
+   - Read mandatory few-shot PR examples before writing or updating PR text:
      - `https://github.com/AstrBotDevs/AstrBot/pull/8971`
      - `https://github.com/HKUDS/LightRAG/pull/3324`
-   - Use `gh pr view 8971 --repo AstrBotDevs/AstrBot --json title,body,url` and
-     `gh pr view 3324 --repo HKUDS/LightRAG --json title,body,url` when `gh` is available; otherwise browse the PR pages.
-   - Treat them as mandatory few-shot structure examples for concise bug-fix PRs: opening summary, concrete problem, exact vulnerable/failing construction, narrow change, evidence, possible call chain / impact, testing, and limitations.
-   - Do not copy repository-specific wording, screenshots, security claims, or validation commands. Adapt the structure to the target repository's PR template and the actual diff/evidence.
+   - Use `gh pr view 8971 --repo AstrBotDevs/AstrBot --json title,body,url` and `gh pr view 3324 --repo HKUDS/LightRAG --json title,body,url` when `gh` is available; otherwise browse the PR pages.
    - Also read `references/pr-examples.md` when local examples are useful or when the user asks for more PR wording models.
-   - Follow the shared persuasion order: make the bug believable first, show the narrow change second, provide reproducible evidence third, then trace the call chain and non-affected paths.
 
-5. Reproduce before fixing when feasible.
+4. Reproduce before fixing when feasible.
    - Prefer realistic product/runtime reproduction.
    - For small frontend/backend fixes, create the smallest script, unit test, console snippet, or focused test that demonstrates old behavior first.
    - For path, URL, upload, validation, escaping, parser, tool-calling, or security-adjacent bugs, include concrete payloads and before/after behavior when safe.
    - If direct reproduction is not possible, state why and identify the alternative evidence used.
    - Apply the Mandatory PR Evidence Review Lenses while deciding what proof is needed for the PR and for any reviewer-requested change.
 
-6. Implement narrowly.
+5. Implement narrowly.
    - Keep the production-code fix near the 0-20 line target unless the chosen candidate genuinely requires more.
    - Use local helpers and existing project patterns.
    - Avoid unrelated refactors, broad cleanup, formatting churn, generated files, and undocumented behavior changes.
    - Before finalizing the implementation, apply the Mandatory Patch-Generation Review Lenses to the actual patch and revise the code if the lenses reveal a correctness, boundary, completeness, best-fix, or risk gap.
 
-7. Inspect the actual diff before writing final body.
-   - Run `git status -sb`, `git diff --stat`, and the narrow relevant `git diff`.
+6. Validate and inspect the actual diff before PR creation.
+   - Run focused tests first, then the closest practical local CI subset for the touched area.
+   - Run `git status -sb`, `git diff --stat`, `git diff --cached --stat` when staging has begun, and the narrow relevant `git diff`.
    - Identify included tests, docs, generated files, and unrelated files.
    - Never claim a file, test, screenshot, log, or command exists unless it is present in the diff or verified output.
-   - Include the five-lens patch review result in the internal diff audit before drafting final PR wording; do not paste it verbatim into the PR unless it improves reviewer confidence.
+   - If validation fails or is unavailable, record exact commands, errors, skipped checks, platform differences, and remaining risk.
 
-8. Draft using the project template as the shell.
+7. Draft the PR body using the project template as the shell.
    - Fill the repository's template sections with the required facts instead of replacing the template.
    - Always account for these facts somewhere in the target template:
    - Problem solved: concrete bug, vulnerability, failure mode, missing guard, or bad behavior.
@@ -267,44 +285,22 @@ Use this phase when the user chooses a candidate or asks to prepare/update PR wo
    - If the template has no matching headings, weave the facts into the closest sections rather than adding a bulky second structure.
    - If the project has no template, use the default body shape below.
 
-9. Write a concise title.
+8. Write a concise title.
    - Match the repository's title style when visible.
    - Prefer `fix(scope): summary` for small bug fixes.
    - Name the affected area and behavior.
    - Do not add agent branding unless the user or repository explicitly wants it.
 
-10. Treat Step3 as complete when the draft is reviewable.
-   - Output intended title, PR body, changed files, evidence, validation commands, limitations, and remaining risks.
-   - Ask for explicit confirmation before creating or updating a GitHub PR.
-
-## Step4 Submit/Update
-
-Use this phase only when the user explicitly asks to submit, create, open, mark ready, or update a PR.
-
-1. Start multi-agent final review.
-   - Assign one agent to re-check branch state, diff scope, staged files, and validation claims.
-   - Assign one agent to re-check the PR template, current PR body if updating, contribution rules, and required disclosures.
-
-2. Re-check state.
-   - Run `git status -sb`, `git diff --stat`, and `git diff --cached --stat` when staging has begun.
-   - Re-read the repository PR template.
-   - If updating an existing PR, read the current title/body and current diff before editing.
-   - Verify the body still matches latest diff and validation output.
-
-3. Commit, push, and submit intentionally.
+9. Commit, push, and create/update the PR intentionally.
    - Stage only intended files.
    - Use a clear commit message matching repository style.
    - Include the verified Codex/GitHub bot `Co-authored-by` trailer in the commit message, following the Non-Negotiables co-author rule.
-   - Create a draft PR by default unless the user explicitly asks for a ready PR.
-   - Use GitHub connector tools for PR metadata when `gh` lacks permission.
+   - Push to the intended PR head branch.
+   - Create a formal ready-for-review PR by default. Create a draft PR only when the user explicitly asks for a draft.
+   - If updating an existing PR, remove references to deleted tests, deleted files, or outdated validation and preserve required template content.
+   - Use `gh` for PR creation/update when available; use other GitHub capabilities only when `gh` lacks permission or cannot perform the required action.
 
-4. Update existing PRs carefully.
-   - Remove references to deleted tests, deleted files, or outdated validation.
-   - Preserve required AI disclosure, issue-link language, warning callouts, and checklist items.
-   - Mark ready for review only when explicitly requested.
-   - When addressing reviewer comments, explicitly re-run the Mandatory Patch-Generation Review Lenses and Mandatory PR Evidence Review Lenses against the updated diff and reviewer concern.
-
-5. Report exact final state.
+10. Report exact final state.
    - Include PR URL, branch, commit, changed files, validation commands and outcomes, CI status if known, and remaining review risks.
    - If the body deviated from this skill's default shape because of the project template, mention that briefly.
 
@@ -453,6 +449,7 @@ Use this phase when the user gives an existing PR and asks to refine, expand, st
    - Start with a one-sentence summary when the surrounding PR comment section needs it.
    - Use crisp headings: `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact`.
    - Use fenced code blocks for payloads, path constructions, request traces, and call chains.
+   - In the `Changes` subsection, when the main production-code diff is under 20 changed lines excluding tests, prefer showing a compact fenced `diff` block with the core production change first, then follow it with one short paragraph explaining what changed and what intentionally stayed unchanged. Do not include long test diffs or unrelated context in this mini-diff.
    - For path traversal or upload filename issues, explain raw user-controlled filename construction, payloads such as `../../../evil.zip` and `..\\..\\..\\evil.zip`, before/after resolved paths, basename normalization, fallback filename behavior, and unaffected parsing/auth/install behavior.
    - For screenshots, include them only if they already exist in the PR comment/body or the user supplied current evidence to upload/reference; otherwise describe the console evidence textually.
    - Keep security language proportionate: "path traversal risk", "can resolve outside the intended directory", or "weakens the path boundary" are usually safer than broad compromise claims unless the evidence proves more.
@@ -514,8 +511,13 @@ Use this only when the target repository has no PR template. If a project templa
 - Multi-agent work was started for the skill run and for the active phase.
 - Step2 returns a set of concrete, fixable bug candidates before editing.
 - Step2 candidates default to production-code fixes of 0-20 changed lines.
-- Step3 uses the target repository PR template as the outer shell.
-- Step3 includes problem solved, what changed, evidence, and call chain/impact.
+- Step3 validates whether a candidate is real, PR-worthy, and based on the right abstraction before editing.
+- Step3 includes at least one dedicated skeptic/counterargument agent that argues against the current candidate and tests whether the behavior may be intentional, diagnostic-only, already occupied, too broad, or below the maintainer review bar.
+- Step3 explicitly reconciles the skeptic view before recommending Step4, downgrading, or rejecting the candidate.
+- Step3 includes multi-agent evidence on call chains, duplicate/history risk, likely fix size, test plan, and recommendation.
+- Step4 uses the target repository PR template as the outer shell.
+- Step4 includes problem solved, what changed, evidence, and call chain/impact.
+- Step4 commits, pushes, and creates a formal ready-for-review PR when the user explicitly asks to create or submit the PR.
 - Step5 collects reviewer comments, review summaries, unresolved threads, current diff, and CI status before editing.
 - Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
 - Step5 runs full local CI when feasible, then monitors remote CI after push.
