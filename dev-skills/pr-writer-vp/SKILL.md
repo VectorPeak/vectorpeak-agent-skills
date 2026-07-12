@@ -176,6 +176,7 @@ Use this phase when the user asks to find PR opportunities, inspect a project fo
    - Reject speculative style changes, broad refactors, large migrations, typing-only improvements, naming fixes, theoretical robustness, and issues requiring unavailable credentials or production services.
    - Prefer candidates reproducible with a focused script, unit test, console snippet, small payload, or narrow command.
    - Do not promote a candidate into the shortlist unless it has either a plausible executable reproduction entry point, a minimal payload/snippet, an existing failing path, or a clearly stated smallest-evidence plan.
+   - OpenClaw mode: when the current project is `openclaw/openclaw`, the Step2 shortlist must only include candidates whose expected production-code diff is 40 changed lines or fewer, whose open-PR/recent-churn overlap is checked and reported as no known merge-risk, and whose evidence plan includes a concrete user-realistic call chain or runtime path. Reject OpenClaw candidates that require unavailable private credentials, provider accounts, tenants, live bots, or production services for their only user-realistic proof.
 
 4. Present a shortlist before editing.
    - Include rank, candidate type, file path, bug summary, why it matters, likely production-code fix size, evidence plan, validation approach, and risk.
@@ -282,6 +283,7 @@ Use this phase only when the user explicitly asks to implement, create, submit, 
    - Call chain / impact: entry point, affected function or module path, who can trigger it, practical impact, and non-affected paths when known.
    - Evidence lenses: include behavior proof, media proof when useful, test/CI proof, dependency contract proof when relevant, and sibling-surface reasoning when the change could affect adjacent paths.
    - Use this call-chain shape when possible: `User action/API/CLI -> route/component -> handler/helper -> faulty expression/branch -> observed impact`.
+   - OpenClaw mode: when creating a PR against `openclaw/openclaw`, include an explicit user-realistic proof section in the PR body before opening the PR. The proof must name the concrete user/client/runtime entry point, the reachable call chain, the before/after behavior or focused runtime/test output, and any live-proof limitations. Do not open an OpenClaw PR whose only proof depends on credentials or external environments that are not available.
    - If the template has no matching headings, weave the facts into the closest sections rather than adding a bulky second structure.
    - If the project has no template, use the default body shape below.
 
@@ -511,12 +513,14 @@ Use this only when the target repository has no PR template. If a project templa
 - Multi-agent work was started for the skill run and for the active phase.
 - Step2 returns a set of concrete, fixable bug candidates before editing.
 - Step2 candidates default to production-code fixes of 0-20 changed lines.
+- OpenClaw Step2 candidates are capped at 40 production-code changed lines, have no known merge-risk after overlap/churn checks, and include a user-realistic call-chain proof plan.
 - Step3 validates whether a candidate is real, PR-worthy, and based on the right abstraction before editing.
 - Step3 includes at least one dedicated skeptic/counterargument agent that argues against the current candidate and tests whether the behavior may be intentional, diagnostic-only, already occupied, too broad, or below the maintainer review bar.
 - Step3 explicitly reconciles the skeptic view before recommending Step4, downgrading, or rejecting the candidate.
 - Step3 includes multi-agent evidence on call chains, duplicate/history risk, likely fix size, test plan, and recommendation.
 - Step4 uses the target repository PR template as the outer shell.
 - Step4 includes problem solved, what changed, evidence, and call chain/impact.
+- OpenClaw Step4 PR bodies include explicit user-realistic proof before opening the PR, or the candidate is paused instead of submitted.
 - Step4 commits, pushes, and creates a formal ready-for-review PR when the user explicitly asks to create or submit the PR.
 - Step5 collects reviewer comments, review summaries, unresolved threads, current diff, and CI status before editing.
 - Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
