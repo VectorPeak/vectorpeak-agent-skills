@@ -1,5 +1,5 @@
 ---
-name: pr-writer-vp
+name: pr-workflow-vp
 description: Manage the user's external GitHub PR workflow from project name to fork/clone, multi-agent bug hunting, PR-value validation, formal PR creation, reviewer feedback, and detailed PR comment section expansion. Use when the user asks to fork or clone a GitHub project, find small fixable PR opportunities, launch multi-agent source review, evaluate whether a candidate is real and PR-worthy, create or update a formal PR, expand a specified section in the first PR comment, or align with project PR templates and contribution rules.
 ---
 
@@ -19,13 +19,17 @@ Use this skill for external open-source PR work. The workflow has six phases:
 - Always start multi-agent work when this skill runs. Launch at least two agents before phase-specific work; use more for Step2, Step3, Step4, Step5, and Step6 when the repository is large, the task is ambiguous, reviewer feedback touches behavior-sensitive code, or a PR comment section needs stronger evidence.
 - Treat submission as dry-run by default outside Step4 and Step5. Do not commit, push, create, mark ready, or update a PR unless the user explicitly asks for that action. When the user invokes Step4 by asking to create or submit a PR, treat that as permission to commit, push, and create a formal ready-for-review PR by default, unless the user explicitly asks for a draft PR.
 - Do not modify `references/` files as part of ordinary PR workflow.
-- Default clone path is `D:\ZXY\Github\<repo-name>` on this Windows machine unless the user gives another path.
+- Default clone path is `C:\XingyueZhu\Github\repos\<repo-name>` on this Windows machine unless the user gives another path.
 - Prefer small, reviewable bug fixes. The default target is a production-code fix of 0-20 changed lines.
 - Do not include unrelated refactors, generated churn, broad formatting, or `CHANGELOG.md` unless the project explicitly requires it.
 - Keep evidence honest. Distinguish runtime reproduction, UI reproduction, package reproduction, focused unit reproduction, inferred risk, and unavailable validation.
 - For every commit created while using this skill, explicitly include the relevant Codex/GitHub bot as a `Co-authored-by` trailer when a valid bot noreply identity can be verified. Prefer the active reviewer bot identity when responding to bot review feedback, for example `Co-authored-by: chatgpt-codex-connector[bot] <199175422+chatgpt-codex-connector[bot]@users.noreply.github.com>`. Do not guess bot IDs or emails; verify them with GitHub user metadata such as `gh api users/<bot-login>` before committing.
 - When a commit implements a substantive human reviewer's requested change, best-effort include that reviewer as an additional `Co-authored-by` trailer using a valid GitHub noreply or otherwise verified public email. Never guess private emails; skip the human trailer if the identity cannot be verified or if the repository's norms discourage human co-authorship.
 - Read `references/pr-examples.md` before drafting or revising PR prose. Treat it as the few-shot style guide for concise, evidence-driven bug-fix PRs.
+- **Every time a PR is created or updated (Step4 and Step5), finish with these two mandatory deliverables before reporting:**
+  1. **Open the PR URL in the user's Qoder in-app browser (the sidebar).** Call `mcp__browser-use__list_pages` first, then `mcp__browser-use__navigate_page` with the PR URL. If the browser tools are unavailable, fall back to `mcp__browser-use__navigate_page` from another available in-app browser tool set, and if none exist, report the exact blocker and give the raw URL. This is a standing user instruction, not an optional nicety.
+  2. **Produce a Chinese-translation Markdown copy of the PR body.** Save it as `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md` (outside the clone so it never pollutes the work tree), preserving the PR template section headings, checkboxes, and status. The English PR body and its GitHub URL remain authoritative; the CN file is for the user's own reading.
+- **Stop when the phase is done. Never loop on summaries.** When a phase completes and the only remaining work is waiting on an external event (maintainer review, CI, merge), report the final state once and hand control back to the user. Do not re-run the same summary command on every "continue". In the task list, mark wait-on-review phases as `pending` (or keep them `in_progress` with an explicit "waiting for reviewer" note), never `completed`; a phase is only `completed` when its deliverable actually exists.
 
 ## Multi-Agent Baseline
 
@@ -92,7 +96,7 @@ Use this phase when the user gives a project name, GitHub URL, or asks to prepar
 
 3. Fork and clone.
    - Fork to the user's GitHub account when no suitable fork exists.
-   - Clone the fork into `D:\ZXY\Github\<repo-name>` on this machine unless another path is requested.
+   - Clone the fork into `C:\XingyueZhu\Github\repos\<repo-name>` on this machine unless another path is requested.
    - Add `upstream` pointing to the original repository.
 
 4. Synchronize `main`.
@@ -112,12 +116,13 @@ Use this phase when the user gives a project name, GitHub URL, or asks to prepar
 
 ### Local Environment Bootstrap On This Machine
 
-After cloning into `D:\ZXY\Github\<repo-name>`, inspect project files before installing dependencies. Configure only the minimum environment needed for reproduction and targeted validation.
+After cloning into `C:\XingyueZhu\Github\repos\<repo-name>`, inspect project files before installing dependencies. Configure only the minimum environment needed for reproduction and targeted validation.
 
 Check these files first when present: `README*`, `CONTRIBUTING*`, `AGENTS.md`, `pyproject.toml`, `setup.py`, `setup.cfg`, `requirements*.txt`, `environment.yml`, `conda-lock.yml`, `.python-version`, `package.json`, `package-lock.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb`, `Dockerfile`, `docker-compose.yml`, `compose.yaml`, `.devcontainer/`, and CI workflow files.
 
 Python projects:
-- Use this machine's Miniforge first: `D:\ZXY\Dev\Miniforge3\condabin\mamba.bat`; fall back to `D:\ZXY\Dev\Miniforge3\condabin\conda.bat`.
+- Use this machine's Miniforge first: `C:\Users\z005by4m\miniforge3\condabin\mamba.bat`; fall back to `C:\Users\z005by4m\miniforge3\condabin\conda.bat`.
+- `conda` and `mamba` are **not** on `PATH` on this machine. Invoke the `.bat` shims above by absolute path, or use `conda run` / `mamba run` through them. Do not assume a bare `conda` / `mamba` call resolves.
 - Create one isolated conda environment per repository, named `prw-<repo-name>-py<version>`.
 - Infer the Python version from project files or CI config. Default to Python 3.12 only when the project does not specify a version.
 - Prefer `mamba env create -n <env> -f environment.yml` when an environment file exists.
@@ -126,9 +131,10 @@ Python projects:
 - Keep the environment isolated to the PR candidate; do not reuse a shared base environment.
 
 Node.js projects:
-- Use this machine's Node.js installation at `D:\ZXY\Dev\nodejs`.
-  - Node executable: `D:\ZXY\Dev\nodejs\node.exe` (currently observed as Node.js `v24.15.0`).
-  - npm executable: `D:\ZXY\Dev\nodejs\npm.cmd` (currently observed as npm `11.12.1`).
+- Two Node installations exist on this machine (verified 2026-10-29).
+  - Preferred (managed, first on PATH): `C:\Users\z005by4m\.workbuddy\binaries\node\versions\22.22.2-6\node.exe` — Node.js `v22.22.2`.
+  - System fallback: `C:\Program Files\nodejs\node.exe` — Node.js `v24.19.0`; npm `11.17.0` at `C:\Program Files\nodejs\npm.cmd`.
+  - Prefer the managed `v22.22.2`, because most current repositories pin Node 22.x; use the system Node only when a project explicitly needs Node 24.
   - When a repository's CI requires a different major version (for example Node 22.x), report the mismatch before treating local build results as CI-equivalent evidence.
 - Select the package manager from `packageManager` or lockfiles:
   - `pnpm-lock.yaml` -> `pnpm install`
@@ -140,7 +146,7 @@ Node.js projects:
 
 Docker and WSL projects:
 - Use Docker only when the project requires service dependencies or its README, compose files, Dockerfile, or devcontainer requires it.
-- This machine uses WSL2 with Ubuntu-22.04. Windows path `D:\ZXY\Github` maps to `/mnt/d/ZXY/Github` in WSL.
+- This machine uses WSL2 with Ubuntu-22.04. Windows path `C:\XingyueZhu\Github\repos` maps to `/mnt/c/XingyueZhu/Github` in WSL.
 - If Docker CLI exists but the daemon is unavailable, report that Docker Desktop is not running and start Docker Desktop before running compose commands when feasible.
 - Prefer Docker Desktop with the WSL2 backend. Do not install a second Docker Engine inside WSL unless the project explicitly requires it.
 - Use WSL for Linux-only shell scripts, Makefile/bash-heavy workflows, Docker workflows, or projects that depend on Linux path semantics. Otherwise stay in the Windows project directory.
@@ -174,6 +180,7 @@ Use this phase when the user asks to find PR opportunities, inspect a project fo
    - Treat production-code fixes over 20 lines as exceptions requiring explicit justification.
    - Tests, reproduction scripts, and PR body evidence can exceed 20 lines when they improve maintainer confidence.
    - Reject speculative style changes, broad refactors, large migrations, typing-only improvements, naming fixes, theoretical robustness, and issues requiring unavailable credentials or production services.
+   - OpenClaw mode: when the current project is `openclaw/openclaw`, the Step2 shortlist must only include candidates whose expected production-code diff is 40 changed lines or fewer, whose open-PR/recent-churn overlap is checked and reported as no known merge-risk, and whose evidence plan includes a concrete user-realistic call chain or runtime path. Reject OpenClaw candidates that require unavailable private credentials, provider accounts, tenants, live bots, or production services for their only user-realistic proof.
    - Prefer candidates reproducible with a focused script, unit test, console snippet, small payload, or narrow command.
    - Do not promote a candidate into the shortlist unless it has either a plausible executable reproduction entry point, a minimal payload/snippet, an existing failing path, or a clearly stated smallest-evidence plan.
 
@@ -285,6 +292,7 @@ Use this phase only when the user explicitly asks to implement, create, submit, 
    - Use this call-chain shape when possible: `User action/API/CLI -> route/component -> handler/helper -> faulty expression/branch -> observed impact`.
    - If the template has no matching headings, weave the facts into the closest sections rather than adding a bulky second structure.
    - If the project has no template, use the default body shape below.
+   - OpenClaw mode: when creating a PR against `openclaw/openclaw`, include an explicit user-realistic proof section in the PR body before opening the PR. The proof must name the concrete user/client/runtime entry point, the reachable call chain, the before/after behavior or focused runtime/test output, and any live-proof limitations. Do not open an OpenClaw PR whose only proof depends on credentials or external environments that are not available.
 
 8. Write a concise title.
    - Match the repository's title style when visible.
@@ -304,6 +312,9 @@ Use this phase only when the user explicitly asks to implement, create, submit, 
 10. Report exact final state.
    - Include PR URL, branch, commit, changed files, validation commands and outcomes, CI status if known, and remaining review risks.
    - If the body deviated from this skill's default shape because of the project template, mention that briefly.
+   - **Open the PR URL in the user's Qoder in-app browser (sidebar)** via `mcp__browser-use__list_pages` + `mcp__browser-use__navigate_page`.
+   - **Write the Chinese-translation Markdown copy** to `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md` and link it in the final report.
+   - Then stop. Do not keep re-printing the same summary when the user says "continue"; the remaining work is waiting on the maintainer.
 
 ## Step5 Address Reviewer Feedback
 
@@ -368,6 +379,7 @@ Use this phase when the user gives an existing PR link and asks to address revie
 9. Report exact final state.
    - Include PR URL, branch, latest commit, review threads replied to, PR body changes, local CI commands and outcomes, remote CI status, reviewer(s) mentioned, and remaining review risks.
    - If the phase was degraded because subagents, credentials, full CI, or remote checks were unavailable, state that clearly and explain the best next action.
+   - **Open the PR URL in the user's Qoder in-app browser (sidebar)** via `mcp__browser-use__navigate_page`, and **refresh the Chinese-translation Markdown copy** at `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md` so it matches the updated PR body.
 
 ## Step6 Refine PR Comment Section
 
@@ -512,6 +524,7 @@ Use this only when the target repository has no PR template. If a project templa
 - Multi-agent work was started for the skill run and for the active phase.
 - Step2 returns a set of concrete, fixable bug candidates before editing.
 - Step2 candidates default to production-code fixes of 0-20 changed lines.
+- OpenClaw Step2 candidates are capped at 40 production-code changed lines, have no known merge-risk after overlap/churn checks, and include a user-realistic call-chain proof plan.
 - Step3 validates whether a candidate is real, PR-worthy, and based on the right abstraction before editing.
 - Step3 manually starts two independent skeptic/counterargument agents that argue against the current candidate and test whether the behavior may be intentional, diagnostic-only, already occupied, too broad, or below the maintainer review bar.
 - Step3 explicitly reconciles both skeptic views before recommending Step4, downgrading, or rejecting the candidate.
@@ -519,6 +532,7 @@ Use this only when the target repository has no PR template. If a project templa
 - Step4 uses the target repository PR template as the outer shell.
 - Step4 includes problem solved, what changed, evidence, and call chain/impact.
 - Step4 commits, pushes, and creates a formal ready-for-review PR when the user explicitly asks to create or submit the PR.
+- OpenClaw Step4 PR bodies include explicit user-realistic proof before opening the PR, or the candidate is paused instead of submitted.
 - Step5 collects reviewer comments, review summaries, unresolved threads, current diff, and CI status before editing.
 - Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
 - Step5 runs full local CI when feasible, then monitors remote CI after push.
@@ -537,3 +551,6 @@ Use this only when the target repository has no PR template. If a project templa
 - The PR is scoped to the requested change and avoids unrelated churn.
 - Patch-producing agents explicitly covered correctness, ownership boundary, completeness, best-fix judgment, and risk awareness before the patch was accepted.
 - Drafting and reviewer-response work explicitly covered behavior proof, media proof where useful, test/CI proof, dependency contract proof, and sibling-surface proof before the PR body or reviewer reply was finalized.
+- Every created or updated PR was opened in the user's Qoder in-app browser (sidebar) via `mcp__browser-use__navigate_page`.
+- Every created or updated PR has a matching Chinese-translation Markdown copy at `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md`.
+- The run ended once; no repeated summary loops when the user says "continue" and the only remaining work is waiting on a maintainer.
