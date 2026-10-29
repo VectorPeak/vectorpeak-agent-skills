@@ -23,13 +23,12 @@ Use this skill for external open-source PR work. The workflow has six phases:
 - Prefer small, reviewable bug fixes. The default target is a production-code fix of 0-20 changed lines.
 - Do not include unrelated refactors, generated churn, broad formatting, or `CHANGELOG.md` unless the project explicitly requires it.
 - Keep evidence honest. Distinguish runtime reproduction, UI reproduction, package reproduction, focused unit reproduction, inferred risk, and unavailable validation.
-- For every commit created while using this skill, explicitly include the relevant Codex/GitHub bot as a `Co-authored-by` trailer when a valid bot noreply identity can be verified. Prefer the active reviewer bot identity when responding to bot review feedback, for example `Co-authored-by: chatgpt-codex-connector[bot] <199175422+chatgpt-codex-connector[bot]@users.noreply.github.com>`. Do not guess bot IDs or emails; verify them with GitHub user metadata such as `gh api users/<bot-login>` before committing.
-- When a commit implements a substantive human reviewer's requested change, best-effort include that reviewer as an additional `Co-authored-by` trailer using a valid GitHub noreply or otherwise verified public email. Never guess private emails; skip the human trailer if the identity cannot be verified or if the repository's norms discourage human co-authorship.
+- **Never add `Co-authored-by` trailers.** Do not add bot co-authors, and do not add human reviewers as co-authors either. Commit authorship stays with the actual committer only. (User instruction, 2026-10-29: "Co-authored-by 目前不要去加这一段".)
 - Read `references/pr-examples.md` before drafting or revising PR prose. Treat it as the few-shot style guide for concise, evidence-driven bug-fix PRs.
-- **Every time a PR is created or updated (Step4 and Step5), finish with these two mandatory deliverables before reporting:**
-  1. **Open the PR URL in the user's Qoder in-app browser (the sidebar).** Call `mcp__browser-use__list_pages` first, then `mcp__browser-use__navigate_page` with the PR URL. If the browser tools are unavailable, fall back to `mcp__browser-use__navigate_page` from another available in-app browser tool set, and if none exist, report the exact blocker and give the raw URL. This is a standing user instruction, not an optional nicety.
-  2. **Produce a Chinese-translation Markdown copy of the PR body.** Save it as `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md` (outside the clone so it never pollutes the work tree), preserving the PR template section headings, checkboxes, and status. The English PR body and its GitHub URL remain authoritative; the CN file is for the user's own reading.
-- **Stop when the phase is done. Never loop on summaries.** When a phase completes and the only remaining work is waiting on an external event (maintainer review, CI, merge), report the final state once and hand control back to the user. Do not re-run the same summary command on every "continue". In the task list, mark wait-on-review phases as `pending` (or keep them `in_progress` with an explicit "waiting for reviewer" note), never `completed`; a phase is only `completed` when its deliverable actually exists.
+- **PR delivery follow-ups (Step4 and Step5).** After a PR is created or updated, do two things before reporting. Both are environment-dependent: ask once, then reuse the answer.
+  1. **Open the PR in whatever browser surface the current IDE actually provides.** The IDE may be Qoder, WorkBuddy, Codex, or something else — do not hardcode a product or a tool name. Use the in-app browser/preview panel when the runtime exposes one; if not, report that the surface is unavailable and hand the raw URL to the user. Ask the user on the first run of a new IDE which surface they want.
+  2. **Produce a Chinese-translation Markdown copy of the PR body.** Confirm the output location with the user on first use instead of assuming a fixed path; keep it outside the git work tree so it never pollutes the diff, and preserve the PR template headings, checkboxes, and status. The English body and the GitHub URL stay authoritative.
+- **Do not loop on summaries.** When a phase completes and the only remaining work is waiting on an external event (maintainer review, CI, merge), report the final state once and hand control back to the user instead of re-printing the same summary on every "continue". Mark wait-on-review phases as `pending` (or `in_progress` with a "waiting for reviewer" note), never `completed`; a phase is only complete when its deliverable exists. This is a default, not a hard rule: if the user asks to keep going, keep going.
 
 ## Multi-Agent Baseline
 
@@ -303,7 +302,7 @@ Use this phase only when the user explicitly asks to implement, create, submit, 
 9. Commit, push, and create/update the PR intentionally.
    - Stage only intended files.
    - Use a clear commit message matching repository style.
-   - Include the verified Codex/GitHub bot `Co-authored-by` trailer in the commit message, following the Non-Negotiables co-author rule.
+   - Do not add any `Co-authored-by` trailer. See the Non-Negotiables co-author rule.
    - Push to the intended PR head branch.
    - Create a formal ready-for-review PR by default. Create a draft PR only when the user explicitly asks for a draft.
    - If updating an existing PR, remove references to deleted tests, deleted files, or outdated validation and preserve required template content.
@@ -312,8 +311,8 @@ Use this phase only when the user explicitly asks to implement, create, submit, 
 10. Report exact final state.
    - Include PR URL, branch, commit, changed files, validation commands and outcomes, CI status if known, and remaining review risks.
    - If the body deviated from this skill's default shape because of the project template, mention that briefly.
-   - **Open the PR URL in the user's Qoder in-app browser (sidebar)** via `mcp__browser-use__list_pages` + `mcp__browser-use__navigate_page`.
-   - **Write the Chinese-translation Markdown copy** to `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md` and link it in the final report.
+   - **Open the PR in the current IDE's browser surface** — use whatever in-app browser/preview panel the runtime actually provides; do not assume a specific product or tool name.
+   - **Write the Chinese-translation Markdown copy** to the location confirmed with the user, and link it in the final report.
    - Then stop. Do not keep re-printing the same summary when the user says "continue"; the remaining work is waiting on the maintainer.
 
 ## Step5 Address Reviewer Feedback
@@ -357,8 +356,7 @@ Use this phase when the user gives an existing PR link and asks to address revie
 6. Commit, push, and monitor remote CI.
    - Run `git status -sb`, `git diff --stat`, and relevant diffs before staging.
    - Stage only intended files and commit with a clear message matching project style.
-   - Always include the verified Codex/GitHub bot `Co-authored-by` trailer for commits produced while addressing review feedback, following the Non-Negotiables co-author rule. When the actionable feedback came from a bot review, use that bot identity if it can be verified.
-   - When changes are made in response to a human GitHub reviewer's substantive suggestion, best-effort also include that real reviewer as a commit co-author using a valid `Co-authored-by: Name <email>` trailer. Prefer a GitHub-verified or noreply email when it can be discovered from public GitHub context; do not guess private emails, and skip the human trailer when the reviewer identity/email cannot be validated or the repository's norms discourage co-authorship.
+   - Do not add any `Co-authored-by` trailer, whether for a bot or for a human reviewer. See the Non-Negotiables co-author rule.
    - Push to the PR head branch, not a different branch.
    - After pushing, monitor GitHub status checks until they pass, fail, skip, or require external authorization. Use `gh pr checks --watch` or equivalent when available.
    - If CI fails because of the new changes, inspect logs, fix, rerun the relevant local validation, commit, push, and monitor again.
@@ -379,7 +377,7 @@ Use this phase when the user gives an existing PR link and asks to address revie
 9. Report exact final state.
    - Include PR URL, branch, latest commit, review threads replied to, PR body changes, local CI commands and outcomes, remote CI status, reviewer(s) mentioned, and remaining review risks.
    - If the phase was degraded because subagents, credentials, full CI, or remote checks were unavailable, state that clearly and explain the best next action.
-   - **Open the PR URL in the user's Qoder in-app browser (sidebar)** via `mcp__browser-use__navigate_page`, and **refresh the Chinese-translation Markdown copy** at `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md` so it matches the updated PR body.
+   - **Open the PR in the current IDE's browser surface**, and **refresh the Chinese-translation Markdown copy** so it matches the updated PR body.
 
 ## Step6 Refine PR Comment Section
 
@@ -537,8 +535,7 @@ Use this only when the target repository has no PR template. If a project templa
 - Step5 maps every code/test/doc change to reviewer feedback, failing CI, or required evidence.
 - Step5 runs full local CI when feasible, then monitors remote CI after push.
 - Step5 replies to reviewer threads and politely at-mentions human reviewers only after validation reaches a clear state.
-- Commits produced by this skill include a verified Codex/GitHub bot `Co-authored-by` trailer when a valid bot noreply identity is available.
-- Step5 best-effort adds a real human reviewer as an additional `Co-authored-by` when their substantive review suggestion shaped the committed change, while avoiding guessed emails and fake co-authorship.
+- Commits produced by this skill carry no `Co-authored-by` trailer.
 - Step6 identifies the exact first-comment section boundary before editing.
 - Step6 preserves unrelated PR body/template content while expanding only the requested section.
 - Step6 includes `What Problem This Solves`, `Changes`, `Evidence`, and `Possible call chain / impact` as explicit nested headings inside the requested target section unless the user requests another structure.
@@ -551,6 +548,6 @@ Use this only when the target repository has no PR template. If a project templa
 - The PR is scoped to the requested change and avoids unrelated churn.
 - Patch-producing agents explicitly covered correctness, ownership boundary, completeness, best-fix judgment, and risk awareness before the patch was accepted.
 - Drafting and reviewer-response work explicitly covered behavior proof, media proof where useful, test/CI proof, dependency contract proof, and sibling-surface proof before the PR body or reviewer reply was finalized.
-- Every created or updated PR was opened in the user's Qoder in-app browser (sidebar) via `mcp__browser-use__navigate_page`.
-- Every created or updated PR has a matching Chinese-translation Markdown copy at `C:\XingyueZhu\Github\<repo>-PR-<number>-CN.md`.
+- Every created or updated PR was opened in whatever browser surface the current IDE provides, or the user was told why that surface was unavailable.
+- Every created or updated PR has a matching Chinese-translation Markdown copy in the location agreed with the user.
 - The run ended once; no repeated summary loops when the user says "continue" and the only remaining work is waiting on a maintainer.
